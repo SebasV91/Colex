@@ -1,4 +1,4 @@
-// app.js - ColeX Lógica Principal con Filtros y Exportación
+// app.js - ColeX Lógica con Agrupación por Editorial y Validación Anticopia
 
 document.addEventListener('DOMContentLoaded', () => {
     let obras = JSON.parse(localStorage.getItem('colex_obras')) || [];
@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const file = e.target.files[0];
         if (file) {
             fileNameSpan.textContent = file.name;
-            fileNameSpan.classList.add('text-blue-600', 'font-medium');
+            fileNameSpan.classList.add('text-amber-400', 'font-medium');
             const reader = new FileReader();
             reader.onload = function(uploadEvent) {
                 imagenPortadaBase64 = uploadEvent.target.result;
@@ -74,27 +74,37 @@ document.addEventListener('DOMContentLoaded', () => {
             reader.readAsDataURL(file);
         } else {
             fileNameSpan.textContent = 'Sin archivo seleccionado';
-            fileNameSpan.classList.remove('text-blue-600', 'font-medium');
+            fileNameSpan.classList.remove('text-amber-400', 'font-medium');
             imagenPortadaBase64 = '';
         }
     });
 
-    // Guardar Obra
+    // Guardar Obra con Validación Anticopia de Título
     const formObra = document.getElementById('formObra');
     formObra.addEventListener('submit', (e) => {
         e.preventDefault();
+        
+        const tituloIngresado = document.getElementById('titulo').value.trim();
+        
+        // Validación: Verificar si el título ya existe (sin distinguir mayúsculas/minúsculas)
+        const tituloExistente = obras.some(o => o.titulo.toLowerCase() === tituloIngresado.toLowerCase());
+        if (tituloExistente) {
+            alert(`⚠️ Ya existe una obra registrada con el título "${tituloIngresado}". Por favor, ingresa un título diferente o único.`);
+            return;
+        }
+
         const finalPortada = imagenPortadaBase64 || urlInput.value.trim() || 'https://via.placeholder.com/150';
 
         const nuevaObra = {
             id: Date.now(),
             portada: finalPortada,
-            titulo: document.getElementById('titulo').value,
+            titulo: tituloIngresado,
             numero: document.getElementById('numero').value || 'N/A',
             anio: document.getElementById('anio').value || 'S/F',
             tipo: tipoSelect.value,
             subtipo: subtipoSelect.value,
             autor: document.getElementById('autor').value || 'Desconocido',
-            editorial: document.getElementById('editorial').value || 'Independiente',
+            editorial: document.getElementById('editorial').value.trim() || 'Independiente',
             estado: document.getElementById('estadoFisico').value,
             valor: parseFloat(document.getElementById('valorManual').value) || 0
         };
@@ -111,12 +121,12 @@ document.addEventListener('DOMContentLoaded', () => {
         formObra.reset();
         imagenPortadaBase64 = '';
         fileNameSpan.textContent = 'Sin archivo seleccionado';
-        fileNameSpan.classList.remove('text-blue-600', 'font-medium');
+        fileNameSpan.classList.remove('text-amber-400', 'font-medium');
         subtipoSelect.disabled = true;
         subtipoSelect.innerHTML = '<option value="">Selecciona tipo primero...</option>';
     }
 
-    // Renderizar Colección Principal
+    // Renderizar Colección Agrupada por Editorial
     function renderizarColeccion(listaA_Renderizar = obras) {
         const container = document.getElementById('listColeccion');
         container.innerHTML = '';
@@ -126,19 +136,51 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // Agrupar obras por Editorial
+        const gruposPorEditorial = {};
         listaA_Renderizar.forEach(obra => {
-            const card = document.createElement('div');
-            card.className = "flex items-center bg-white p-3 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition cursor-pointer gap-3";
-            card.innerHTML = `
-                <img src="${obra.portada}" alt="${obra.titulo}" class="w-14 h-16 object-cover rounded-xl bg-slate-100">
-                <div class="flex-1 min-w-0">
-                    <h4 class="font-bold text-sm text-slate-900 truncate">${obra.titulo}</h4>
-                    <p class="text-xs text-slate-500">${obra.autor} • <span class="text-blue-600 font-medium">${obra.tipo}</span></p>
-                    <p class="text-[11px] text-slate-400 mt-0.5">${obra.editorial} (${obra.anio}) - <strong class="text-slate-600">$${obra.valor.toFixed(2)}</strong></p>
+            const editorial = obra.editorial || 'Independiente';
+            if (!gruposPorEditorial[editorial]) {
+                gruposPorEditorial[editorial] = [];
+            }
+            gruposPorEditorial[editorial].push(obra);
+        });
+
+        // Crear secciones visuales por cada editorial
+        Object.keys(gruposPorEditorial).sort().forEach(editorial => {
+            const obrasDeEditorial = gruposPorEditorial[editorial];
+
+            const seccionEditorial = document.createElement('div');
+            seccionEditorial.className = "space-y-2 mb-4";
+            
+            // Encabezado de la Editorial (Estilo estantería)
+            seccionEditorial.innerHTML = `
+                <div class="flex justify-between items-center px-1 border-b border-amber-900/40 pb-1">
+                    <h3 class="text-xs font-bold text-amber-200 uppercase tracking-wider">📚 ${editorial}</h3>
+                    <span class="text-[10px] bg-slate-800 text-amber-400 px-2 py-0.5 rounded-full border border-slate-700">${obrasDeEditorial.length} obra${obrasDeEditorial.length > 1 ? 's' : ''}</span>
                 </div>
             `;
-            card.addEventListener('click', () => verDetalleObra(obra.id));
-            container.appendChild(card);
+
+            const listaTarjetas = document.createElement('div');
+            listaTarjetas.className = "space-y-2.5";
+
+            obrasDeEditorial.forEach(obra => {
+                const card = document.createElement('div');
+                card.className = "flex items-center bg-slate-800/80 hover:bg-slate-800 p-3 rounded-2xl border border-slate-700 shadow-sm hover:shadow-md transition cursor-pointer gap-3";
+                card.innerHTML = `
+                    <img src="${obra.portada}" alt="${obra.titulo}" class="w-14 h-16 object-cover rounded-xl bg-slate-900">
+                    <div class="flex-1 min-w-0">
+                        <h4 class="font-bold text-sm text-amber-100 truncate">${obra.titulo}</h4>
+                        <p class="text-xs text-slate-400">${obra.autor} • <span class="text-amber-400 font-medium">${obra.tipo}</span></p>
+                        <p class="text-[11px] text-slate-500 mt-0.5">${obra.anio} - <strong class="text-amber-200">$${obra.valor.toFixed(2)}</strong></p>
+                    </div>
+                `;
+                card.addEventListener('click', () => verDetalleObra(obra.id));
+                listaTarjetas.appendChild(card);
+            });
+
+            seccionEditorial.appendChild(listaTarjetas);
+            container.appendChild(seccionEditorial);
         });
     }
 
@@ -149,20 +191,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const detalleContent = document.getElementById('detalleContent');
         detalleContent.innerHTML = `
-            <div class="flex flex-col items-center bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                <img src="${obra.portada}" alt="${obra.titulo}" class="w-36 h-48 object-cover rounded-xl shadow-md bg-slate-100">
+            <div class="flex flex-col items-center bg-slate-800/80 p-6 rounded-2xl border border-slate-700 shadow-sm space-y-4">
+                <img src="${obra.portada}" alt="${obra.titulo}" class="w-36 h-48 object-cover rounded-xl shadow-md bg-slate-900">
                 <div class="text-center">
-                    <h3 class="text-lg font-bold text-slate-900">${obra.titulo} ${obra.numero !== 'N/A' ? obra.numero : ''}</h3>
-                    <p class="text-sm text-slate-500">${obra.autor}</p>
+                    <h3 class="text-lg font-bold text-amber-100">${obra.titulo} ${obra.numero !== 'N/A' ? obra.numero : ''}</h3>
+                    <p class="text-sm text-slate-400">${obra.autor}</p>
                 </div>
-                <div class="w-full space-y-2 pt-2 border-t border-slate-100 text-sm">
-                    <div class="flex justify-between"><span class="text-slate-500">Tipo:</span> <span class="font-semibold">${obra.tipo} (${obra.subtipo})</span></div>
-                    <div class="flex justify-between"><span class="text-slate-500">Editorial:</span> <span class="font-semibold">${obra.editorial}</span></div>
-                    <div class="flex justify-between"><span class="text-slate-500">Año:</span> <span class="font-semibold">${obra.anio}</span></div>
-                    <div class="flex justify-between"><span class="text-slate-500">Estado:</span> <span class="font-semibold">${obra.estado}</span></div>
-                    <div class="flex justify-between"><span class="text-slate-500">Valor:</span> <span class="font-bold text-blue-600">$${obra.valor.toFixed(2)}</span></div>
+                <div class="w-full space-y-2 pt-2 border-t border-slate-700 text-sm">
+                    <div class="flex justify-between"><span class="text-slate-400">Tipo:</span> <span class="font-semibold text-slate-200">${obra.tipo} (${obra.subtipo})</span></div>
+                    <div class="flex justify-between"><span class="text-slate-400">Editorial:</span> <span class="font-semibold text-amber-300">${obra.editorial}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-400">Año:</span> <span class="font-semibold text-slate-200">${obra.anio}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-400">Estado:</span> <span class="font-semibold text-slate-200">${obra.estado}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-400">Precio Aprox:</span> <span class="font-bold text-amber-400">$${obra.valor.toFixed(2)}</span></div>
                 </div>
-                <button id="btnEliminar" class="w-full py-2.5 bg-red-50 text-red-600 font-semibold rounded-xl hover:bg-red-100 transition cursor-pointer text-xs mt-2">Eliminar Obra</button>
+                <button id="btnEliminar" class="w-full py-2.5 bg-red-950/60 text-red-400 font-semibold rounded-xl hover:bg-red-900/80 transition cursor-pointer text-xs mt-2 border border-red-900/50">Eliminar Obra</button>
             </div>
         `;
 
@@ -224,11 +266,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ================= FUNCIONES DE EXPORTACIÓN =================
 
-    // 1. Exportar a CSV
     document.getElementById('btnExportCSV').addEventListener('click', () => {
         if (obrasFiltradasGlobal.length === 0) { alert('No hay datos para exportar.'); return; }
         
-        let csvContent = "data:text/csv;charset=utf-8,ID,Titulo,Numero,Anio,Tipo,Subtipo,Autor,Editorial,Estado,Valor\n";
+        let csvContent = "data:text/csv;charset=utf-8,ID,Titulo,Numero,Anio,Tipo,Subtipo,Autor,Editorial,Estado,ValorAprox\n";
         obrasFiltradasGlobal.forEach(o => {
             let row = [o.id, `"${o.titulo}"`, o.numero, o.anio, `"${o.tipo}"`, `"${o.subtipo}"`, `"${o.autor}"`, `"${o.editorial}"`, o.estado, o.valor];
             csvContent += row.join(",") + "\n";
@@ -243,12 +284,11 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.removeChild(link);
     });
 
-    // 2. Exportar a Excel (Formato XLS Compatible)
     document.getElementById('btnExportExcel').addEventListener('click', () => {
         if (obrasFiltradasGlobal.length === 0) { alert('No hay datos para exportar.'); return; }
 
         let htmlTabla = `<table>
-            <tr><th>ID</th><th>Titulo</th><th>Numero</th><th>Anio</th><th>Tipo</th><th>Subtipo</th><th>Autor</th><th>Editorial</th><th>Estado</th><th>Valor</th></tr>`;
+            <tr><th>ID</th><th>Titulo</th><th>Numero</th><th>Anio</th><th>Tipo</th><th>Subtipo</th><th>Autor</th><th>Editorial</th><th>Estado</th><th>Precio Aprox</th></tr>`;
         
         obrasFiltradasGlobal.forEach(o => {
             htmlTabla += `<tr><td>${o.id}</td><td>${o.titulo}</td><td>${o.numero}</td><td>${o.anio}</td><td>${o.tipo}</td><td>${o.subtipo}</td><td>${o.autor}</td><td>${o.editorial}</td><td>${o.estado}</td><td>${o.valor}</td></tr>`;
@@ -265,17 +305,16 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.removeChild(link);
     });
 
-    // 3. Exportar a PDF (Mediante ventana de impresión optimizada)
     document.getElementById('btnExportPDF').addEventListener('click', () => {
         if (obrasFiltradasGlobal.length === 0) { alert('No hay datos para exportar.'); return; }
 
         let ventanaPrint = window.open('', '', 'height=600,width=800');
         ventanaPrint.document.write('<html><head><title>Reporte ColeX</title>');
-        ventanaPrint.document.write('<style>body{font-family:sans-serif;padding:20px;} table{width:100%;border-collapse:collapse;margin-top:20px;} th,td{border:1px solid #ddd;padding:8px;text-align:left;font-size:12px;} th{background-color:#2563eb;color:white;}</style>');
+        ventanaPrint.document.write('<style>body{font-family:sans-serif;padding:20px;} table{width:100%;border-collapse:collapse;margin-top:20px;} th,td{border:1px solid #ddd;padding:8px;text-align:left;font-size:12px;} th{background-color:#b45309;color:white;}</style>');
         ventanaPrint.document.write('</head><body>');
         ventanaPrint.document.write('<h2>Reporte de Colección - ColeX</h2>');
         ventanaPrint.document.write('<p>Total de obras listadas: ' + obrasFiltradasGlobal.length + '</p>');
-        ventanaPrint.document.write('<table><thead><tr><th>Título</th><th>Autor</th><th>Tipo</th><th>Editorial</th><th>Año</th><th>Estado</th><th>Valor</th></tr></thead><tbody>');
+        ventanaPrint.document.write('<table><thead><tr><th>Título</th><th>Autor</th><th>Tipo</th><th>Editorial</th><th>Año</th><th>Estado</th><th>Precio Aprox</th></tr></thead><tbody>');
 
         obrasFiltradasGlobal.forEach(o => {
             ventanaPrint.document.write(`<tr><td>${o.titulo}</td><td>${o.autor}</td><td>${o.tipo}</td><td>${o.editorial}</td><td>${o.anio}</td><td>${o.estado}</td><td>$${o.valor.toFixed(2)}</td></tr>`);
