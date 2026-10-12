@@ -11,11 +11,12 @@
 <body class="bg-slate-50 text-slate-800 min-h-screen">
     <!-- Navbar -->
     <header class="bg-blue-900 text-white shadow-md p-4 flex justify-between items-center">
-        <div class="flex items-center space-x-2">
-            <span class="bg-blue-600 px-3 py-1 rounded font-bold text-lg">CX</span>
-            <h1 class="text-xl font-semibold">ColeX</h1>
+        <div class="flex items-center space-x-3">
+            <!-- Logotipo PNG -->
+            <img src="img/logo.png" alt="Logo ColeX" class="w-9 h-9 object-contain bg-blue-800 p-1 rounded-lg">
+            <h1 class="text-xl font-semibold tracking-wide">ColeX</h1>
         </div>
-        <button id="openModalBtn" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium transition cursor-pointer">
+        <button id="openModalBtn" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium transition cursor-pointer shadow-sm">
             + Añadir Obra
         </button>
     </header>
@@ -46,7 +47,7 @@
         <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-xl font-bold text-slate-900">Añadir Nueva Obra</h2>
-                <button id="closeModalBtn" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+                <button id="closeModalBtn" class="text-slate-400 hover:text-slate-600 text-2xl font-bold cursor-pointer">&times;</button>
             </div>
 
             <form id="formAddObra" class="space-y-4">
@@ -127,8 +128,8 @@
                 </div>
 
                 <div class="flex justify-end space-x-3 pt-4 border-t">
-                    <button type="button" id="cancelModalBtn" class="px-4 py-2 border rounded-lg text-slate-600 hover:bg-slate-100 transition">Cancelar</button>
-                    <button type="submit" class="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">Guardar Obra</button>
+                    <button type="button" id="cancelModalBtn" class="px-4 py-2 border rounded-lg text-slate-600 hover:bg-slate-100 transition cursor-pointer">Cancelar</button>
+                    <button type="submit" class="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium cursor-pointer">Guardar Obra</button>
                 </div>
             </form>
         </div>
