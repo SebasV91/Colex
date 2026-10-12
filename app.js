@@ -1,12 +1,12 @@
-// app.js - ColeX conectado a Supabase
+// app.js - ColeX con Compresión de Imágenes HTML5 Canvas y Edición de Obras
 
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
 
 // ============================================================
-// REEMPLAZA ESTOS DOS VALORES CON TUS CREDENCIALES REALES DE SUPABASE
+// CREDENCIALES DE SUPABASE
 // ============================================================
-const SUPABASE_URL = 'https://ljxhehuierhexvkveszr.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_o_m6elxMjBmViae-LChBfQ_G4BB8LAy';
+const SUPABASE_URL = 'https://TU_PROYECTO.supabase.co';
+const SUPABASE_ANON_KEY = 'TU_PUBLISHABLE_KEY_AQUI';
 // ============================================================
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -62,65 +62,119 @@ document.addEventListener('DOMContentLoaded', () => {
     const tipoSelect = document.getElementById('tipoMaterial');
     const subtipoSelect = document.getElementById('subtipoMaterial');
 
-    tipoSelect.addEventListener('change', (e) => {
-        const tipo = e.target.value;
+    function actualizarOpcionesSubtipo(tipoSeleccionado, valorSubtipoActual = '') {
         subtipoSelect.innerHTML = '<option value="">Seleccionar formato...</option>';
-        if (subformatos[tipo]) {
+        if (subformatos[tipoSeleccionado]) {
             subtipoSelect.disabled = false;
-            subformatos[tipo].forEach(sub => {
+            subformatos[tipoSeleccionado].forEach(sub => {
                 const opt = document.createElement('option');
                 opt.value = sub;
                 opt.textContent = sub;
+                if (sub === valorSubtipoActual) opt.selected = true;
                 subtipoSelect.appendChild(opt);
             });
         } else {
             subtipoSelect.disabled = true;
             subtipoSelect.innerHTML = '<option value="">Selecciona tipo primero...</option>';
         }
-    });
+    }
 
-    // Manejo de archivo local (Portada)
+    tipoSelect.addEventListener('change', (e) => actualizarOpcionesSubtipo(e.target.value));
+
+    // ================= FUNCIÓN DE COMPRESIÓN DE IMÁGENES =================
+    function comprimirImagen(file, maxAnchoAlto = 600, calidad = 0.7) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > maxAnchoAlto) {
+                            height = Math.round((height * maxAnchoAlto) / width);
+                            width = maxAnchoAlto;
+                        }
+                    } else {
+                        if (height > maxAnchoAlto) {
+                            width = Math.round((width * maxAnchoAlto) / height);
+                            height = maxAnchoAlto;
+                        }
+                    }
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    const compressedBase64 = canvas.toDataURL('image/webp', calidad);
+                    resolve(compressedBase64);
+                };
+                img.onerror = (err) => reject(err);
+            };
+            reader.onerror = (err) => reject(err);
+        });
+    }
+
     const fileInput = document.getElementById('portadaFile');
     const fileNameSpan = document.getElementById('fileName');
     const urlInput = document.getElementById('portadaUrl');
+    const compressBadge = document.getElementById('compressBadge');
 
-    fileInput.addEventListener('change', (e) => {
+    fileInput.addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (file) {
-            fileNameSpan.textContent = file.name;
-            fileNameSpan.classList.add('text-amber-400', 'font-medium');
-            const reader = new FileReader();
-            reader.onload = function(uploadEvent) {
-                imagenPortadaBase64 = uploadEvent.target.result;
+            fileNameSpan.textContent = "Comprimiendo " + file.name + "...";
+            compressBadge.classList.add('hidden');
+
+            try {
+                imagenPortadaBase64 = await comprimirImagen(file, 600, 0.7);
+                fileNameSpan.textContent = file.name + " (Optimizada)";
+                fileNameSpan.classList.add('text-amber-400', 'font-medium');
+                compressBadge.classList.remove('hidden');
                 urlInput.value = '';
-            };
-            reader.readAsDataURL(file);
+            } catch (err) {
+                console.error("Error al comprimir:", err);
+                fileNameSpan.textContent = "Error al procesar la imagen";
+            }
         } else {
             fileNameSpan.textContent = 'Sin archivo seleccionado';
             fileNameSpan.classList.remove('text-amber-400', 'font-medium');
+            compressBadge.classList.add('hidden');
             imagenPortadaBase64 = '';
         }
     });
 
-    // Guardar Obra en Supabase con Validación Anticopia
+    // Guardar o Editar Obra en Supabase
     const formObra = document.getElementById('formObra');
     formObra.addEventListener('submit', async (e) => {
         e.preventDefault();
         
+        const editId = document.getElementById('editObraId').value;
         const tituloIngresado = document.getElementById('titulo').value.trim();
         
-        // Validación anticopia
-        const tituloExistente = obras.some(o => o.titulo.toLowerCase() === tituloIngresado.toLowerCase());
+        // Validación anticopia (ignorando la misma obra en caso de edición)
+        const tituloExistente = obras.some(o => o.titulo.toLowerCase() === tituloIngresado.toLowerCase() && String(o.id) !== String(editId));
         if (tituloExistente) {
             alert(`⚠️ Ya existe una obra registrada con el título "${tituloIngresado}".`);
             return;
         }
 
-        const finalPortada = imagenPortadaBase64 || urlInput.value.trim() || 'https://via.placeholder.com/150';
+        let finalPortada = imagenPortadaBase64 || urlInput.value.trim();
+        if (!finalPortada) {
+            if (editId) {
+                const obraExistente = obras.find(o => String(o.id) === String(editId));
+                finalPortada = obraExistente ? obraExistente.portada : 'https://via.placeholder.com/150';
+            } else {
+                finalPortada = 'https://via.placeholder.com/150';
+            }
+        }
 
-        const nuevaObra = {
-            id: Date.now(),
-            portada: finalPortada,
+        const datosObra = {
             titulo: tituloIngresado,
             numero: document.getElementById('numero').value || 'N/A',
             anio: document.getElementById('anio').value || 'S/F',
@@ -129,30 +183,80 @@ document.addEventListener('DOMContentLoaded', () => {
             autor: document.getElementById('autor').value || 'Desconocido',
             editorial: document.getElementById('editorial').value.trim() || 'Independiente',
             estado: document.getElementById('estadoFisico').value,
-            valor: parseFloat(document.getElementById('valorManual').value) || 0
+            valor: parseFloat(document.getElementById('valorManual').value) || 0,
+            portada: finalPortada
         };
 
-        // Guardar en Supabase
-        const { error } = await supabase.from('obras').insert([nuevaObra]);
-        if (error) {
-            alert('Error al guardar en la base de datos: ' + error.message);
-            return;
+        if (editId) {
+            // MODO EDICIÓN (.update)
+            const idNumber = Number(editId);
+            const { error } = await supabase.from('obras').update(datosObra).eq('id', idNumber);
+            if (error) {
+                alert('Error al actualizar en la base de datos: ' + error.message);
+                return;
+            }
+            const index = obras.findIndex(o => String(o.id) === String(editId));
+            if (index !== -1) {
+                obras[index] = { id: idNumber, ...datosObra };
+            }
+        } else {
+            // MODO CREACIÓN (.insert)
+            const nuevaObra = { id: Date.now(), ...datosObra };
+            const { error } = await supabase.from('obras').insert([nuevaObra]);
+            if (error) {
+                alert('Error al guardar en la base de datos: ' + error.message);
+                return;
+            }
+            obras.unshift(nuevaObra);
         }
 
-        obras.unshift(nuevaObra);
         obrasFiltradasGlobal = [...obras];
-
         renderizarColeccion(obras);
         switchScreen('coleccion');
     });
 
     function resetForm() {
         formObra.reset();
+        document.getElementById('editObraId').value = '';
+        document.getElementById('formTitle').textContent = 'Agregar Obra';
+        document.getElementById('btnSubmitForm').textContent = 'Guardar Obra';
         imagenPortadaBase64 = '';
         fileNameSpan.textContent = 'Sin archivo seleccionado';
         fileNameSpan.classList.remove('text-amber-400', 'font-medium');
+        compressBadge.classList.add('hidden');
         subtipoSelect.disabled = true;
         subtipoSelect.innerHTML = '<option value="">Selecciona tipo primero...</option>';
+    }
+
+    // Cargar formulario con datos existentes para Editar
+    function cargarFormularioParaEditar(obra) {
+        document.getElementById('editObraId').value = obra.id;
+        document.getElementById('formTitle').textContent = 'Editar Obra';
+        document.getElementById('btnSubmitForm').textContent = 'Actualizar Obra';
+
+        document.getElementById('titulo').value = obra.titulo;
+        document.getElementById('numero').value = obra.numero !== 'N/A' ? obra.numero : '';
+        document.getElementById('anio').value = obra.anio !== 'S/F' ? obra.anio : '';
+        document.getElementById('tipoMaterial').value = obra.tipo;
+        
+        actualizarOpcionesSubtipo(obra.tipo, obra.subtipo);
+
+        document.getElementById('autor').value = obra.autor !== 'Desconocido' ? obra.autor : '';
+        document.getElementById('editorial').value = obra.editorial !== 'Independiente' ? obra.editorial : '';
+        document.getElementById('estadoFisico').value = obra.estado;
+        document.getElementById('valorManual').value = obra.valor;
+
+        if (obra.portada && obra.portada.startsWith('http')) {
+            document.getElementById('portadaUrl').value = obra.portada;
+            fileNameSpan.textContent = 'Usando URL actual';
+        } else {
+            document.getElementById('portadaUrl').value = '';
+            fileNameSpan.textContent = 'Portada almacenada en la obra';
+        }
+
+        imagenPortadaBase64 = '';
+        compressBadge.classList.add('hidden');
+        switchScreen('form');
     }
 
     // Renderizar Colección Agrupada por Editorial
@@ -210,9 +314,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Ver Detalle y eliminar de Supabase
+    // Ver Detalle con opciones de Editar y Eliminar
     function verDetalleObra(id) {
-        const obra = obras.find(o => o.id === id);
+        const obra = obras.find(o => String(o.id) === String(id));
         if (!obra) return;
 
         const detalleContent = document.getElementById('detalleContent');
@@ -230,17 +334,30 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="flex justify-between"><span class="text-slate-400">Estado:</span> <span class="font-semibold text-slate-200">${obra.estado}</span></div>
                     <div class="flex justify-between"><span class="text-slate-400">Precio Aprox:</span> <span class="font-bold text-amber-400">$${obra.valor.toFixed(2)}</span></div>
                 </div>
-                <button id="btnEliminar" class="w-full py-2.5 bg-red-950/60 text-red-400 font-semibold rounded-xl hover:bg-red-900/80 transition cursor-pointer text-xs mt-2 border border-red-900/50">Eliminar Obra</button>
+
+                <div class="grid grid-cols-2 gap-2 w-full pt-2">
+                    <button id="btnEditar" class="py-2.5 bg-amber-700 text-white font-semibold rounded-xl hover:bg-amber-600 transition cursor-pointer text-xs flex items-center justify-center gap-1">
+                        ✏️ Editar Obra
+                    </button>
+                    <button id="btnEliminar" class="py-2.5 bg-red-950/60 text-red-400 font-semibold rounded-xl hover:bg-red-900/80 transition cursor-pointer text-xs border border-red-900/50">
+                        🗑️ Eliminar
+                    </button>
+                </div>
             </div>
         `;
 
+        document.getElementById('btnEditar').onclick = () => {
+            cargarFormularioParaEditar(obra);
+        };
+
         document.getElementById('btnEliminar').onclick = async () => {
-            const { error } = await supabase.from('obras').delete().eq('id', id);
+            if (!confirm(`¿Estás seguro de eliminar "${obra.titulo}"?`)) return;
+            const { error } = await supabase.from('obras').delete().eq('id', obra.id);
             if (error) {
                 alert('Error al eliminar: ' + error.message);
                 return;
             }
-            obras = obras.filter(o => o.id !== id);
+            obras = obras.filter(o => String(o.id) !== String(id));
             obrasFiltradasGlobal = [...obras];
             renderizarColeccion(obras);
             switchScreen('coleccion');
