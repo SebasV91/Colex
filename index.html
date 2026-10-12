@@ -16,10 +16,13 @@
         
         <!-- ================= PANTALLA 1: MI COLECCIÓN ================= -->
         <section id="viewColeccion" class="app-screen flex-1 flex flex-col p-5 overflow-y-auto">
-            <!-- Header con Logo en la esquina superior izquierda -->
+            <!-- Header con Logo Estilizado CX -->
             <div class="flex justify-between items-center mb-4 pt-2">
                 <div class="flex items-center space-x-2.5">
-                    <img src="logo.jpg" alt="Logo ColeX" class="w-10 h-10 object-contain rounded-xl shadow-sm" onerror="this.onerror=null; this.src='https://i.ibb.co/hRCt7PpG/logo.jpg';">
+                    <div class="flex items-center shadow-sm rounded-xl overflow-hidden border border-blue-600">
+                        <div class="bg-blue-600 text-white font-black text-xs px-2.5 py-1.5 flex items-center justify-center tracking-tighter">C</div>
+                        <div class="bg-blue-500 text-white font-black text-xs px-2.5 py-1.5 flex items-center justify-center tracking-tighter">X</div>
+                    </div>
                     <h1 class="text-2xl font-bold text-slate-900 tracking-tight">ColeX</h1>
                 </div>
                 <button id="navToAddBtn" class="w-9 h-9 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-600 rounded-full flex items-center justify-center text-2xl font-light transition cursor-pointer shadow-sm">+</button>
@@ -73,7 +76,7 @@
                             <span id="fileName" class="block text-[11px] text-slate-400 mt-1 text-center truncate">Sin archivo seleccionado</span>
                         </div>
 
-                        <div class="text-center text-[10px] text-slate-400 font-medium uppercase tracking-wider">- o pega una url -</div>
+                        <div class="text-center text-[10px] text-slate-400 font-medium uppercase tracking-wider">- o pega la url de tu portada -</div>
 
                         <!-- Opción 2: URL de la Portada -->
                         <div>
@@ -111,8 +114,8 @@
                         </div>
                         <div>
                             <label class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Formato *</label>
-                            <select id="subtipoMaterial" required disabled class="w-full p-3 bg-slate-100 rounded-xl text-sm outline-none border border-slate-200 text-slate-400">
-                                <option value="">Esperando tipo...</option>
+                            <select id="subtipoMaterial" required class="w-full p-3 bg-slate-50 rounded-xl text-sm outline-none border border-slate-200">
+                                <option value="">Selecciona tipo primero...</option>
                             </select>
                         </div>
                     </div>
@@ -155,14 +158,6 @@
                 <h2 class="text-xl font-bold text-slate-900">Filtros & Estadísticas</h2>
             </div>
 
-            <!-- Píldoras de Filtro -->
-            <div class="flex flex-wrap gap-2 mb-6">
-                <button class="px-4 py-2 border border-blue-600 text-blue-600 rounded-full text-xs font-semibold hover:bg-blue-50 transition cursor-pointer">Año</button>
-                <button class="px-4 py-2 border border-blue-600 text-blue-600 rounded-full text-xs font-semibold hover:bg-blue-50 transition cursor-pointer">Autor</button>
-                <button class="px-4 py-2 border border-blue-600 text-blue-600 rounded-full text-xs font-semibold hover:bg-blue-50 transition cursor-pointer">Estado</button>
-                <button class="px-4 py-2 border border-blue-600 text-blue-600 rounded-full text-xs font-semibold hover:bg-blue-50 transition cursor-pointer">Editorial</button>
-            </div>
-
             <!-- Métricas generales -->
             <div class="space-y-3.5 bg-slate-50 p-5 rounded-2xl border border-slate-200">
                 <h3 class="font-bold text-sm text-slate-900">Resumen de Colección</h3>
@@ -178,20 +173,6 @@
         </section>
 
     </div>
-
-    <!-- Script auxiliar para mostrar nombre del archivo seleccionado -->
-    <script>
-        document.getElementById('portadaFile').addEventListener('change', function(e) {
-            const fileNameSpan = document.getElementById('fileName');
-            if (e.target.files.length > 0) {
-                fileNameSpan.textContent = e.target.files[0].name;
-                fileNameSpan.classList.add('text-blue-600', 'font-medium');
-            } else {
-                fileNameSpan.textContent = 'Sin archivo seleccionado';
-                fileNameSpan.classList.remove('text-blue-600', 'font-medium');
-            }
-        });
-    </script>
 
     <!-- Script Principal -->
     <script type="module" src="app.js"></script>
