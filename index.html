@@ -6,31 +6,37 @@
     <title>ColeX - Sistema de Catalogación</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Hoja de Estilos Personalizada -->
-    <link rel="stylesheet" href="style.css">
+    <!-- Estilos personalizados para el fondo de biblioteca antigua -->
+    <style>
+        .library-bg {
+            background-image: linear-gradient(rgba(15, 23, 42, 0.85), rgba(30, 20, 10, 0.9)), url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=1200&q=80');
+            background-size: cover;
+            background-position: center;
+        }
+    </style>
 </head>
-<body class="bg-slate-100 text-slate-800 min-h-screen flex justify-center items-center p-0 sm:p-4">
+<body class="library-bg text-slate-100 min-h-screen flex justify-center items-center p-0 sm:p-4">
 
-    <!-- Contenedor Principal (Estilo App Móvil / Web Centrada) -->
-    <div class="w-full max-w-md bg-white min-h-screen sm:min-h-[850px] sm:max-h-[880px] sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden relative border border-slate-200">
+    <!-- Contenedor Principal (Estilo App Móvil / Web Centrada con efecto cristal antiguo) -->
+    <div class="w-full max-w-md bg-slate-900/90 backdrop-blur-md min-h-screen sm:min-h-[850px] sm:max-h-[880px] sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden relative border border-amber-900/40">
         
         <!-- ================= PANTALLA 1: MI COLECCIÓN ================= -->
         <section id="viewColeccion" class="app-screen flex-1 flex flex-col p-5 overflow-y-auto">
             <!-- Header con Logo Estilizado CX -->
             <div class="flex justify-between items-center mb-4 pt-2">
                 <div class="flex items-center space-x-2.5">
-                    <div class="flex items-center shadow-sm rounded-xl overflow-hidden border border-blue-600">
-                        <div class="bg-blue-600 text-white font-black text-xs px-2.5 py-1.5 flex items-center justify-center tracking-tighter">C</div>
-                        <div class="bg-blue-500 text-white font-black text-xs px-2.5 py-1.5 flex items-center justify-center tracking-tighter">X</div>
+                    <div class="flex items-center shadow-sm rounded-xl overflow-hidden border border-amber-600/50">
+                        <div class="bg-amber-700 text-white font-black text-xs px-2.5 py-1.5 flex items-center justify-center tracking-tighter">C</div>
+                        <div class="bg-amber-600 text-white font-black text-xs px-2.5 py-1.5 flex items-center justify-center tracking-tighter">X</div>
                     </div>
-                    <h1 class="text-2xl font-bold text-slate-900 tracking-tight">ColeX</h1>
+                    <h1 class="text-2xl font-bold text-amber-100 tracking-tight">ColeX</h1>
                 </div>
-                <button id="navToAddBtn" class="w-9 h-9 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-600 rounded-full flex items-center justify-center text-2xl font-light transition cursor-pointer shadow-sm">+</button>
+                <button id="navToAddBtn" class="w-9 h-9 bg-slate-800 hover:bg-amber-700/50 text-amber-200 hover:text-white rounded-full flex items-center justify-center text-2xl font-light transition cursor-pointer shadow-sm border border-amber-900/50">+</button>
             </div>
 
             <!-- Buscador -->
             <div class="mb-4">
-                <input type="text" id="searchInput" placeholder="🔍 Buscar por título, autor..." class="w-full p-3 bg-slate-100 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 transition">
+                <input type="text" id="searchInput" placeholder="🔍 Buscar por título, autor, editorial..." class="w-full p-3 bg-slate-800/80 text-slate-200 placeholder-slate-400 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-600 border border-slate-700 transition">
             </div>
 
             <!-- Lista de la Colección -->
@@ -39,66 +45,66 @@
             </div>
 
             <!-- Navegación Inferior -->
-            <div class="pt-3 pb-2 mt-2 border-t border-slate-100 flex justify-around items-center text-slate-500 bg-white">
-                <button id="navToAddBtnBottom" class="text-2xl font-bold hover:text-blue-600 transition cursor-pointer p-2">+</button>
-                <button id="navToStatsBtn" class="text-xl hover:text-blue-600 transition cursor-pointer p-2" title="Filtros y Estadísticas">🔍</button>
+            <div class="pt-3 pb-2 mt-2 border-t border-slate-800 flex justify-around items-center text-slate-400 bg-slate-900/90">
+                <button id="navToAddBtnBottom" class="text-2xl font-bold hover:text-amber-400 transition cursor-pointer p-2">+</button>
+                <button id="navToStatsBtn" class="text-xl hover:text-amber-400 transition cursor-pointer p-2" title="Filtros y Estadísticas">🔍</button>
             </div>
         </section>
 
         <!-- ================= PANTALLA 2: DETALLE DE LA OBRA ================= -->
-        <section id="viewDetalle" class="app-screen hidden flex-1 flex flex-col p-5 overflow-y-auto bg-slate-50">
-            <button id="backFromDetalle" class="text-slate-700 hover:text-slate-900 text-2xl mb-4 self-start cursor-pointer font-bold">←</button>
+        <section id="viewDetalle" class="app-screen hidden flex-1 flex flex-col p-5 overflow-y-auto bg-slate-900">
+            <button id="backFromDetalle" class="text-amber-200 hover:text-white text-2xl mb-4 self-start cursor-pointer font-bold">←</button>
             <div id="detalleContent" class="space-y-4">
                 <!-- Se inyecta dinámicamente con JS -->
             </div>
         </section>
 
         <!-- ================= PANTALLA 3: AGREGAR / EDITAR OBRA ================= -->
-        <section id="viewForm" class="app-screen hidden flex-1 flex flex-col p-5 overflow-y-auto bg-white">
+        <section id="viewForm" class="app-screen hidden flex-1 flex flex-col p-5 overflow-y-auto bg-slate-900">
             <div class="flex items-center mb-6 pt-2">
-                <button id="backFromForm" class="text-slate-700 hover:text-slate-900 text-2xl mr-4 cursor-pointer font-bold">←</button>
-                <h2 id="formTitle" class="text-xl font-bold text-slate-900">Agregar Obra</h2>
+                <button id="backFromForm" class="text-amber-200 hover:text-white text-2xl mr-4 cursor-pointer font-bold">←</button>
+                <h2 id="formTitle" class="text-xl font-bold text-amber-100">Agregar Obra</h2>
             </div>
 
             <form id="formObra" class="space-y-4 flex-1 flex flex-col justify-between pb-4">
                 <div class="space-y-3.5">
                     
                     <!-- Cuadro de Portada Dual -->
-                    <div class="flex flex-col p-4 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 space-y-2.5">
-                        <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">📷 Cuadro de Portada</span>
+                    <div class="flex flex-col p-4 bg-slate-800/60 rounded-2xl border-2 border-dashed border-slate-700 space-y-2.5">
+                        <span class="text-xs font-bold text-amber-200 flex items-center gap-1.5">📷 Cuadro de Portada</span>
                         <div>
-                            <label for="portadaFile" class="flex items-center justify-center gap-2 w-full py-2.5 px-3 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl text-xs font-semibold text-blue-600 cursor-pointer transition shadow-sm">
+                            <label for="portadaFile" class="flex items-center justify-center gap-2 w-full py-2.5 px-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs font-semibold text-amber-400 cursor-pointer transition shadow-sm">
                                 📁 Elegir archivo local (jpg, png, webp)
                             </label>
                             <input type="file" id="portadaFile" accept=".jpg, .jpeg, .png, .webp" class="hidden">
                             <span id="fileName" class="block text-[11px] text-slate-400 mt-1 text-center truncate">Sin archivo seleccionado</span>
                         </div>
-                        <div class="text-center text-[10px] text-slate-400 font-medium uppercase tracking-wider">- o pega la url de tu portada -</div>
+                        <div class="text-center text-[10px] text-slate-500 font-medium uppercase tracking-wider">- o pega la url de tu portada -</div>
                         <div>
-                            <input type="url" id="portadaUrl" placeholder="pega la url de tu portada" class="w-full text-center text-xs p-2.5 bg-white rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500">
+                            <input type="url" id="portadaUrl" placeholder="pega la url de tu portada" class="w-full text-center text-xs p-2.5 bg-slate-800 text-slate-200 placeholder-slate-500 rounded-lg border border-slate-700 outline-none focus:ring-2 focus:ring-amber-600">
                         </div>
                     </div>
 
                     <div>
-                        <label class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Título *</label>
-                        <input type="text" id="titulo" required class="w-full p-3 bg-slate-50 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 border border-slate-200">
+                        <label class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Título *</label>
+                        <input type="text" id="titulo" required class="w-full p-3 bg-slate-800 text-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-600 border border-slate-700">
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Número</label>
-                            <input type="text" id="numero" class="w-full p-3 bg-slate-50 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 border border-slate-200" placeholder="Ej. #5">
+                            <label class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Número</label>
+                            <input type="text" id="numero" class="w-full p-3 bg-slate-800 text-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-600 border border-slate-700" placeholder="Ej. #5">
                         </div>
                         <div>
-                            <label class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Año</label>
-                            <input type="number" id="anio" class="w-full p-3 bg-slate-50 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 border border-slate-200" placeholder="Ej. 2023">
+                            <label class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Año</label>
+                            <input type="number" id="anio" class="w-full p-3 bg-slate-800 text-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-600 border border-slate-700" placeholder="Ej. 2023">
                         </div>
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Tipo *</label>
-                            <select id="tipoMaterial" required class="w-full p-3 bg-slate-50 rounded-xl text-sm outline-none border border-slate-200">
+                            <label class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Tipo *</label>
+                            <select id="tipoMaterial" required class="w-full p-3 bg-slate-800 text-slate-200 rounded-xl text-sm outline-none border border-slate-700">
                                 <option value="">Seleccionar...</option>
                                 <option value="Cómic">Cómic</option>
                                 <option value="Novela Gráfica">Novela Gráfica</option>
@@ -108,26 +114,26 @@
                             </select>
                         </div>
                         <div>
-                            <label class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Formato *</label>
-                            <select id="subtipoMaterial" required class="w-full p-3 bg-slate-50 rounded-xl text-sm outline-none border border-slate-200">
+                            <label class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Formato *</label>
+                            <select id="subtipoMaterial" required class="w-full p-3 bg-slate-800 text-slate-400 rounded-xl text-sm outline-none border border-slate-700">
                                 <option value="">Selecciona tipo primero...</option>
                             </select>
                         </div>
                     </div>
 
                     <div>
-                        <label class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Autor</label>
-                        <input type="text" id="autor" class="w-full p-3 bg-slate-50 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 border border-slate-200">
+                        <label class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Autor</label>
+                        <input type="text" id="autor" class="w-full p-3 bg-slate-800 text-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-600 border border-slate-700">
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Editorial</label>
-                            <input type="text" id="editorial" class="w-full p-3 bg-slate-50 rounded-xl text-sm outline-none border border-slate-200">
+                            <label class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Editorial</label>
+                            <input type="text" id="editorial" class="w-full p-3 bg-slate-800 text-slate-200 rounded-xl text-sm outline-none border border-slate-700">
                         </div>
                         <div>
-                            <label class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Estado</label>
-                            <select id="estadoFisico" class="w-full p-3 bg-slate-50 rounded-xl text-sm outline-none border border-slate-200">
+                            <label class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Estado</label>
+                            <select id="estadoFisico" class="w-full p-3 bg-slate-800 text-slate-200 rounded-xl text-sm outline-none border border-slate-700">
                                 <option value="Nuevo">Nuevo</option>
                                 <option value="Usado">Usado</option>
                                 <option value="Deteriorado">Deteriorado</option>
@@ -137,29 +143,29 @@
                     </div>
 
                     <div>
-                        <label class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Precio ($)</label>
-                        <input type="number" step="0.01" id="valorManual" value="0.00" class="w-full p-3 bg-slate-50 rounded-xl text-sm outline-none border border-slate-200">
+                        <label class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Precio ($)</label>
+                        <input type="number" step="0.01" id="valorManual" value="0.00" class="w-full p-3 bg-slate-800 text-slate-200 rounded-xl text-sm outline-none border border-slate-700">
                     </div>
                 </div>
 
-                <button type="submit" class="w-full py-3.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition cursor-pointer mt-4 shadow-md">Guardar Obra</button>
+                <button type="submit" class="w-full py-3.5 bg-amber-700 text-white font-bold rounded-xl hover:bg-amber-600 transition cursor-pointer mt-4 shadow-md">Guardar Obra</button>
             </form>
         </section>
 
         <!-- ================= PANTALLA 4: FILTROS Y ESTADÍSTICAS ================= -->
-        <section id="viewStats" class="app-screen hidden flex-1 flex flex-col p-5 overflow-y-auto bg-white">
+        <section id="viewStats" class="app-screen hidden flex-1 flex flex-col p-5 overflow-y-auto bg-slate-900">
             <div class="flex items-center mb-4 pt-2">
-                <button id="backFromStats" class="text-slate-700 hover:text-slate-900 text-2xl mr-4 cursor-pointer font-bold">←</button>
-                <h2 class="text-xl font-bold text-slate-900">Filtros & Reportes</h2>
+                <button id="backFromStats" class="text-amber-200 hover:text-white text-2xl mr-4 cursor-pointer font-bold">←</button>
+                <h2 class="text-xl font-bold text-amber-100">Filtros & Reportes</h2>
             </div>
 
             <!-- Panel de Filtros Avanzados -->
-            <div class="space-y-3.5 bg-slate-50 p-4 rounded-2xl border border-slate-200 mb-4">
-                <h3 class="font-bold text-xs text-slate-700 uppercase tracking-wider">Filtros de Búsqueda</h3>
+            <div class="space-y-3.5 bg-slate-800/60 p-4 rounded-2xl border border-slate-700 mb-4">
+                <h3 class="font-bold text-xs text-amber-200 uppercase tracking-wider">Filtros de Búsqueda</h3>
                 
                 <div>
-                    <label class="text-[11px] text-slate-500 font-semibold">Filtrar por Tipo</label>
-                    <select id="filtroTipo" class="w-full p-2.5 bg-white rounded-xl text-xs outline-none border border-slate-200 mt-1">
+                    <label class="text-[11px] text-slate-400 font-semibold">Filtrar por Tipo</label>
+                    <select id="filtroTipo" class="w-full p-2.5 bg-slate-800 text-slate-200 rounded-xl text-xs outline-none border border-slate-700 mt-1">
                         <option value="">Todos los tipos</option>
                         <option value="Cómic">Cómic</option>
                         <option value="Novela Gráfica">Novela Gráfica</option>
@@ -170,39 +176,39 @@
                 </div>
 
                 <div>
-                    <label class="text-[11px] text-slate-500 font-semibold">Filtrar por Editorial</label>
-                    <input type="text" id="filtroEditorial" placeholder="Ej. Marvel, Ivrea..." class="w-full p-2.5 bg-white rounded-xl text-xs outline-none border border-slate-200 mt-1">
+                    <label class="text-[11px] text-slate-400 font-semibold">Filtrar por Editorial</label>
+                    <input type="text" id="filtroEditorial" placeholder="Ej. Marvel, Ivrea..." class="w-full p-2.5 bg-slate-800 text-slate-200 placeholder-slate-500 rounded-xl text-xs outline-none border border-slate-700 mt-1">
                 </div>
 
                 <div>
-                    <label class="text-[11px] text-slate-500 font-semibold">Precio Máximo ($)</label>
-                    <input type="number" id="filtroPrecio" placeholder="Ej. 50" class="w-full p-2.5 bg-white rounded-xl text-xs outline-none border border-slate-200 mt-1">
+                    <label class="text-[11px] text-slate-400 font-semibold">Precio Máximo ($)</label>
+                    <input type="number" id="filtroPrecio" placeholder="Ej. 50" class="w-full p-2.5 bg-slate-800 text-slate-200 placeholder-slate-500 rounded-xl text-xs outline-none border border-slate-700 mt-1">
                 </div>
 
-                <button id="btnAplicarFiltros" class="w-full py-2 bg-slate-900 text-white font-semibold rounded-xl text-xs hover:bg-slate-800 transition cursor-pointer">Aplicar Filtros</button>
-                <button id="btnLimpiarFiltros" class="w-full py-1.5 bg-transparent text-slate-500 font-medium rounded-xl text-xs hover:text-slate-700 transition cursor-pointer">Limpiar Filtros</button>
+                <button id="btnAplicarFiltros" class="w-full py-2 bg-amber-700 text-white font-semibold rounded-xl text-xs hover:bg-amber-600 transition cursor-pointer">Aplicar Filtros</button>
+                <button id="btnLimpiarFiltros" class="w-full py-1.5 bg-transparent text-slate-400 font-medium rounded-xl text-xs hover:text-white transition cursor-pointer">Limpiar Filtros</button>
             </div>
 
             <!-- Panel de Métricas -->
-            <div class="space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-200 mb-4">
-                <h3 class="font-bold text-xs text-slate-700 uppercase tracking-wider">Resumen</h3>
+            <div class="space-y-3 bg-slate-800/60 p-4 rounded-2xl border border-slate-700 mb-4">
+                <h3 class="font-bold text-xs text-amber-200 uppercase tracking-wider">Resumen</h3>
                 <div class="flex justify-between text-sm">
-                    <span class="text-slate-500">Obras filtradas/totales:</span>
-                    <span id="statTotal" class="font-bold text-slate-800">0</span>
+                    <span class="text-slate-400">Obras filtradas/totales:</span>
+                    <span id="statTotal" class="font-bold text-slate-200">0</span>
                 </div>
                 <div class="flex justify-between text-sm">
-                    <span class="text-slate-500">Valor estimado:</span>
-                    <span id="statValor" class="font-bold text-blue-600">$0.00</span>
+                    <span class="text-slate-400">Valor estimado:</span>
+                    <span id="statValor" class="font-bold text-amber-400">$0.00</span>
                 </div>
             </div>
 
             <!-- Botones de Exportación -->
             <div class="space-y-2.5 pt-2">
-                <h3 class="font-bold text-xs text-slate-700 uppercase tracking-wider">Exportar Datos</h3>
+                <h3 class="font-bold text-xs text-amber-200 uppercase tracking-wider">Exportar Datos</h3>
                 <div class="grid grid-cols-3 gap-2">
-                    <button id="btnExportCSV" class="py-2.5 bg-emerald-600 text-white font-semibold rounded-xl text-xs hover:bg-emerald-700 transition cursor-pointer shadow-sm">CSV</button>
-                    <button id="btnExportExcel" class="py-2.5 bg-blue-600 text-white font-semibold rounded-xl text-xs hover:bg-blue-700 transition cursor-pointer shadow-sm">Excel</button>
-                    <button id="btnExportPDF" class="py-2.5 bg-rose-600 text-white font-semibold rounded-xl text-xs hover:bg-rose-700 transition cursor-pointer shadow-sm">PDF</button>
+                    <button id="btnExportCSV" class="py-2.5 bg-emerald-700 text-white font-semibold rounded-xl text-xs hover:bg-emerald-600 transition cursor-pointer shadow-sm">CSV</button>
+                    <button id="btnExportExcel" class="py-2.5 bg-blue-700 text-white font-semibold rounded-xl text-xs hover:bg-blue-600 transition cursor-pointer shadow-sm">Excel</button>
+                    <button id="btnExportPDF" class="py-2.5 bg-rose-700 text-white font-semibold rounded-xl text-xs hover:bg-rose-600 transition cursor-pointer shadow-sm">PDF</button>
                 </div>
             </div>
         </section>
