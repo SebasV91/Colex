@@ -14,41 +14,71 @@ let obraActual = null;
 // --- GESTIÓN DE NAVEGACIÓN ENTRE VENTANAS ---
 function showScreen(screenId) {
     document.querySelectorAll('.app-screen').forEach(s => s.classList.add('hidden'));
-    document.getElementById(screenId).classList.remove('hidden');
+    const target = document.getElementById(screenId);
+    if (target) {
+        target.classList.remove('hidden');
+    } else {
+        console.error(`No se encontró la pantalla con ID: ${screenId}`);
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    cargarColeccion();
-    configurarNavegacion();
-    configurarSelects();
-    configurarFormulario();
+    try {
+        cargarColeccion();
+        configurarNavegacion();
+        configurarSelects();
+        configurarFormulario();
+    } catch (error) {
+        console.error("Error al inicializar la app:", error);
+    }
 });
 
 function configurarNavegacion() {
-    document.getElementById('navToAddBtn').addEventListener('click', () => abrirFormulario());
-    document.getElementById('navToAddBtnBottom').addEventListener('click', () => abrirFormulario());
-    document.getElementById('navToStatsBtn').addEventListener('click', () => {
+    const btnAdd1 = document.getElementById('navToAddBtn');
+    const btnAdd2 = document.getElementById('navToAddBtnBottom');
+    const btnStats = document.getElementById('navToStatsBtn');
+
+    if (btnAdd1) btnAdd1.addEventListener('click', () => abrirFormulario());
+    if (btnAdd2) btnAdd2.addEventListener('click', () => abrirFormulario());
+    if (btnStats) btnStats.addEventListener('click', () => {
         calcularEstadisticas();
         showScreen('viewStats');
     });
 
-    document.getElementById('backFromDetalle').addEventListener('click', () => showScreen('viewColeccion'));
-    document.getElementById('backFromForm').addEventListener('click', () => showScreen('viewColeccion'));
-    document.getElementById('backFromStats').addEventListener('click', () => showScreen('viewColeccion'));
+    const backDetalle = document.getElementById('backFromDetalle');
+    const backForm = document.getElementById('backFromForm');
+    const backStats = document.getElementById('backFromStats');
+
+    if (backDetalle) backDetalle.addEventListener('click', () => showScreen('viewColeccion'));
+    if (backForm) backForm.addEventListener('click', () => showScreen('viewColeccion'));
+    if (backStats) backStats.addEventListener('click', () => showScreen('viewColeccion'));
 }
 
 // --- CARGA DE DATOS DESDE SUPABASE ---
 async function cargarColeccion() {
-    const { data, error } = await supabase.from('coleccion').select('*').order('created_at', { ascending: false });
-    if (error) return console.error(error);
-    coleccion = data || [];
-    renderizarColeccion(coleccion);
+    try {
+        const { data, error } = await supabase.from('coleccion').select('*').order('created_at', { ascending: false });
+        if (error) {
+            console.error('Error de Supabase:', error.message);
+            return;
+        }
+        coleccion = data || [];
+        renderizarColeccion(coleccion);
+    } catch (err) {
+        console.error('Error de conexión con Supabase:', err);
+    }
 }
 
 // --- RENDERIZADO DE LA PANTALLA PRINCIPAL ---
 function renderizarColeccion(items) {
     const contenedor = document.getElementById('listColeccion');
+    if (!contenedor) return;
     contenedor.innerHTML = '';
+
+    if (items.length === 0) {
+        contenedor.innerHTML = `<p class="text-center text-slate-400 text-sm py-10">No hay obras registradas aún. Presiona + para agregar una.</p>`;
+        return;
+    }
 
     items.forEach(item => {
         const row = document.createElement('div');
@@ -66,10 +96,12 @@ function renderizarColeccion(items) {
     });
 }
 
-// --- PANTALLA DE DETALLE (Diseño de la maqueta) ---
+// --- PANTALLA DE DETALLE ---
 function verDetalle(item) {
     obraActual = item;
     const content = document.getElementById('detalleContent');
+    if (!content) return;
+
     content.innerHTML = `
         <div class="bg-white p-4 rounded-2xl shadow-sm border space-y-4">
             <div class="flex gap-4">
@@ -82,6 +114,7 @@ function verDetalle(item) {
             </div>
 
             <div class="space-y-2 border-t pt-3 text-sm">
+                <div class="flex justify-between"><span class="text-slate-500">Formato</span><span class="font-medium">${item.subtipo_material || 'N/A'}</span></div>
                 <div class="flex justify-between"><span class="text-slate-500">Autor</span><span class="font-medium">${item.autor || 'N/A'}</span></div>
                 <div class="flex justify-between"><span class="text-slate-500">Editorial</span><span class="font-medium">${item.editorial || 'N/A'}</span></div>
                 <div class="flex justify-between"><span class="text-slate-500">Año</span><span class="font-medium">${item.anio_lanzamiento || 'N/A'}</span></div>
@@ -106,6 +139,7 @@ function verDetalle(item) {
 function abrirFormulario(item = null) {
     obraActual = item;
     const form = document.getElementById('formObra');
+    if (!form) return;
     form.reset();
 
     if (item) {
@@ -123,7 +157,9 @@ function abrirFormulario(item = null) {
         document.getElementById('portadaUrl').value = item.portada_url || '';
     } else {
         document.getElementById('formTitle').textContent = 'Agregar Obra';
-        document.getElementById('subtipoMaterial').disabled = true;
+        const sub = document.getElementById('subtipoMaterial');
+        sub.disabled = true;
+        sub.innerHTML = '<option value="">Seleccione tipo primero...</option>';
     }
 
     showScreen('viewForm');
@@ -131,11 +167,15 @@ function abrirFormulario(item = null) {
 
 function configurarSelects() {
     const selectTipo = document.getElementById('tipoMaterial');
-    selectTipo.addEventListener('change', (e) => actualizarSubtipos(e.target.value));
+    if (selectTipo) {
+        selectTipo.addEventListener('change', (e) => actualizarSubtipos(e.target.value));
+    }
 }
 
 function actualizarSubtipos(tipo) {
     const selectSubtipo = document.getElementById('subtipoMaterial');
+    if (!selectSubtipo) return;
+    
     selectSubtipo.innerHTML = '<option value="">Seleccionar formato...</option>';
     if (tipo && sublistasFormatos[tipo]) {
         selectSubtipo.disabled = false;
@@ -151,7 +191,10 @@ function actualizarSubtipos(tipo) {
 }
 
 function configurarFormulario() {
-    document.getElementById('formObra').addEventListener('submit', async (e) => {
+    const form = document.getElementById('formObra');
+    if (!form) return;
+
+    form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
         const payload = {
@@ -167,27 +210,39 @@ function configurarFormulario() {
             portada_url: document.getElementById('portadaUrl').value
         };
 
-        if (obraActual) {
-            await supabase.from('coleccion').update(payload).eq('id', obraActual.id);
-        } else {
-            await supabase.from('coleccion').insert([payload]);
-        }
+        try {
+            if (obraActual) {
+                await supabase.from('coleccion').update(payload).eq('id', obraActual.id);
+            } else {
+                await supabase.from('coleccion').insert([payload]);
+            }
 
-        await cargarColeccion();
-        showScreen('viewColeccion');
+            await cargarColeccion();
+            showScreen('viewColeccion');
+        } catch (err) {
+            console.error('Error al guardar en Supabase:', err);
+            alert('Hubo un error al guardar la obra.');
+        }
     });
 }
 
 async function eliminarObra(id) {
     if (confirm('¿Seguro que deseas eliminar esta obra?')) {
-        await supabase.from('coleccion').delete().eq('id', id);
-        await cargarColeccion();
-        showScreen('viewColeccion');
+        try {
+            await supabase.from('coleccion').delete().eq('id', id);
+            await cargarColeccion();
+            showScreen('viewColeccion');
+        } catch (err) {
+            console.error('Error al eliminar:', err);
+        }
     }
 }
 
 function calcularEstadisticas() {
-    document.getElementById('statTotal').textContent = coleccion.length;
+    const statTotal = document.getElementById('statTotal');
+    const statValor = document.getElementById('statValor');
+    if (statTotal) statTotal.textContent = coleccion.length;
+    
     const totalValor = coleccion.reduce((acc, curr) => acc + (Number(curr.valor_manual) || 0), 0);
-    document.getElementById('statValor').textContent = `$${totalValor.toFixed(2)}`;
+    if (statValor) statValor.textContent = `$${totalValor.toFixed(2)}`;
 }
