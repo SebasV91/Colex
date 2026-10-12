@@ -1,154 +1,169 @@
-<!-- Contenedor Principal (Estilo App Móvil / Web Centrada) -->
-<div class="w-full max-w-md bg-white min-h-screen sm:min-h-[850px] sm:max-h-[880px] sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden relative border border-slate-200">
-    
-    <!-- ================= PANTALLA 1: MI COLECCIÓN ================= -->
-    <section id="viewColeccion" class="app-screen flex-1 flex flex-col p-5 overflow-y-auto">
-        <!-- Header con Logo en la esquina superior izquierda (logo.jpg en la raíz) -->
-        <div class="flex justify-between items-center mb-4 pt-2">
-            <div class="flex items-center space-x-2.5">
-                <img src="https://ibb.co/hRCt7PpG" alt="Logo ColeX" class="w-10 h-10 object-contain rounded-xl shadow-sm">
-                <h1 class="text-2xl font-bold text-slate-900 tracking-tight">ColeX</h1>
-            </div>
-            <button id="navToAddBtn" class="w-9 h-9 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-600 rounded-full flex items-center justify-center text-2xl font-light transition cursor-pointer shadow-sm">+</button>
-        </div>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ColeX - Sistema de Catalogación</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Hoja de Estilos Personalizada -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex justify-center items-center p-0 sm:p-4">
 
-        <!-- Buscador -->
-        <div class="mb-4">
-            <input type="text" id="searchInput" placeholder="🔍 Buscar por título, autor..." class="w-full p-3 bg-slate-100 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 transition">
-        </div>
-
-        <!-- Lista de la Colección -->
-        <div id="listColeccion" class="space-y-3 flex-1 overflow-y-auto pr-1">
-            <!-- Las tarjetas se inyectan dinámicamente con JS -->
-        </div>
-
-        <!-- Navegación Inferior -->
-        <div class="pt-3 pb-2 mt-2 border-t border-slate-100 flex justify-around items-center text-slate-500 bg-white">
-            <button id="navToAddBtnBottom" class="text-2xl font-bold hover:text-blue-600 transition cursor-pointer p-2">+</button>
-            <button id="navToStatsBtn" class="text-xl hover:text-blue-600 transition cursor-pointer p-2" title="Filtros y Estadísticas">🔍</button>
-        </div>
-    </section>
-
-    <!-- ================= PANTALLA 2: DETALLE DE LA OBRA ================= -->
-    <section id="viewDetalle" class="app-screen hidden flex-1 flex flex-col p-5 overflow-y-auto bg-slate-50">
-        <button id="backFromDetalle" class="text-slate-700 hover:text-slate-900 text-2xl mb-4 self-start cursor-pointer font-bold">←</button>
-        <div id="detalleContent" class="space-y-4">
-            <!-- Se inyecta dinámicamente con JS -->
-        </div>
-    </section>
-
-    <!-- ================= PANTALLA 3: AGREGAR / EDITAR OBRA ================= -->
-    <section id="viewForm" class="app-screen hidden flex-1 flex flex-col p-5 overflow-y-auto bg-white">
-        <div class="flex items-center mb-6 pt-2">
-            <button id="backFromForm" class="text-slate-700 hover:text-slate-900 text-2xl mr-4 cursor-pointer font-bold">←</button>
-            <h2 id="formTitle" class="text-xl font-bold text-slate-900">Agregar Obra</h2>
-        </div>
-
-        <form id="formObra" class="space-y-4 flex-1 flex flex-col justify-between pb-4">
-            <div class="space-y-3.5">
-                <!-- Cuadro de Portada -->
-                <div class="flex flex-col items-center justify-center p-5 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
-                    <span class="text-2xl mb-1">📷</span>
-                    <input type="url" id="portadaUrl" placeholder="Pega aquí la URL de la portada" class="w-full text-center text-xs p-2.5 bg-white rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500">
+    <!-- Contenedor Principal (Estilo App Móvil / Web Centrada) -->
+    <div class="w-full max-w-md bg-white min-h-screen sm:min-h-[850px] sm:max-h-[880px] sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden relative border border-slate-200">
+        
+        <!-- ================= PANTALLA 1: MI COLECCIÓN ================= -->
+        <section id="viewColeccion" class="app-screen flex-1 flex flex-col p-5 overflow-y-auto">
+            <!-- Header con Logo en la esquina superior izquierda -->
+            <div class="flex justify-between items-center mb-4 pt-2">
+                <div class="flex items-center space-x-2.5">
+                    <img src="https://ibb.co/hRCt7PpG" alt="Logo ColeX" class="w-10 h-10 object-contain rounded-xl shadow-sm" onerror="this.style.display='none'">
+                    <h1 class="text-2xl font-bold text-slate-900 tracking-tight">ColeX</h1>
                 </div>
-
-                <div>
-                    <label class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Título *</label>
-                    <input type="text" id="titulo" required class="w-full p-3 bg-slate-50 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 border border-slate-200">
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Número</label>
-                        <input type="text" id="numero" class="w-full p-3 bg-slate-50 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 border border-slate-200" placeholder="Ej. #5">
-                    </div>
-                    <div>
-                        <label class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Año</label>
-                        <input type="number" id="anio" class="w-full p-3 bg-slate-50 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 border border-slate-200" placeholder="Ej. 2023">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Tipo *</label>
-                        <select id="tipoMaterial" required class="w-full p-3 bg-slate-50 rounded-xl text-sm outline-none border border-slate-200">
-                            <option value="">Seleccionar...</option>
-                            <option value="Cómic">Cómic</option>
-                            <option value="Novela Gráfica">Novela Gráfica</option>
-                            <option value="Manga">Manga</option>
-                            <option value="Fanzine">Fanzine</option>
-                            <option value="Libro">Libro</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Formato *</label>
-                        <select id="subtipoMaterial" required disabled class="w-full p-3 bg-slate-100 rounded-xl text-sm outline-none border border-slate-200 text-slate-400">
-                            <option value="">Esperando tipo...</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Autor</label>
-                    <input type="text" id="autor" class="w-full p-3 bg-slate-50 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 border border-slate-200">
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Editorial</label>
-                        <input type="text" id="editorial" class="w-full p-3 bg-slate-50 rounded-xl text-sm outline-none border border-slate-200">
-                    </div>
-                    <div>
-                        <label class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Estado</label>
-                        <select id="estadoFisico" class="w-full p-3 bg-slate-50 rounded-xl text-sm outline-none border border-slate-200">
-                            <option value="Nuevo">Nuevo</option>
-                            <option value="Usado">Usado</option>
-                            <option value="Deteriorado">Deteriorado</option>
-                            <option value="Excelente">Excelente</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Precio ($)</label>
-                    <input type="number" step="0.01" id="valorManual" value="0.00" class="w-full p-3 bg-slate-50 rounded-xl text-sm outline-none border border-slate-200">
-                </div>
+                <button id="navToAddBtn" class="w-9 h-9 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-600 rounded-full flex items-center justify-center text-2xl font-light transition cursor-pointer shadow-sm">+</button>
             </div>
 
-            <button type="submit" class="w-full py-3.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition cursor-pointer mt-4 shadow-md">Guardar Obra</button>
-        </form>
-    </section>
-
-    <!-- ================= PANTALLA 4: FILTROS Y ESTADÍSTICAS ================= -->
-    <section id="viewStats" class="app-screen hidden flex-1 flex flex-col p-5 overflow-y-auto bg-white">
-        <div class="flex items-center mb-4 pt-2">
-            <button id="backFromStats" class="text-slate-700 hover:text-slate-900 text-2xl mr-4 cursor-pointer font-bold">←</button>
-            <h2 class="text-xl font-bold text-slate-900">Filtros & Estadísticas</h2>
-        </div>
-
-        <!-- Píldoras de Filtro -->
-        <div class="flex flex-wrap gap-2 mb-6">
-            <button class="px-4 py-2 border border-blue-600 text-blue-600 rounded-full text-xs font-semibold hover:bg-blue-50 transition cursor-pointer">Año</button>
-            <button class="px-4 py-2 border border-blue-600 text-blue-600 rounded-full text-xs font-semibold hover:bg-blue-50 transition cursor-pointer">Autor</button>
-            <button class="px-4 py-2 border border-blue-600 text-blue-600 rounded-full text-xs font-semibold hover:bg-blue-50 transition cursor-pointer">Estado</button>
-            <button class="px-4 py-2 border border-blue-600 text-blue-600 rounded-full text-xs font-semibold hover:bg-blue-50 transition cursor-pointer">Editorial</button>
-        </div>
-
-        <!-- Métricas generales -->
-        <div class="space-y-3.5 bg-slate-50 p-5 rounded-2xl border border-slate-200">
-            <h3 class="font-bold text-sm text-slate-900">Resumen de Colección</h3>
-            <div class="flex justify-between text-sm">
-                <span class="text-slate-500">Total de obras:</span>
-                <span id="statTotal" class="font-bold text-slate-800">0</span>
+            <!-- Buscador -->
+            <div class="mb-4">
+                <input type="text" id="searchInput" placeholder="🔍 Buscar por título, autor..." class="w-full p-3 bg-slate-100 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 transition">
             </div>
-            <div class="flex justify-between text-sm">
-                <span class="text-slate-500">Valor estimado:</span>
-                <span id="statValor" class="font-bold text-blue-600">$0.00</span>
+
+            <!-- Lista de la Colección -->
+            <div id="listColeccion" class="space-y-3 flex-1 overflow-y-auto pr-1">
+                <!-- Las tarjetas se inyectan dinámicamente con JS -->
             </div>
-        </div>
-    </section>
 
-</div>
+            <!-- Navegación Inferior -->
+            <div class="pt-3 pb-2 mt-2 border-t border-slate-100 flex justify-around items-center text-slate-500 bg-white">
+                <button id="navToAddBtnBottom" class="text-2xl font-bold hover:text-blue-600 transition cursor-pointer p-2">+</button>
+                <button id="navToStatsBtn" class="text-xl hover:text-blue-600 transition cursor-pointer p-2" title="Filtros y Estadísticas">🔍</button>
+            </div>
+        </section>
 
-<!-- Script Principal -->
-<script type="module" src="app.js"></script>
+        <!-- ================= PANTALLA 2: DETALLE DE LA OBRA ================= -->
+        <section id="viewDetalle" class="app-screen hidden flex-1 flex flex-col p-5 overflow-y-auto bg-slate-50">
+            <button id="backFromDetalle" class="text-slate-700 hover:text-slate-900 text-2xl mb-4 self-start cursor-pointer font-bold">←</button>
+            <div id="detalleContent" class="space-y-4">
+                <!-- Se inyecta dinámicamente con JS -->
+            </div>
+        </section>
+
+        <!-- ================= PANTALLA 3: AGREGAR / EDITAR OBRA ================= -->
+        <section id="viewForm" class="app-screen hidden flex-1 flex flex-col p-5 overflow-y-auto bg-white">
+            <div class="flex items-center mb-6 pt-2">
+                <button id="backFromForm" class="text-slate-700 hover:text-slate-900 text-2xl mr-4 cursor-pointer font-bold">←</button>
+                <h2 id="formTitle" class="text-xl font-bold text-slate-900">Agregar Obra</h2>
+            </div>
+
+            <form id="formObra" class="space-y-4 flex-1 flex flex-col justify-between pb-4">
+                <div class="space-y-3.5">
+                    <!-- Cuadro de Portada -->
+                    <div class="flex flex-col items-center justify-center p-5 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
+                        <span class="text-2xl mb-1">📷</span>
+                        <input type="url" id="portadaUrl" placeholder="Pega aquí la URL de la portada" class="w-full text-center text-xs p-2.5 bg-white rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <div>
+                        <label class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Título *</label>
+                        <input type="text" id="titulo" required class="w-full p-3 bg-slate-50 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 border border-slate-200">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Número</label>
+                            <input type="text" id="numero" class="w-full p-3 bg-slate-50 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 border border-slate-200" placeholder="Ej. #5">
+                        </div>
+                        <div>
+                            <label class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Año</label>
+                            <input type="number" id="anio" class="w-full p-3 bg-slate-50 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 border border-slate-200" placeholder="Ej. 2023">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Tipo *</label>
+                            <select id="tipoMaterial" required class="w-full p-3 bg-slate-50 rounded-xl text-sm outline-none border border-slate-200">
+                                <option value="">Seleccionar...</option>
+                                <option value="Cómic">Cómic</option>
+                                <option value="Novela Gráfica">Novela Gráfica</option>
+                                <option value="Manga">Manga</option>
+                                <option value="Fanzine">Fanzine</option>
+                                <option value="Libro">Libro</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Formato *</label>
+                            <select id="subtipoMaterial" required disabled class="w-full p-3 bg-slate-100 rounded-xl text-sm outline-none border border-slate-200 text-slate-400">
+                                <option value="">Esperando tipo...</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Autor</label>
+                        <input type="text" id="autor" class="w-full p-3 bg-slate-50 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 border border-slate-200">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Editorial</label>
+                            <input type="text" id="editorial" class="w-full p-3 bg-slate-50 rounded-xl text-sm outline-none border border-slate-200">
+                        </div>
+                        <div>
+                            <label class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Estado</label>
+                            <select id="estadoFisico" class="w-full p-3 bg-slate-50 rounded-xl text-sm outline-none border border-slate-200">
+                                <option value="Nuevo">Nuevo</option>
+                                <option value="Usado">Usado</option>
+                                <option value="Deteriorado">Deteriorado</option>
+                                <option value="Excelente">Excelente</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Precio ($)</label>
+                        <input type="number" step="0.01" id="valorManual" value="0.00" class="w-full p-3 bg-slate-50 rounded-xl text-sm outline-none border border-slate-200">
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full py-3.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition cursor-pointer mt-4 shadow-md">Guardar Obra</button>
+            </form>
+        </section>
+
+        <!-- ================= PANTALLA 4: FILTROS Y ESTADÍSTICAS ================= -->
+        <section id="viewStats" class="app-screen hidden flex-1 flex flex-col p-5 overflow-y-auto bg-white">
+            <div class="flex items-center mb-4 pt-2">
+                <button id="backFromStats" class="text-slate-700 hover:text-slate-900 text-2xl mr-4 cursor-pointer font-bold">←</button>
+                <h2 class="text-xl font-bold text-slate-900">Filtros & Estadísticas</h2>
+            </div>
+
+            <!-- Píldoras de Filtro -->
+            <div class="flex flex-wrap gap-2 mb-6">
+                <button class="px-4 py-2 border border-blue-600 text-blue-600 rounded-full text-xs font-semibold hover:bg-blue-50 transition cursor-pointer">Año</button>
+                <button class="px-4 py-2 border border-blue-600 text-blue-600 rounded-full text-xs font-semibold hover:bg-blue-50 transition cursor-pointer">Autor</button>
+                <button class="px-4 py-2 border border-blue-600 text-blue-600 rounded-full text-xs font-semibold hover:bg-blue-50 transition cursor-pointer">Estado</button>
+                <button class="px-4 py-2 border border-blue-600 text-blue-600 rounded-full text-xs font-semibold hover:bg-blue-50 transition cursor-pointer">Editorial</button>
+            </div>
+
+            <!-- Métricas generales -->
+            <div class="space-y-3.5 bg-slate-50 p-5 rounded-2xl border border-slate-200">
+                <h3 class="font-bold text-sm text-slate-900">Resumen de Colección</h3>
+                <div class="flex justify-between text-sm">
+                    <span class="text-slate-500">Total de obras:</span>
+                    <span id="statTotal" class="font-bold text-slate-800">0</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span class="text-slate-500">Valor estimado:</span>
+                    <span id="statValor" class="font-bold text-blue-600">$0.00</span>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Script Principal -->
+    <script type="module" src="app.js"></script>
+</body>
+</html>
