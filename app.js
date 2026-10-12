@@ -1,248 +1,202 @@
-import { supabase } from './supabaseClient.js';
-
-const sublistasFormatos = {
-    "Cómic": ["Grapa", "Tapa blanda (TPB)", "Tapa dura (Hardcover)", "Ómnibus"],
-    "Novela Gráfica": ["Tapa blanda", "Tapa dura", "Boxset"],
-    "Manga": ["Tankōbon", "Kanzenban", "Bunkoban", "Wideban / A5"],
-    "Fanzine": ["Grapado artesanal", "Cosido a mano", "Booklet"],
-    "Libro": ["Tapa blanda (Rústica)", "Tapa dura (Cartoné)", "Bolsillo"]
-};
-
-let coleccion = [];
-let obraActual = null;
-
-// --- GESTIÓN DE NAVEGACIÓN ENTRE VENTANAS ---
-function showScreen(screenId) {
-    document.querySelectorAll('.app-screen').forEach(s => s.classList.add('hidden'));
-    const target = document.getElementById(screenId);
-    if (target) {
-        target.classList.remove('hidden');
-    } else {
-        console.error(`No se encontró la pantalla con ID: ${screenId}`);
-    }
-}
+// app.js - ColeX Lógica Principal
 
 document.addEventListener('DOMContentLoaded', () => {
-    try {
-        cargarColeccion();
-        configurarNavegacion();
-        configurarSelects();
-        configurarFormulario();
-    } catch (error) {
-        console.error("Error al inicializar la app:", error);
-    }
-});
+    // Estado de la aplicación
+    let obras = JSON.parse(localStorage.getItem('colex_obras')) || [];
+    let imagenPortadaBase64 = '';
 
-function configurarNavegacion() {
-    const btnAdd1 = document.getElementById('navToAddBtn');
-    const btnAdd2 = document.getElementById('navToAddBtnBottom');
-    const btnStats = document.getElementById('navToStatsBtn');
+    // Manejo de pantallas (SPA Navigation)
+    const screens = {
+        coleccion: document.getElementById('viewColeccion'),
+        detalle: document.getElementById('viewDetalle'),
+        form: document.getElementById('viewForm'),
+        stats: document.getElementById('viewStats')
+    };
 
-    if (btnAdd1) btnAdd1.addEventListener('click', () => abrirFormulario());
-    if (btnAdd2) btnAdd2.addEventListener('click', () => abrirFormulario());
-    if (btnStats) btnStats.addEventListener('click', () => {
-        calcularEstadisticas();
-        showScreen('viewStats');
-    });
-
-    const backDetalle = document.getElementById('backFromDetalle');
-    const backForm = document.getElementById('backFromForm');
-    const backStats = document.getElementById('backFromStats');
-
-    if (backDetalle) backDetalle.addEventListener('click', () => showScreen('viewColeccion'));
-    if (backForm) backForm.addEventListener('click', () => showScreen('viewColeccion'));
-    if (backStats) backStats.addEventListener('click', () => showScreen('viewColeccion'));
-}
-
-// --- CARGA DE DATOS DESDE SUPABASE ---
-async function cargarColeccion() {
-    try {
-        const { data, error } = await supabase.from('coleccion').select('*').order('created_at', { ascending: false });
-        if (error) {
-            console.error('Error de Supabase:', error.message);
-            return;
+    function switchScreen(screenName) {
+        Object.values(screens).forEach(screen => screen.classList.add('hidden'));
+        if (screens[screenName]) {
+            screens[screenName].classList.remove('hidden');
         }
-        coleccion = data || [];
-        renderizarColeccion(coleccion);
-    } catch (err) {
-        console.error('Error de conexión con Supabase:', err);
-    }
-}
-
-// --- RENDERIZADO DE LA PANTALLA PRINCIPAL ---
-function renderizarColeccion(items) {
-    const contenedor = document.getElementById('listColeccion');
-    if (!contenedor) return;
-    contenedor.innerHTML = '';
-
-    if (items.length === 0) {
-        contenedor.innerHTML = `<p class="text-center text-slate-400 text-sm py-10">No hay obras registradas aún. Presiona + para agregar una.</p>`;
-        return;
     }
 
-    items.forEach(item => {
-        const row = document.createElement('div');
-        row.className = 'flex items-center space-x-3 p-2 bg-white rounded-xl shadow-sm border border-slate-100 cursor-pointer hover:bg-slate-50 transition';
-        row.innerHTML = `
-            <img src="${item.portada_url || 'https://via.placeholder.com/60x80'}" class="w-12 h-16 object-cover rounded-lg bg-slate-200">
-            <div class="flex-1">
-                <h3 class="font-bold text-sm text-slate-900">${item.titulo} ${item.numero ? '#' + item.numero : ''}</h3>
-                <p class="text-xs text-slate-500">${item.autor || 'Sin autor'}</p>
-                <p class="text-xs font-semibold text-blue-600 mt-1">$${Number(item.valor_manual || 0).toFixed(2)}</p>
-            </div>
-        `;
-        row.addEventListener('click', () => verDetalle(item));
-        contenedor.appendChild(row);
+    // Botones de navegación
+    document.getElementById('navToAddBtn').addEventListener('click', () => { resetForm(); switchScreen('form'); });
+    document.getElementById('navToAddBtnBottom').addEventListener('click', () => { resetForm(); switchScreen('form'); });
+    document.getElementById('navToStatsBtn').addEventListener('click', () => { actualizarEstadisticas(); switchScreen('stats'); });
+    document.getElementById('backFromForm').addEventListener('click', () => switchScreen('coleccion'));
+    document.getElementById('backFromDetalle').addEventListener('click', () => switchScreen('coleccion'));
+    document.getElementById('backFromStats').addEventListener('click', () => switchScreen('coleccion'));
+
+    // Dinámica de Subtipos según Tipo de Material
+    const subformatos = {
+        'Cómic': ['Grapa (Floppy)', 'Tomo Rústica (TPB)', 'Tomo Cartoné (Hardcover)'],
+        'Novela Gráfica': ['Tomo Cartoné', 'Tomo Rústica'],
+        'Manga': ['Tankoubon', 'Kanzenban', 'Bunkoban'],
+        'Fanzine': ['Grapa Artesanal', 'Plegado'],
+        'Libro': ['Tapa Dura', 'Tapa Blanda']
+    };
+
+    const tipoSelect = document.getElementById('tipoMaterial');
+    const subtipoSelect = document.getElementById('subtipoMaterial');
+
+    tipoSelect.addEventListener('change', (e) => {
+        const tipo = e.target.value;
+        subtipoSelect.innerHTML = '<option value="">Seleccionar formato...</option>';
+        if (subformatos[tipo]) {
+            subtipoSelect.disabled = false;
+            subformatos[tipo].forEach(sub => {
+                const opt = document.createElement('option');
+                opt.value = sub;
+                opt.textContent = sub;
+                subtipoSelect.appendChild(opt);
+            });
+        } else {
+            subtipoSelect.disabled = true;
+            subtipoSelect.innerHTML = '<option value="">Selecciona tipo primero...</option>';
+        }
     });
-}
 
-// --- PANTALLA DE DETALLE ---
-function verDetalle(item) {
-    obraActual = item;
-    const content = document.getElementById('detalleContent');
-    if (!content) return;
+    // Manejo de Archivo Local (Portada) y conversión a Base64
+    const fileInput = document.getElementById('portadaFile');
+    const fileNameSpan = document.getElementById('fileName');
+    const urlInput = document.getElementById('portadaUrl');
 
-    content.innerHTML = `
-        <div class="bg-white p-4 rounded-2xl shadow-sm border space-y-4">
-            <div class="flex gap-4">
-                <img src="${item.portada_url || 'https://via.placeholder.com/120x160'}" class="w-28 h-40 object-cover rounded-xl bg-slate-200">
-                <div>
-                    <h2 class="text-xl font-bold text-slate-900">${item.titulo}</h2>
-                    <p class="text-sm text-slate-500 font-medium">Número ${item.numero || 'N/A'}</p>
-                    <span class="inline-block mt-2 px-2.5 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full">${item.tipo_material}</span>
-                </div>
-            </div>
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            fileNameSpan.textContent = file.name;
+            fileNameSpan.classList.add('text-blue-600', 'font-medium');
+            
+            const reader = new FileReader();
+            reader.onload = function(uploadEvent) {
+                imagenPortadaBase64 = uploadEvent.target.result;
+                urlInput.value = ''; // Limpiar URL si se usa archivo local
+            };
+            reader.readAsDataURL(file);
+        } else {
+            fileNameSpan.textContent = 'Sin archivo seleccionado';
+            fileNameSpan.classList.remove('text-blue-600', 'font-medium');
+            imagenPortadaBase64 = '';
+        }
+    });
 
-            <div class="space-y-2 border-t pt-3 text-sm">
-                <div class="flex justify-between"><span class="text-slate-500">Formato</span><span class="font-medium">${item.subtipo_material || 'N/A'}</span></div>
-                <div class="flex justify-between"><span class="text-slate-500">Autor</span><span class="font-medium">${item.autor || 'N/A'}</span></div>
-                <div class="flex justify-between"><span class="text-slate-500">Editorial</span><span class="font-medium">${item.editorial || 'N/A'}</span></div>
-                <div class="flex justify-between"><span class="text-slate-500">Año</span><span class="font-medium">${item.anio_lanzamiento || 'N/A'}</span></div>
-                <div class="flex justify-between"><span class="text-slate-500">Estado</span><span class="font-medium">${item.estado_fisico || 'Nuevo'}</span></div>
-                <div class="flex justify-between"><span class="text-slate-500">Precio</span><span class="font-bold text-blue-600">$${Number(item.valor_manual || 0).toFixed(2)}</span></div>
-            </div>
-
-            <div class="flex gap-3 pt-2">
-                <button id="editBtn" class="flex-1 py-2.5 bg-slate-100 text-slate-800 rounded-xl font-semibold hover:bg-slate-200 cursor-pointer">Editar</button>
-                <button id="deleteBtn" class="flex-1 py-2.5 bg-red-50 text-red-600 rounded-xl font-semibold hover:bg-red-100 cursor-pointer">Eliminar</button>
-            </div>
-        </div>
-    `;
-
-    document.getElementById('editBtn').addEventListener('click', () => abrirFormulario(obraActual));
-    document.getElementById('deleteBtn').addEventListener('click', () => eliminarObra(obraActual.id));
-
-    showScreen('viewDetalle');
-}
-
-// --- FORMULARIO Y EDICIÓN ---
-function abrirFormulario(item = null) {
-    obraActual = item;
-    const form = document.getElementById('formObra');
-    if (!form) return;
-    form.reset();
-
-    if (item) {
-        document.getElementById('formTitle').textContent = 'Editar Obra';
-        document.getElementById('titulo').value = item.titulo || '';
-        document.getElementById('numero').value = item.numero || '';
-        document.getElementById('anio').value = item.anio_lanzamiento || '';
-        document.getElementById('tipoMaterial').value = item.tipo_material || '';
-        actualizarSubtipos(item.tipo_material);
-        document.getElementById('subtipoMaterial').value = item.subtipo_material || '';
-        document.getElementById('autor').value = item.autor || '';
-        document.getElementById('editorial').value = item.editorial || '';
-        document.getElementById('estadoFisico').value = item.estado_fisico || 'Nuevo';
-        document.getElementById('valorManual').value = item.valor_manual || 0;
-        document.getElementById('portadaUrl').value = item.portada_url || '';
-    } else {
-        document.getElementById('formTitle').textContent = 'Agregar Obra';
-        const sub = document.getElementById('subtipoMaterial');
-        sub.disabled = true;
-        sub.innerHTML = '<option value="">Seleccione tipo primero...</option>';
-    }
-
-    showScreen('viewForm');
-}
-
-function configurarSelects() {
-    const selectTipo = document.getElementById('tipoMaterial');
-    if (selectTipo) {
-        selectTipo.addEventListener('change', (e) => actualizarSubtipos(e.target.value));
-    }
-}
-
-function actualizarSubtipos(tipo) {
-    const selectSubtipo = document.getElementById('subtipoMaterial');
-    if (!selectSubtipo) return;
-    
-    selectSubtipo.innerHTML = '<option value="">Seleccionar formato...</option>';
-    if (tipo && sublistasFormatos[tipo]) {
-        selectSubtipo.disabled = false;
-        sublistasFormatos[tipo].forEach(f => {
-            const opt = document.createElement('option');
-            opt.value = f;
-            opt.textContent = f;
-            selectSubtipo.appendChild(opt);
-        });
-    } else {
-        selectSubtipo.disabled = true;
-    }
-}
-
-function configurarFormulario() {
-    const form = document.getElementById('formObra');
-    if (!form) return;
-
-    form.addEventListener('submit', async (e) => {
+    // Guardar Obra (Formulario)
+    const formObra = document.getElementById('formObra');
+    formObra.addEventListener('submit', (e) => {
         e.preventDefault();
 
-        const payload = {
+        const finalPortada = imagenPortadaBase64 || urlInput.value.trim() || 'https://via.placeholder.com/150';
+
+        const nuevaObra = {
+            id: Date.now(),
+            portada: finalPortada,
             titulo: document.getElementById('titulo').value,
-            numero: document.getElementById('numero').value,
-            anio_lanzamiento: document.getElementById('anio').value ? parseInt(document.getElementById('anio').value) : null,
-            tipo_material: document.getElementById('tipoMaterial').value,
-            subtipo_material: document.getElementById('subtipoMaterial').value,
-            autor: document.getElementById('autor').value,
-            editorial: document.getElementById('editorial').value,
-            estado_fisico: document.getElementById('estadoFisico').value,
-            valor_manual: parseFloat(document.getElementById('valorManual').value || 0),
-            portada_url: document.getElementById('portadaUrl').value
+            numero: document.getElementById('numero').value || 'N/A',
+            anio: document.getElementById('anio').value || 'S/F',
+            tipo: tipoSelect.value,
+            subtipo: subtipoSelect.value,
+            autor: document.getElementById('autor').value || 'Desconocido',
+            editorial: document.getElementById('editorial').value || 'Independiente',
+            estado: document.getElementById('estadoFisico').value,
+            valor: parseFloat(document.getElementById('valorManual').value) || 0
         };
 
-        try {
-            if (obraActual) {
-                await supabase.from('coleccion').update(payload).eq('id', obraActual.id);
-            } else {
-                await supabase.from('coleccion').insert([payload]);
-            }
+        obras.push(nuevaObra);
+        localStorage.setItem('colex_obras', JSON.stringify(obras));
 
-            await cargarColeccion();
-            showScreen('viewColeccion');
-        } catch (err) {
-            console.error('Error al guardar en Supabase:', err);
-            alert('Hubo un error al guardar la obra.');
-        }
+        renderizarColeccion();
+        switchScreen('coleccion');
     });
-}
 
-async function eliminarObra(id) {
-    if (confirm('¿Seguro que deseas eliminar esta obra?')) {
-        try {
-            await supabase.from('coleccion').delete().eq('id', id);
-            await cargarColeccion();
-            showScreen('viewColeccion');
-        } catch (err) {
-            console.error('Error al eliminar:', err);
-        }
+    function resetForm() {
+        formObra.reset();
+        imagenPortadaBase64 = '';
+        fileNameSpan.textContent = 'Sin archivo seleccionado';
+        fileNameSpan.classList.remove('text-blue-600', 'font-medium');
+        subtipoSelect.disabled = true;
+        subtipoSelect.innerHTML = '<option value="">Selecciona tipo primero...</option>';
     }
-}
 
-function calcularEstadisticas() {
-    const statTotal = document.getElementById('statTotal');
-    const statValor = document.getElementById('statValor');
-    if (statTotal) statTotal.textContent = coleccion.length;
-    
-    const totalValor = coleccion.reduce((acc, curr) => acc + (Number(curr.valor_manual) || 0), 0);
-    if (statValor) statValor.textContent = `$${totalValor.toFixed(2)}`;
-}
+    // Renderizar Lista Principal
+    function renderizarColeccion(filtro = '') {
+        const container = document.getElementById('listColeccion');
+        container.innerHTML = '';
+
+        const obrasFiltradas = obras.filter(o => 
+            o.titulo.toLowerCase().includes(filtro.toLowerCase()) || 
+            o.autor.toLowerCase().includes(filtro.toLowerCase())
+        );
+
+        if (obrasFiltradas.length === 0) {
+            container.innerHTML = `<p class="text-center text-slate-400 text-sm py-10">No hay obras registradas.</p>`;
+            return;
+        }
+
+        obrasFiltradas.forEach(obra => {
+            const card = document.createElement('div');
+            card.className = "flex items-center bg-white p-3 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition cursor-pointer gap-3";
+            card.innerHTML = `
+                <img src="${obra.portada}" alt="${obra.titulo}" class="w-14 h-16 object-cover rounded-xl bg-slate-100">
+                <div class="flex-1 min-w-0">
+                    <h4 class="font-bold text-sm text-slate-900 truncate">${obra.titulo}</h4>
+                    <p class="text-xs text-slate-500">${obra.autor} • <span class="text-blue-600 font-medium">${obra.tipo}</span></p>
+                    <p class="text-[11px] text-slate-400 mt-0.5">${obra.editorial} (${obra.anio})</p>
+                </div>
+            `;
+            card.addEventListener('click', () => verDetalleObra(obra.id));
+            container.appendChild(card);
+        });
+    }
+
+    // Ver Detalle de Obra
+    function verDetalleObra(id) {
+        const obra = obras.find(o => o.id === id);
+        if (!obra) return;
+
+        const detalleContent = document.getElementById('detalleContent');
+        detalleContent.innerHTML = `
+            <div class="flex flex-col items-center bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                <img src="${obra.portada}" alt="${obra.titulo}" class="w-36 h-48 object-cover rounded-xl shadow-md bg-slate-100">
+                <div class="text-center">
+                    <h3 class="text-lg font-bold text-slate-900">${obra.titulo} ${obra.numero !== 'N/A' ? obra.numero : ''}</h3>
+                    <p class="text-sm text-slate-500">${obra.autor}</p>
+                </div>
+                <div class="w-full space-y-2 pt-2 border-t border-slate-100 text-sm">
+                    <div class="flex justify-between"><span class="text-slate-500">Tipo:</span> <span class="font-semibold">${obra.tipo} (${obra.subtipo})</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Editorial:</span> <span class="font-semibold">${obra.editorial}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Año:</span> <span class="font-semibold">${obra.anio}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Estado:</span> <span class="font-semibold">${obra.estado}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Valor:</span> <span class="font-bold text-blue-600">$${obra.valor.toFixed(2)}</span></div>
+                </div>
+                <button id="btnEliminar" class="w-full py-2.5 bg-red-50 text-red-600 font-semibold rounded-xl hover:bg-red-100 transition cursor-pointer text-xs mt-2">Eliminar Obra</button>
+            </div>
+        `;
+
+        document.getElementById('btnEliminar').onclick = () => {
+            obras = obras.filter(o => o.id !== id);
+            localStorage.setItem('colex_obras', JSON.stringify(obras));
+            renderizarColeccion();
+            switchScreen('coleccion');
+        };
+
+        switchScreen('detalle');
+    }
+
+    // Buscador en tiempo real
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+        renderizarColeccion(e.target.value);
+    });
+
+    // Actualizar Estadísticas
+    function actualizarEstadisticas() {
+        const totalObras = obras.length;
+        const valorTotal = obras.reduce((acc, curr) => acc + curr.valor, 0);
+
+        document.getElementById('statTotal').textContent = totalObras;
+        document.getElementById('statValor').textContent = `$${valorTotal.toFixed(2)}`;
+    }
+
+    // Inicializar app renderizando la colección guardada
+    renderizarColeccion();
+});
