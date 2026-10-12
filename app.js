@@ -1,11 +1,10 @@
-// app.js - ColeX Lógica Principal
+// app.js - ColeX Lógica Principal con Filtros y Exportación
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Estado de la aplicación
     let obras = JSON.parse(localStorage.getItem('colex_obras')) || [];
+    let obrasFiltradasGlobal = [...obras];
     let imagenPortadaBase64 = '';
 
-    // Manejo de pantallas (SPA Navigation)
     const screens = {
         coleccion: document.getElementById('viewColeccion'),
         detalle: document.getElementById('viewDetalle'),
@@ -20,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Botones de navegación
+    // Navegación
     document.getElementById('navToAddBtn').addEventListener('click', () => { resetForm(); switchScreen('form'); });
     document.getElementById('navToAddBtnBottom').addEventListener('click', () => { resetForm(); switchScreen('form'); });
     document.getElementById('navToStatsBtn').addEventListener('click', () => { actualizarEstadisticas(); switchScreen('stats'); });
@@ -28,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('backFromDetalle').addEventListener('click', () => switchScreen('coleccion'));
     document.getElementById('backFromStats').addEventListener('click', () => switchScreen('coleccion'));
 
-    // Dinámica de Subtipos según Tipo de Material
+    // Subtipos de material
     const subformatos = {
         'Cómic': ['Grapa (Floppy)', 'Tomo Rústica (TPB)', 'Tomo Cartoné (Hardcover)'],
         'Novela Gráfica': ['Tomo Cartoné', 'Tomo Rústica'],
@@ -57,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Manejo de Archivo Local (Portada) y conversión a Base64
+    // Manejo de archivo local (Portada)
     const fileInput = document.getElementById('portadaFile');
     const fileNameSpan = document.getElementById('fileName');
     const urlInput = document.getElementById('portadaUrl');
@@ -67,11 +66,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (file) {
             fileNameSpan.textContent = file.name;
             fileNameSpan.classList.add('text-blue-600', 'font-medium');
-            
             const reader = new FileReader();
             reader.onload = function(uploadEvent) {
                 imagenPortadaBase64 = uploadEvent.target.result;
-                urlInput.value = ''; // Limpiar URL si se usa archivo local
+                urlInput.value = '';
             };
             reader.readAsDataURL(file);
         } else {
@@ -81,11 +79,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Guardar Obra (Formulario)
+    // Guardar Obra
     const formObra = document.getElementById('formObra');
     formObra.addEventListener('submit', (e) => {
         e.preventDefault();
-
         const finalPortada = imagenPortadaBase64 || urlInput.value.trim() || 'https://via.placeholder.com/150';
 
         const nuevaObra = {
@@ -104,6 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         obras.push(nuevaObra);
         localStorage.setItem('colex_obras', JSON.stringify(obras));
+        obrasFiltradasGlobal = [...obras];
 
         renderizarColeccion();
         switchScreen('coleccion');
@@ -118,22 +116,17 @@ document.addEventListener('DOMContentLoaded', () => {
         subtipoSelect.innerHTML = '<option value="">Selecciona tipo primero...</option>';
     }
 
-    // Renderizar Lista Principal
-    function renderizarColeccion(filtro = '') {
+    // Renderizar Colección Principal
+    function renderizarColeccion(listaA_Renderizar = obras) {
         const container = document.getElementById('listColeccion');
         container.innerHTML = '';
 
-        const obrasFiltradas = obras.filter(o => 
-            o.titulo.toLowerCase().includes(filtro.toLowerCase()) || 
-            o.autor.toLowerCase().includes(filtro.toLowerCase())
-        );
-
-        if (obrasFiltradas.length === 0) {
-            container.innerHTML = `<p class="text-center text-slate-400 text-sm py-10">No hay obras registradas.</p>`;
+        if (listaA_Renderizar.length === 0) {
+            container.innerHTML = `<p class="text-center text-slate-400 text-sm py-10">No se encontraron obras.</p>`;
             return;
         }
 
-        obrasFiltradas.forEach(obra => {
+        listaA_Renderizar.forEach(obra => {
             const card = document.createElement('div');
             card.className = "flex items-center bg-white p-3 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition cursor-pointer gap-3";
             card.innerHTML = `
@@ -141,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="flex-1 min-w-0">
                     <h4 class="font-bold text-sm text-slate-900 truncate">${obra.titulo}</h4>
                     <p class="text-xs text-slate-500">${obra.autor} • <span class="text-blue-600 font-medium">${obra.tipo}</span></p>
-                    <p class="text-[11px] text-slate-400 mt-0.5">${obra.editorial} (${obra.anio})</p>
+                    <p class="text-[11px] text-slate-400 mt-0.5">${obra.editorial} (${obra.anio}) - <strong class="text-slate-600">$${obra.valor.toFixed(2)}</strong></p>
                 </div>
             `;
             card.addEventListener('click', () => verDetalleObra(obra.id));
@@ -149,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Ver Detalle de Obra
+    // Ver Detalle
     function verDetalleObra(id) {
         const obra = obras.find(o => o.id === id);
         if (!obra) return;
@@ -176,6 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('btnEliminar').onclick = () => {
             obras = obras.filter(o => o.id !== id);
             localStorage.setItem('colex_obras', JSON.stringify(obras));
+            obrasFiltradasGlobal = [...obras];
             renderizarColeccion();
             switchScreen('coleccion');
         };
@@ -183,20 +177,118 @@ document.addEventListener('DOMContentLoaded', () => {
         switchScreen('detalle');
     }
 
-    // Buscador en tiempo real
+    // Buscador rápido principal
     document.getElementById('searchInput').addEventListener('input', (e) => {
-        renderizarColeccion(e.target.value);
+        const texto = e.target.value.toLowerCase();
+        const resultado = obras.filter(o => 
+            o.titulo.toLowerCase().includes(texto) || 
+            o.autor.toLowerCase().includes(texto) ||
+            o.editorial.toLowerCase().includes(texto)
+        );
+        renderizarColeccion(resultado);
     });
 
-    // Actualizar Estadísticas
-    function actualizarEstadisticas() {
-        const totalObras = obras.length;
-        const valorTotal = obras.reduce((acc, curr) => acc + curr.valor, 0);
+    // Lógica de Filtros Avanzados
+    document.getElementById('btnAplicarFiltros').addEventListener('click', () => {
+        const tipoFiltro = document.getElementById('filtroTipo').value;
+        const editorialFiltro = document.getElementById('filtroEditorial').value.toLowerCase();
+        const precioMaxFiltro = parseFloat(document.getElementById('filtroPrecio').value);
 
-        document.getElementById('statTotal').textContent = totalObras;
+        obrasFiltradasGlobal = obras.filter(o => {
+            let cumpleTipo = tipoFiltro ? o.tipo === tipoFiltro : true;
+            let cumpleEditorial = editorialFiltro ? o.editorial.toLowerCase().includes(editorialFiltro) : true;
+            let cumplePrecio = !isNaN(precioMaxFiltro) ? o.valor <= precioMaxFiltro : true;
+
+            return cumpleTipo && cumpleEditorial && cumplePrecio;
+        });
+
+        renderizarColeccion(obrasFiltradasGlobal);
+        actualizarEstadisticas();
+        switchScreen('coleccion');
+    });
+
+    document.getElementById('btnLimpiarFiltros').addEventListener('click', () => {
+        document.getElementById('filtroTipo').value = '';
+        document.getElementById('filtroEditorial').value = '';
+        document.getElementById('filtroPrecio').value = '';
+        obrasFiltradasGlobal = [...obras];
+        renderizarColeccion(obras);
+        actualizarEstadisticas();
+    });
+
+    function actualizarEstadisticas() {
+        document.getElementById('statTotal').textContent = `${obrasFiltradasGlobal.length} / ${obras.length}`;
+        const valorTotal = obrasFiltradasGlobal.reduce((acc, curr) => acc + curr.valor, 0);
         document.getElementById('statValor').textContent = `$${valorTotal.toFixed(2)}`;
     }
 
-    // Inicializar app renderizando la colección guardada
+    // ================= FUNCIONES DE EXPORTACIÓN =================
+
+    // 1. Exportar a CSV
+    document.getElementById('btnExportCSV').addEventListener('click', () => {
+        if (obrasFiltradasGlobal.length === 0) { alert('No hay datos para exportar.'); return; }
+        
+        let csvContent = "data:text/csv;charset=utf-8,ID,Titulo,Numero,Anio,Tipo,Subtipo,Autor,Editorial,Estado,Valor\n";
+        obrasFiltradasGlobal.forEach(o => {
+            let row = [o.id, `"${o.titulo}"`, o.numero, o.anio, `"${o.tipo}"`, `"${o.subtipo}"`, `"${o.autor}"`, `"${o.editorial}"`, o.estado, o.valor];
+            csvContent += row.join(",") + "\n";
+        });
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "colex_reporte.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+
+    // 2. Exportar a Excel (Formato XLS Compatible)
+    document.getElementById('btnExportExcel').addEventListener('click', () => {
+        if (obrasFiltradasGlobal.length === 0) { alert('No hay datos para exportar.'); return; }
+
+        let htmlTabla = `<table>
+            <tr><th>ID</th><th>Titulo</th><th>Numero</th><th>Anio</th><th>Tipo</th><th>Subtipo</th><th>Autor</th><th>Editorial</th><th>Estado</th><th>Valor</th></tr>`;
+        
+        obrasFiltradasGlobal.forEach(o => {
+            htmlTabla += `<tr><td>${o.id}</td><td>${o.titulo}</td><td>${o.numero}</td><td>${o.anio}</td><td>${o.tipo}</td><td>${o.subtipo}</td><td>${o.autor}</td><td>${o.editorial}</td><td>${o.estado}</td><td>${o.valor}</td></tr>`;
+        });
+        htmlTabla += `</table>`;
+
+        const blob = new Blob([htmlTabla], { type: 'application/vnd.ms-excel' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'colex_reporte.xls';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+
+    // 3. Exportar a PDF (Mediante ventana de impresión optimizada)
+    document.getElementById('btnExportPDF').addEventListener('click', () => {
+        if (obrasFiltradasGlobal.length === 0) { alert('No hay datos para exportar.'); return; }
+
+        let ventanaPrint = window.open('', '', 'height=600,width=800');
+        ventanaPrint.document.write('<html><head><title>Reporte ColeX</title>');
+        ventanaPrint.document.write('<style>body{font-family:sans-serif;padding:20px;} table{width:100%;border-collapse:collapse;margin-top:20px;} th,td{border:1px solid #ddd;padding:8px;text-align:left;font-size:12px;} th{background-color:#2563eb;color:white;}</style>');
+        ventanaPrint.document.write('</head><body>');
+        ventanaPrint.document.write('<h2>Reporte de Colección - ColeX</h2>');
+        ventanaPrint.document.write('<p>Total de obras listadas: ' + obrasFiltradasGlobal.length + '</p>');
+        ventanaPrint.document.write('<table><thead><tr><th>Título</th><th>Autor</th><th>Tipo</th><th>Editorial</th><th>Año</th><th>Estado</th><th>Valor</th></tr></thead><tbody>');
+
+        obrasFiltradasGlobal.forEach(o => {
+            ventanaPrint.document.write(`<tr><td>${o.titulo}</td><td>${o.autor}</td><td>${o.tipo}</td><td>${o.editorial}</td><td>${o.anio}</td><td>${o.estado}</td><td>$${o.valor.toFixed(2)}</td></tr>`);
+        });
+
+        ventanaPrint.document.write('</tbody></table></body></html>');
+        ventanaPrint.document.close();
+        ventanaPrint.focus();
+        setTimeout(() => {
+            ventanaPrint.print();
+            ventanaPrint.close();
+        }, 500);
+    });
+
     renderizarColeccion();
 });
