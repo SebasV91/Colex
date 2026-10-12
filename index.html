@@ -39,9 +39,9 @@
                 <input type="text" id="searchInput" placeholder="🔍 Buscar por título, autor, editorial..." class="w-full p-3 bg-slate-800/80 text-slate-200 placeholder-slate-400 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-600 border border-slate-700 transition">
             </div>
 
-            <!-- Lista de la Colección -->
-            <div id="listColeccion" class="space-y-3 flex-1 overflow-y-auto pr-1">
-                <!-- Las tarjetas se inyectan dinámicamente con JS -->
+            <!-- Lista de la Colección (Agrupada por Editorial) -->
+            <div id="listColeccion" class="space-y-4 flex-1 overflow-y-auto pr-1">
+                <!-- Se inyecta dinámicamente con JS agrupado por editorial -->
             </div>
 
             <!-- Navegación Inferior -->
@@ -129,7 +129,7 @@
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Editorial</label>
-                            <input type="text" id="editorial" class="w-full p-3 bg-slate-800 text-slate-200 rounded-xl text-sm outline-none border border-slate-700">
+                            <input type="text" id="editorial" class="w-full p-3 bg-slate-800 text-slate-200 rounded-xl text-sm outline-none border border-slate-700" placeholder="Ej. Marvel">
                         </div>
                         <div>
                             <label class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Estado</label>
@@ -143,7 +143,7 @@
                     </div>
 
                     <div>
-                        <label class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Precio ($)</label>
+                        <label class="text-xs text-amber-200 font-semibold uppercase tracking-wider">Precio Aproximado ($)</label>
                         <input type="number" step="0.01" id="valorManual" value="0.00" class="w-full p-3 bg-slate-800 text-slate-200 rounded-xl text-sm outline-none border border-slate-700">
                     </div>
                 </div>
