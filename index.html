@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ColeX - Sistema de Catalogación Universal</title>
     
-    <!-- Tailwind CSS (Estático v2 - Carga inmediata en escritorio sin bloqueos de JS) -->
+    <!-- Tailwind CSS (Estático v2 - Carga inmediata en escritorio) -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     
     <!-- Supabase JS Client CDN -->
@@ -29,7 +29,7 @@
 </head>
 <body class="library-bg text-slate-100 min-h-screen flex justify-center items-center p-0 sm:p-4">
 
-    <!-- Contenedor Principal Estilo App Móvil / Escritorio -->
+    <!-- Contenedor Principal -->
     <div class="w-full max-w-md colex-container min-h-screen sm:min-h-[850px] sm:max-h-[880px] sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden relative">
         
         <!-- ================= PANTALLA 1: MI COLECCIÓN ================= -->
@@ -232,6 +232,11 @@
         </section>
 
     </div>
+
+    <!-- Script Principal con parámetro de versión -->
+    <script type="module" src="app.js?v=6.0"></script>
+</body>
+</html>
 
     <!-- Script Principal con parámetro para evitar caché -->
     <script type="module" src="app.js?v=5.0"></script>
