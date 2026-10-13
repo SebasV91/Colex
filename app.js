@@ -87,12 +87,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const opt = document.createElement('option');
                 opt.value = sub;
                 opt.textContent = sub;
+                opt.className = "bg-gray-900";
                 if (sub === valorSubtipoActual) opt.selected = true;
                 subtipoSelect.appendChild(opt);
             });
         } else {
             subtipoSelect.disabled = true;
-            subtipoSelect.innerHTML = '<option value="">Selecciona categoría primero...</option>';
+            subtipoSelect.innerHTML = '<option value="" class="bg-gray-900">Selecciona categoría primero...</option>';
         }
     }
 
@@ -151,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 imagenPortadaBase64 = await comprimirImagen(file, 600, 0.7);
                 fileNameSpan.textContent = file.name + " (Optimizada)";
-                fileNameSpan.classList.add('text-amber-400', 'font-medium');
+                fileNameSpan.classList.add('text-amber-300', 'font-medium');
                 compressBadge.classList.remove('hidden');
                 urlInput.value = '';
             } catch (err) {
@@ -160,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else {
             fileNameSpan.textContent = 'Sin archivo seleccionado';
-            fileNameSpan.classList.remove('text-amber-400', 'font-medium');
+            fileNameSpan.classList.remove('text-amber-300', 'font-medium');
             compressBadge.classList.add('hidden');
             imagenPortadaBase64 = '';
         }
@@ -236,10 +237,10 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('btnSubmitForm').textContent = 'Guardar Ítem';
         imagenPortadaBase64 = '';
         fileNameSpan.textContent = 'Sin archivo seleccionado';
-        fileNameSpan.classList.remove('text-amber-400', 'font-medium');
+        fileNameSpan.classList.remove('text-amber-300', 'font-medium');
         compressBadge.classList.add('hidden');
         subtipoSelect.disabled = true;
-        subtipoSelect.innerHTML = '<option value="">Selecciona categoría primero...</option>';
+        subtipoSelect.innerHTML = '<option value="" class="bg-gray-900">Selecciona categoría primero...</option>';
         actualizarOpcionesSubtipoYEtiquetas('');
     }
 
@@ -278,7 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
         container.innerHTML = '';
 
         if (!listaA_Renderizar || listaA_Renderizar.length === 0) {
-            container.innerHTML = `<p class="text-center text-slate-400 text-sm py-10">No se encontraron coleccionables.</p>`;
+            container.innerHTML = `<p class="text-center text-gray-400 text-sm py-10">No se encontraron coleccionables.</p>`;
             return;
         }
 
@@ -298,9 +299,9 @@ document.addEventListener('DOMContentLoaded', () => {
             seccionEditorial.className = "space-y-2 mb-4";
             
             seccionEditorial.innerHTML = `
-                <div class="flex justify-between items-center px-1 border-b border-amber-900 border-opacity-40 pb-1">
-                    <h3 class="text-xs font-bold text-amber-200 uppercase tracking-wider">🏷️ ${editorial}</h3>
-                    <span class="text-[10px] bg-slate-800 text-amber-400 px-2 py-0.5 rounded-full border border-slate-700">${obrasDeEditorial.length} ítem${obrasDeEditorial.length > 1 ? 's' : ''}</span>
+                <div class="flex justify-between items-center px-1 border-b border-amber-900 pb-1">
+                    <h3 class="text-xs font-bold text-amber-300 uppercase tracking-wider">🏷️ ${editorial}</h3>
+                    <span class="text-[10px] colex-card text-amber-300 px-2 py-0.5 rounded-full border border-gray-700">${obrasDeEditorial.length} ítem${obrasDeEditorial.length > 1 ? 's' : ''}</span>
                 </div>
             `;
 
@@ -309,13 +310,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             obrasDeEditorial.forEach(obra => {
                 const card = document.createElement('div');
-                card.className = "flex items-center bg-slate-800 bg-opacity-80 hover:bg-slate-800 p-3 rounded-2xl border border-slate-700 shadow-sm hover:shadow-md transition cursor-pointer gap-3";
+                card.className = "flex items-center colex-card hover:bg-gray-800 p-3 rounded-2xl shadow-sm hover:shadow-md transition cursor-pointer gap-3";
                 card.innerHTML = `
-                    <img src="${obra.portada}" alt="${obra.titulo}" class="w-14 h-16 object-cover rounded-xl bg-slate-900">
+                    <img src="${obra.portada}" alt="${obra.titulo}" class="w-14 h-16 object-cover rounded-xl bg-gray-900">
                     <div class="flex-1 min-w-0">
-                        <h4 class="font-bold text-sm text-amber-100 truncate">${obra.titulo}</h4>
-                        <p class="text-xs text-slate-400">${obra.autor} • <span class="text-amber-400 font-medium">${obra.tipo}</span></p>
-                        <p class="text-[11px] text-slate-500 mt-0.5">${obra.anio} - <strong class="text-amber-200">$${obra.valor.toFixed(2)}</strong></p>
+                        <h4 class="font-bold text-sm text-gray-100 truncate">${obra.titulo}</h4>
+                        <p class="text-xs text-gray-400">${obra.autor} • <span class="text-amber-300 font-medium">${obra.tipo}</span></p>
+                        <p class="text-[11px] text-gray-400 mt-0.5">${obra.anio} - <strong class="text-amber-300">$${obra.valor.toFixed(2)}</strong></p>
                     </div>
                 `;
                 card.addEventListener('click', () => verDetalleObra(obra.id));
@@ -333,25 +334,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const detalleContent = document.getElementById('detalleContent');
         detalleContent.innerHTML = `
-            <div class="flex flex-col items-center bg-slate-800 bg-opacity-80 p-6 rounded-2xl border border-slate-700 shadow-sm space-y-4">
-                <img src="${obra.portada}" alt="${obra.titulo}" class="w-36 h-48 object-cover rounded-xl shadow-md bg-slate-900">
+            <div class="flex flex-col items-center colex-card p-6 rounded-2xl shadow-sm space-y-4">
+                <img src="${obra.portada}" alt="${obra.titulo}" class="w-36 h-48 object-cover rounded-xl shadow-md bg-gray-900">
                 <div class="text-center">
-                    <h3 class="text-lg font-bold text-amber-100">${obra.titulo} ${obra.numero !== 'N/A' ? obra.numero : ''}</h3>
-                    <p class="text-sm text-slate-400">${obra.autor}</p>
+                    <h3 class="text-lg font-bold text-gray-100">${obra.titulo} ${obra.numero !== 'N/A' ? obra.numero : ''}</h3>
+                    <p class="text-sm text-gray-400">${obra.autor}</p>
                 </div>
-                <div class="w-full space-y-2 pt-2 border-t border-slate-700 text-sm">
-                    <div class="flex justify-between"><span class="text-slate-400">Categoría:</span> <span class="font-semibold text-slate-200">${obra.tipo} (${obra.subtipo})</span></div>
-                    <div class="flex justify-between"><span class="text-slate-400">Fabricante / Editorial:</span> <span class="font-semibold text-amber-300">${obra.editorial}</span></div>
-                    <div class="flex justify-between"><span class="text-slate-400">Año:</span> <span class="font-semibold text-slate-200">${obra.anio}</span></div>
-                    <div class="flex justify-between"><span class="text-slate-400">Estado:</span> <span class="font-semibold text-slate-200">${obra.estado}</span></div>
-                    <div class="flex justify-between"><span class="text-slate-400">Precio Aprox:</span> <span class="font-bold text-amber-400">$${obra.valor.toFixed(2)}</span></div>
+                <div class="w-full space-y-2 pt-2 border-t border-gray-700 text-sm">
+                    <div class="flex justify-between"><span class="text-gray-400">Categoría:</span> <span class="font-semibold text-gray-200">${obra.tipo} (${obra.subtipo})</span></div>
+                    <div class="flex justify-between"><span class="text-gray-400">Fabricante / Editorial:</span> <span class="font-semibold text-amber-300">${obra.editorial}</span></div>
+                    <div class="flex justify-between"><span class="text-gray-400">Año:</span> <span class="font-semibold text-gray-200">${obra.anio}</span></div>
+                    <div class="flex justify-between"><span class="text-gray-400">Estado:</span> <span class="font-semibold text-gray-200">${obra.estado}</span></div>
+                    <div class="flex justify-between"><span class="text-gray-400">Precio Aprox:</span> <span class="font-bold text-amber-300">$${obra.valor.toFixed(2)}</span></div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-2 w-full pt-2">
-                    <button id="btnEditar" class="py-2.5 bg-amber-700 text-white font-semibold rounded-xl hover:bg-amber-600 transition cursor-pointer text-xs flex items-center justify-center gap-1">
+                    <button id="btnEditar" class="py-2.5 bg-amber-btn text-white font-semibold rounded-xl hover:bg-amber-600 transition cursor-pointer text-xs flex items-center justify-center gap-1">
                         ✏️ Editar Ítem
                     </button>
-                    <button id="btnEliminar" class="py-2.5 bg-red-900 bg-opacity-60 text-red-400 font-semibold rounded-xl hover:bg-red-900 hover:bg-opacity-80 transition cursor-pointer text-xs border border-red-900 border-opacity-50">
+                    <button id="btnEliminar" class="py-2.5 bg-red-900 text-red-200 font-semibold rounded-xl hover:bg-red-800 transition cursor-pointer text-xs border border-red-700">
                         🗑️ Eliminar
                     </button>
                 </div>
