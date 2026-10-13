@@ -3,10 +3,10 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
 
 // ============================================================
-// CREDENCIALES DE SUPABASE
+// CREDENCIALES DE SUPABASE (REEMPLAZA CON TUS CLAVES REALES)
 // ============================================================
-const SUPABASE_URL = 'https://ljxhehuierhexvkveszr.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_o_m6elxMjBmViae-LChBfQ_G4BB8LAy';
+const SUPABASE_URL = 'https://TU_PROYECTO.supabase.co';
+const SUPABASE_ANON_KEY = 'TU_PUBLISHABLE_KEY_AQUI';
 // ============================================================
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -479,6 +479,10 @@ document.addEventListener('DOMContentLoaded', () => {
             ventanaPrint.close();
         }, 500);
     });
+
+    // Carga inicial
+    cargarObras();
+});
 
     // Carga inicial
     cargarObras();
