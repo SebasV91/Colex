@@ -19,7 +19,7 @@
 </head>
 <body class="library-bg text-slate-100 min-h-screen flex justify-center items-center p-0 sm:p-4">
 
-    <!-- Contenedor Principal (Estilo App Móvil / Web Centrada con efecto cristal antiguo) -->
+    <!-- Contenedor Principal -->
     <div class="w-full max-w-md bg-slate-900/90 backdrop-blur-md min-h-screen sm:min-h-[850px] sm:max-h-[880px] sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden relative border border-amber-900/40">
         
         <!-- ================= PANTALLA 1: MI COLECCIÓN ================= -->
@@ -38,10 +38,10 @@
 
             <!-- Buscador -->
             <div class="mb-4">
-                <input type="text" id="searchInput" placeholder="🔍 Buscar por título, autor, editorial..." class="w-full p-3 bg-slate-800/80 text-slate-200 placeholder-slate-400 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-600 border border-slate-700 transition">
+                <input type="text" id="searchInput" placeholder="🔍 Buscar por título, autor, marca..." class="w-full p-3 bg-slate-800/80 text-slate-200 placeholder-slate-400 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-600 border border-slate-700 transition">
             </div>
 
-            <!-- Lista de la Colección (Agrupada por Editorial) -->
+            <!-- Lista de la Colección (Agrupada por Editorial / Fabricante / Marca) -->
             <div id="listColeccion" class="space-y-4 flex-1 overflow-y-auto pr-1">
                 <!-- Se inyecta dinámicamente con JS -->
             </div>
@@ -61,22 +61,21 @@
             </div>
         </section>
 
-        <!-- ================= PANTALLA 3: AGREGAR / EDITAR OBRA ================= -->
+        <!-- ================= PANTALLA 3: AGREGAR / EDITAR ÍTEM ================= -->
         <section id="viewForm" class="app-screen hidden flex-1 flex flex-col p-5 overflow-y-auto bg-slate-900">
             <div class="flex items-center mb-6 pt-2">
                 <button id="backFromForm" class="text-amber-200 hover:text-white text-2xl mr-4 cursor-pointer font-bold">←</button>
-                <h2 id="formTitle" class="text-xl font-bold text-amber-100">Agregar Obra</h2>
+                <h2 id="formTitle" class="text-xl font-bold text-amber-100">Agregar Coleccionable</h2>
             </div>
 
             <form id="formObra" class="space-y-4 flex-1 flex flex-col justify-between pb-4">
-                <!-- ID oculto para saber si se está editando -->
                 <input type="hidden" id="editObraId" value="">
 
                 <div class="space-y-3.5">
-                    <!-- Cuadro de Portada Dual -->
+                    <!-- Cuadro de Portada / Foto Dual con Compresión -->
                     <div class="flex flex-col p-4 bg-slate-800/60 rounded-2xl border-2 border-dashed border-slate-700 space-y-2.5">
                         <span class="text-xs font-bold text-amber-200 flex items-center justify-between">
-                            <span>📷 Cuadro de Portada</span>
+                            <span>📷 Foto / Portada</span>
                             <span id="compressBadge" class="hidden text-[10px] text-emerald-400 font-normal">⚡ Imagen Comprimida</span>
                         </span>
                         <div>
@@ -86,21 +85,21 @@
                             <input type="file" id="portadaFile" accept=".jpg, .jpeg, .png, .webp" class="hidden">
                             <span id="fileName" class="block text-[11px] text-slate-400 mt-1 text-center truncate">Sin archivo seleccionado</span>
                         </div>
-                        <div class="text-center text-[10px] text-slate-500 font-medium uppercase tracking-wider">- o pega la url de tu portada -</div>
+                        <div class="text-center text-[10px] text-slate-500 font-medium uppercase tracking-wider">- o pega la url de la imagen -</div>
                         <div>
-                            <input type="url" id="portadaUrl" placeholder="pega la url de tu portada" class="w-full text-center text-xs p-2.5 bg-slate-800 text-slate-200 placeholder-slate-500 rounded-lg border border-slate-700 outline-none focus:ring-2 focus:ring-amber-600">
+                            <input type="url" id="portadaUrl" placeholder="pega la url de la imagen" class="w-full text-center text-xs p-2.5 bg-slate-800 text-slate-200 placeholder-slate-500 rounded-lg border border-slate-700 outline-none focus:ring-2 focus:ring-amber-600">
                         </div>
                     </div>
 
                     <div>
-                        <label class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Título *</label>
-                        <input type="text" id="titulo" required class="w-full p-3 bg-slate-800 text-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-600 border border-slate-700">
+                        <label class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Nombre / Título *</label>
+                        <input type="text" id="titulo" required class="w-full p-3 bg-slate-800 text-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-600 border border-slate-700" placeholder="Ej. Charizard Holo / Bone Shaker / Batman">
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Número</label>
-                            <input type="text" id="numero" class="w-full p-3 bg-slate-800 text-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-600 border border-slate-700" placeholder="Ej. #5">
+                            <label id="lblNumero" class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Número / Set</label>
+                            <input type="text" id="numero" class="w-full p-3 bg-slate-800 text-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-600 border border-slate-700" placeholder="Ej. #5 o 025/102">
                         </div>
                         <div>
                             <label class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Año</label>
@@ -110,41 +109,42 @@
 
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Tipo *</label>
+                            <label class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Categoría *</label>
                             <select id="tipoMaterial" required class="w-full p-3 bg-slate-800 text-slate-200 rounded-xl text-sm outline-none border border-slate-700">
                                 <option value="">Seleccionar...</option>
-                                <option value="Cómic">Cómic</option>
-                                <option value="Novela Gráfica">Novela Gráfica</option>
-                                <option value="Manga">Manga</option>
-                                <option value="Fanzine">Fanzine</option>
-                                <option value="Libro">Libro</option>
+                                <option value="Cómic / Manga / Libro">Cómic / Manga / Libro</option>
+                                <option value="Cartas TCG">Cartas TCG</option>
+                                <option value="Vehículos a Escala (Hot Wheels)">Hot Wheels / Vehículos</option>
+                                <option value="Figuras / Funkos / Estatuas">Figuras / Funkos / Estatuas</option>
+                                <option value="Videojuegos / Retro">Videojuegos / Retro</option>
+                                <option value="Otro / Fanzine">Otro / Fanzine</option>
                             </select>
                         </div>
                         <div>
-                            <label class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Formato *</label>
+                            <label class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Variante / Formato *</label>
                             <select id="subtipoMaterial" required class="w-full p-3 bg-slate-800 text-slate-200 rounded-xl text-sm outline-none border border-slate-700">
-                                <option value="">Selecciona tipo primero...</option>
+                                <option value="">Selecciona categoría primero...</option>
                             </select>
                         </div>
                     </div>
 
                     <div>
-                        <label class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Autor</label>
-                        <input type="text" id="autor" class="w-full p-3 bg-slate-800 text-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-600 border border-slate-700">
+                        <label id="lblAutor" class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Autor / Artista / Serie</label>
+                        <input type="text" id="autor" class="w-full p-3 bg-slate-800 text-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-600 border border-slate-700" placeholder="Ej. Stan Lee / Kenner / Konami">
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Editorial</label>
-                            <input type="text" id="editorial" class="w-full p-3 bg-slate-800 text-slate-200 rounded-xl text-sm outline-none border border-slate-700" placeholder="Ej. Marvel">
+                            <label id="lblEditorial" class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Editorial / Fabricante</label>
+                            <input type="text" id="editorial" class="w-full p-3 bg-slate-800 text-slate-200 rounded-xl text-sm outline-none border border-slate-700" placeholder="Ej. Marvel, Mattel, Konami">
                         </div>
                         <div>
                             <label class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Estado</label>
                             <select id="estadoFisico" class="w-full p-3 bg-slate-800 text-slate-200 rounded-xl text-sm outline-none border border-slate-700">
-                                <option value="Nuevo">Nuevo</option>
-                                <option value="Usado">Usado</option>
-                                <option value="Deteriorado">Deteriorado</option>
+                                <option value="Nuevo / Mint">Nuevo / Mint</option>
                                 <option value="Excelente">Excelente</option>
+                                <option value="Usado / Jugado">Usado / Jugado</option>
+                                <option value="Deteriorado">Deteriorado</option>
                             </select>
                         </div>
                     </div>
@@ -155,7 +155,7 @@
                     </div>
                 </div>
 
-                <button type="submit" id="btnSubmitForm" class="w-full py-3.5 bg-amber-700 text-white font-bold rounded-xl hover:bg-amber-600 transition cursor-pointer mt-4 shadow-md">Guardar Obra</button>
+                <button type="submit" id="btnSubmitForm" class="w-full py-3.5 bg-amber-700 text-white font-bold rounded-xl hover:bg-amber-600 transition cursor-pointer mt-4 shadow-md">Guardar Ítem</button>
             </form>
         </section>
 
@@ -171,20 +171,21 @@
                 <h3 class="font-bold text-xs text-amber-200 uppercase tracking-wider">Filtros de Búsqueda</h3>
                 
                 <div>
-                    <label class="text-[11px] text-slate-400 font-semibold">Filtrar por Tipo</label>
+                    <label class="text-[11px] text-slate-400 font-semibold">Filtrar por Categoría</label>
                     <select id="filtroTipo" class="w-full p-2.5 bg-slate-800 text-slate-200 rounded-xl text-xs outline-none border border-slate-700 mt-1">
-                        <option value="">Todos los tipos</option>
-                        <option value="Cómic">Cómic</option>
-                        <option value="Novela Gráfica">Novela Gráfica</option>
-                        <option value="Manga">Manga</option>
-                        <option value="Fanzine">Fanzine</option>
-                        <option value="Libro">Libro</option>
+                        <option value="">Todas las categorías</option>
+                        <option value="Cómic / Manga / Libro">Cómic / Manga / Libro</option>
+                        <option value="Cartas TCG">Cartas TCG</option>
+                        <option value="Vehículos a Escala (Hot Wheels)">Hot Wheels / Vehículos</option>
+                        <option value="Figuras / Funkos / Estatuas">Figuras / Funkos / Estatuas</option>
+                        <option value="Videojuegos / Retro">Videojuegos / Retro</option>
+                        <option value="Otro / Fanzine">Otro / Fanzine</option>
                     </select>
                 </div>
 
                 <div>
-                    <label class="text-[11px] text-slate-400 font-semibold">Filtrar por Editorial</label>
-                    <input type="text" id="filtroEditorial" placeholder="Ej. Marvel, Ivrea..." class="w-full p-2.5 bg-slate-800 text-slate-200 placeholder-slate-500 rounded-xl text-xs outline-none border border-slate-700 mt-1">
+                    <label class="text-[11px] text-slate-400 font-semibold">Filtrar por Editorial / Fabricante</label>
+                    <input type="text" id="filtroEditorial" placeholder="Ej. Marvel, Mattel, Konami..." class="w-full p-2.5 bg-slate-800 text-slate-200 placeholder-slate-500 rounded-xl text-xs outline-none border border-slate-700 mt-1">
                 </div>
 
                 <div>
@@ -200,7 +201,7 @@
             <div class="space-y-3 bg-slate-800/60 p-4 rounded-2xl border border-slate-700 mb-4">
                 <h3 class="font-bold text-xs text-amber-200 uppercase tracking-wider">Resumen</h3>
                 <div class="flex justify-between text-sm">
-                    <span class="text-slate-400">Obras filtradas/totales:</span>
+                    <span class="text-slate-400">Ítems filtrados/totales:</span>
                     <span id="statTotal" class="font-bold text-slate-200">0</span>
                 </div>
                 <div class="flex justify-between text-sm">
@@ -215,12 +216,17 @@
                 <div class="grid grid-cols-3 gap-2">
                     <button id="btnExportCSV" class="py-2.5 bg-emerald-700 text-white font-semibold rounded-xl text-xs hover:bg-emerald-600 transition cursor-pointer shadow-sm">CSV</button>
                     <button id="btnExportExcel" class="py-2.5 bg-blue-700 text-white font-semibold rounded-xl text-xs hover:bg-blue-600 transition cursor-pointer shadow-sm">Excel</button>
-                    <button id="btnExportPDF" class="py-2.5 bg-rose-700 text-white font-semibold rounded-xl text-xs hover:bg-rose-700 transition cursor-pointer shadow-sm">PDF</button>
+                    <button id="btnExportPDF" class="py-2.5 bg-rose-700 text-white font-semibold rounded-xl text-xs hover:bg-rose-600 transition cursor-pointer shadow-sm">PDF</button>
                 </div>
             </div>
         </section>
 
     </div>
+
+    <!-- Script Principal -->
+    <script type="module" src="app.js"></script>
+</body>
+</html>
 
     <!-- Script Principal -->
     <script type="module" src="app.js"></script>
