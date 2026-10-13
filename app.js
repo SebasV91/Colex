@@ -3,10 +3,10 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
 
 // ============================================================
-// CREDENCIALES DE SUPABASE (REEMPLAZA CON TUS CLAVES REALES)
+// CREDENCIALES DE SUPABASE
 // ============================================================
-const SUPABASE_URL = 'https://ljxhehuierhexvkveszr.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_o_m6elxMjBmViae-LChBfQ_G4BB8LAy';
+const SUPABASE_URL = 'https://TU_PROYECTO.supabase.co';
+const SUPABASE_ANON_KEY = 'TU_PUBLISHABLE_KEY_AQUI';
 // ============================================================
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -75,7 +75,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function actualizarOpcionesSubtipoYEtiquetas(tipoSeleccionado, valorSubtipoActual = '') {
         subtipoSelect.innerHTML = '<option value="">Seleccionar variante...</option>';
         
-        // Actualizar etiquetas dinámicas
         const config = labelConfig[tipoSeleccionado] || { editorial: 'Editorial / Fabricante', autor: 'Autor / Artista', numero: 'Número / Set', placeholderEditorial: 'Ej. Marvel' };
         document.getElementById('lblEditorial').textContent = config.editorial;
         document.getElementById('editorial').placeholder = config.placeholderEditorial;
@@ -274,7 +273,6 @@ document.addEventListener('DOMContentLoaded', () => {
         switchScreen('form');
     }
 
-    // Renderizar Colección agrupada por Editorial / Fabricante / Marca
     function renderizarColeccion(listaA_Renderizar) {
         const container = document.getElementById('listColeccion');
         container.innerHTML = '';
@@ -300,7 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
             seccionEditorial.className = "space-y-2 mb-4";
             
             seccionEditorial.innerHTML = `
-                <div class="flex justify-between items-center px-1 border-b border-amber-900/40 pb-1">
+                <div class="flex justify-between items-center px-1 border-b border-amber-900 border-opacity-40 pb-1">
                     <h3 class="text-xs font-bold text-amber-200 uppercase tracking-wider">🏷️ ${editorial}</h3>
                     <span class="text-[10px] bg-slate-800 text-amber-400 px-2 py-0.5 rounded-full border border-slate-700">${obrasDeEditorial.length} ítem${obrasDeEditorial.length > 1 ? 's' : ''}</span>
                 </div>
@@ -311,7 +309,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             obrasDeEditorial.forEach(obra => {
                 const card = document.createElement('div');
-                card.className = "flex items-center bg-slate-800/80 hover:bg-slate-800 p-3 rounded-2xl border border-slate-700 shadow-sm hover:shadow-md transition cursor-pointer gap-3";
+                card.className = "flex items-center bg-slate-800 bg-opacity-80 hover:bg-slate-800 p-3 rounded-2xl border border-slate-700 shadow-sm hover:shadow-md transition cursor-pointer gap-3";
                 card.innerHTML = `
                     <img src="${obra.portada}" alt="${obra.titulo}" class="w-14 h-16 object-cover rounded-xl bg-slate-900">
                     <div class="flex-1 min-w-0">
@@ -335,7 +333,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const detalleContent = document.getElementById('detalleContent');
         detalleContent.innerHTML = `
-            <div class="flex flex-col items-center bg-slate-800/80 p-6 rounded-2xl border border-slate-700 shadow-sm space-y-4">
+            <div class="flex flex-col items-center bg-slate-800 bg-opacity-80 p-6 rounded-2xl border border-slate-700 shadow-sm space-y-4">
                 <img src="${obra.portada}" alt="${obra.titulo}" class="w-36 h-48 object-cover rounded-xl shadow-md bg-slate-900">
                 <div class="text-center">
                     <h3 class="text-lg font-bold text-amber-100">${obra.titulo} ${obra.numero !== 'N/A' ? obra.numero : ''}</h3>
@@ -353,7 +351,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button id="btnEditar" class="py-2.5 bg-amber-700 text-white font-semibold rounded-xl hover:bg-amber-600 transition cursor-pointer text-xs flex items-center justify-center gap-1">
                         ✏️ Editar Ítem
                     </button>
-                    <button id="btnEliminar" class="py-2.5 bg-red-950/60 text-red-400 font-semibold rounded-xl hover:bg-red-900/80 transition cursor-pointer text-xs border border-red-900/50">
+                    <button id="btnEliminar" class="py-2.5 bg-red-900 bg-opacity-60 text-red-400 font-semibold rounded-xl hover:bg-red-900 hover:bg-opacity-80 transition cursor-pointer text-xs border border-red-900 border-opacity-50">
                         🗑️ Eliminar
                     </button>
                 </div>
