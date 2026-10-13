@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ColeX - Sistema de Catalogación</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>ColeX - Sistema de Catalogación Universal</title>
+    <!-- Carga directa de estilos CSS de Tailwind (Evita bloqueos de JS/AdBlock en escritorio) -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <!-- Supabase JS Client CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Estilos personalizados para el fondo de biblioteca antigua -->
@@ -87,146 +87,7 @@
                         </div>
                         <div class="text-center text-[10px] text-slate-500 font-medium uppercase tracking-wider">- o pega la url de la imagen -</div>
                         <div>
-                            <input type="url" id="portadaUrl" placeholder="pega la url de la imagen" class="w-full text-center text-xs p-2.5 bg-slate-800 text-slate-200 placeholder-slate-500 rounded-lg border border-slate-700 outline-none focus:ring-2 focus:ring-amber-600">
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Nombre / Título *</label>
-                        <input type="text" id="titulo" required class="w-full p-3 bg-slate-800 text-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-600 border border-slate-700" placeholder="Ej. Charizard Holo / Bone Shaker / Batman">
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label id="lblNumero" class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Número / Set</label>
-                            <input type="text" id="numero" class="w-full p-3 bg-slate-800 text-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-600 border border-slate-700" placeholder="Ej. #5 o 025/102">
-                        </div>
-                        <div>
-                            <label class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Año</label>
-                            <input type="number" id="anio" class="w-full p-3 bg-slate-800 text-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-600 border border-slate-700" placeholder="Ej. 2023">
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Categoría *</label>
-                            <select id="tipoMaterial" required class="w-full p-3 bg-slate-800 text-slate-200 rounded-xl text-sm outline-none border border-slate-700">
-                                <option value="">Seleccionar...</option>
-                                <option value="Cómic / Manga / Libro">Cómic / Manga / Libro</option>
-                                <option value="Cartas TCG">Cartas TCG</option>
-                                <option value="Vehículos a Escala (Hot Wheels)">Hot Wheels / Vehículos</option>
-                                <option value="Figuras / Funkos / Estatuas">Figuras / Funkos / Estatuas</option>
-                                <option value="Videojuegos / Retro">Videojuegos / Retro</option>
-                                <option value="Otro / Fanzine">Otro / Fanzine</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Variante / Formato *</label>
-                            <select id="subtipoMaterial" required class="w-full p-3 bg-slate-800 text-slate-200 rounded-xl text-sm outline-none border border-slate-700">
-                                <option value="">Selecciona categoría primero...</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label id="lblAutor" class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Autor / Artista / Serie</label>
-                        <input type="text" id="autor" class="w-full p-3 bg-slate-800 text-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-600 border border-slate-700" placeholder="Ej. Stan Lee / Kenner / Konami">
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label id="lblEditorial" class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Editorial / Fabricante</label>
-                            <input type="text" id="editorial" class="w-full p-3 bg-slate-800 text-slate-200 rounded-xl text-sm outline-none border border-slate-700" placeholder="Ej. Marvel, Mattel, Konami">
-                        </div>
-                        <div>
-                            <label class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Estado</label>
-                            <select id="estadoFisico" class="w-full p-3 bg-slate-800 text-slate-200 rounded-xl text-sm outline-none border border-slate-700">
-                                <option value="Nuevo / Mint">Nuevo / Mint</option>
-                                <option value="Excelente">Excelente</option>
-                                <option value="Usado / Jugado">Usado / Jugado</option>
-                                <option value="Deteriorado">Deteriorado</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="text-xs text-amber-200 font-semibold uppercase tracking-wider">Precio Aproximado ($)</label>
-                        <input type="number" step="0.01" id="valorManual" value="0.00" class="w-full p-3 bg-slate-800 text-slate-200 rounded-xl text-sm outline-none border border-slate-700">
-                    </div>
-                </div>
-
-                <button type="submit" id="btnSubmitForm" class="w-full py-3.5 bg-amber-700 text-white font-bold rounded-xl hover:bg-amber-600 transition cursor-pointer mt-4 shadow-md">Guardar Ítem</button>
-            </form>
-        </section>
-
-        <!-- ================= PANTALLA 4: FILTROS Y ESTADÍSTICAS ================= -->
-        <section id="viewStats" class="app-screen hidden flex-1 flex flex-col p-5 overflow-y-auto bg-slate-900">
-            <div class="flex items-center mb-4 pt-2">
-                <button id="backFromStats" class="text-amber-200 hover:text-white text-2xl mr-4 cursor-pointer font-bold">←</button>
-                <h2 class="text-xl font-bold text-amber-100">Filtros & Reportes</h2>
-            </div>
-
-            <!-- Panel de Filtros Avanzados -->
-            <div class="space-y-3.5 bg-slate-800/60 p-4 rounded-2xl border border-slate-700 mb-4">
-                <h3 class="font-bold text-xs text-amber-200 uppercase tracking-wider">Filtros de Búsqueda</h3>
-                
-                <div>
-                    <label class="text-[11px] text-slate-400 font-semibold">Filtrar por Categoría</label>
-                    <select id="filtroTipo" class="w-full p-2.5 bg-slate-800 text-slate-200 rounded-xl text-xs outline-none border border-slate-700 mt-1">
-                        <option value="">Todas las categorías</option>
-                        <option value="Cómic / Manga / Libro">Cómic / Manga / Libro</option>
-                        <option value="Cartas TCG">Cartas TCG</option>
-                        <option value="Vehículos a Escala (Hot Wheels)">Hot Wheels / Vehículos</option>
-                        <option value="Figuras / Funkos / Estatuas">Figuras / Funkos / Estatuas</option>
-                        <option value="Videojuegos / Retro">Videojuegos / Retro</option>
-                        <option value="Otro / Fanzine">Otro / Fanzine</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="text-[11px] text-slate-400 font-semibold">Filtrar por Editorial / Fabricante</label>
-                    <input type="text" id="filtroEditorial" placeholder="Ej. Marvel, Mattel, Konami..." class="w-full p-2.5 bg-slate-800 text-slate-200 placeholder-slate-500 rounded-xl text-xs outline-none border border-slate-700 mt-1">
-                </div>
-
-                <div>
-                    <label class="text-[11px] text-slate-400 font-semibold">Precio Máximo ($)</label>
-                    <input type="number" id="filtroPrecio" placeholder="Ej. 50" class="w-full p-2.5 bg-slate-800 text-slate-200 placeholder-slate-500 rounded-xl text-xs outline-none border border-slate-700 mt-1">
-                </div>
-
-                <button id="btnAplicarFiltros" class="w-full py-2 bg-amber-700 text-white font-semibold rounded-xl text-xs hover:bg-amber-600 transition cursor-pointer">Aplicar Filtros</button>
-                <button id="btnLimpiarFiltros" class="w-full py-1.5 bg-transparent text-slate-400 font-medium rounded-xl text-xs hover:text-white transition cursor-pointer">Limpiar Filtros</button>
-            </div>
-
-            <!-- Panel de Métricas -->
-            <div class="space-y-3 bg-slate-800/60 p-4 rounded-2xl border border-slate-700 mb-4">
-                <h3 class="font-bold text-xs text-amber-200 uppercase tracking-wider">Resumen</h3>
-                <div class="flex justify-between text-sm">
-                    <span class="text-slate-400">Ítems filtrados/totales:</span>
-                    <span id="statTotal" class="font-bold text-slate-200">0</span>
-                </div>
-                <div class="flex justify-between text-sm">
-                    <span class="text-slate-400">Valor estimado:</span>
-                    <span id="statValor" class="font-bold text-amber-400">$0.00</span>
-                </div>
-            </div>
-
-            <!-- Botones de Exportación -->
-            <div class="space-y-2.5 pt-2">
-                <h3 class="font-bold text-xs text-amber-200 uppercase tracking-wider">Exportar Datos</h3>
-                <div class="grid grid-cols-3 gap-2">
-                    <button id="btnExportCSV" class="py-2.5 bg-emerald-700 text-white font-semibold rounded-xl text-xs hover:bg-emerald-600 transition cursor-pointer shadow-sm">CSV</button>
-                    <button id="btnExportExcel" class="py-2.5 bg-blue-700 text-white font-semibold rounded-xl text-xs hover:bg-blue-600 transition cursor-pointer shadow-sm">Excel</button>
-                    <button id="btnExportPDF" class="py-2.5 bg-rose-700 text-white font-semibold rounded-xl text-xs hover:bg-rose-600 transition cursor-pointer shadow-sm">PDF</button>
-                </div>
-            </div>
-        </section>
-
-    </div>
-
-    <!-- Script Principal -->
-    <script type="module" src="app.js"></script>
-</body>
-</html>
+                            <input type="url" id="portadaUrl" placeholder="pega la url de la imagen" class="w-full text-center text-xs p-2.5 bg-slate-800 text-slate-200 placeholder-slate-500 rounded-lg border border-slate-700 outline
 
     <!-- Script Principal -->
     <script type="module" src="app.js"></script>
