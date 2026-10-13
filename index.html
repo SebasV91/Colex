@@ -8,30 +8,16 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <!-- Supabase JS Client CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Estilos personalizados para opacidad y diseño de biblioteca -->
     <style>
         .library-bg {
             background-image: linear-gradient(rgba(15, 23, 42, 0.9), rgba(30, 20, 10, 0.95)), url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=1200&q=80');
             background-size: cover;
             background-position: center;
         }
-        .colex-container {
-            background-color: #0f172a !important;
-            border: 1px solid rgba(180, 83, 9, 0.5);
-        }
-        .colex-card {
-            background-color: #1e293b !important;
-            border: 1px solid #334155 !important;
-        }
-        .colex-input {
-            background-color: #1e293b !important;
-            border: 1px solid #475569 !important;
-            color: #f8fafc !important;
-        }
-        .colex-input:focus {
-            border-color: #d97706 !important;
-            outline: none;
-        }
+        .colex-container { background-color: #0f172a !important; border: 1px solid rgba(180, 83, 9, 0.5); }
+        .colex-card { background-color: #1e293b !important; border: 1px solid #334155 !important; }
+        .colex-input { background-color: #1e293b !important; border: 1px solid #475569 !important; color: #f8fafc !important; }
+        .colex-input:focus { border-color: #d97706 !important; outline: none; }
         .text-amber-custom { color: #fde68a !important; }
         .bg-amber-btn { background-color: #b45309 !important; }
         .bg-amber-btn:hover { background-color: #d97706 !important; }
@@ -40,11 +26,10 @@
 <body class="library-bg text-slate-100 min-h-screen flex justify-center items-center p-0 sm:p-4">
 
     <!-- Contenedor Principal -->
-    <div class="w-full max-w-md colex-container min-h-screen sm:min-h-[850px] sm:max-h-[880px] sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden relative">
+    <div class="w-full max-w-md colex-container min-h-screen sm:min-h-[800px] sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden relative">
         
         <!-- ================= PANTALLA 1: MI COLECCIÓN ================= -->
         <section id="viewColeccion" class="app-screen flex-1 flex flex-col p-5 overflow-y-auto">
-            <!-- Header con Logo Original CX -->
             <div class="flex justify-between items-center mb-4 pt-2">
                 <div class="flex items-center space-x-2.5">
                     <div class="flex items-center shadow-sm rounded-xl overflow-hidden border border-amber-600">
@@ -56,17 +41,14 @@
                 <button id="navToAddBtn" class="w-9 h-9 colex-card text-amber-custom hover:bg-amber-700 hover:text-white rounded-full flex items-center justify-center text-2xl font-light transition cursor-pointer shadow-sm">+</button>
             </div>
 
-            <!-- Buscador -->
             <div class="mb-4">
                 <input type="text" id="searchInput" placeholder="🔍 Buscar por título, autor, marca..." class="w-full p-3 colex-input rounded-xl text-sm placeholder-gray-400 transition">
             </div>
 
-            <!-- Lista de la Colección -->
             <div id="listColeccion" class="space-y-4 flex-1 overflow-y-auto pr-1">
                 <!-- Se inyecta dinámicamente con JS -->
             </div>
 
-            <!-- Navegación Inferior -->
             <div class="pt-3 pb-2 mt-2 border-t border-gray-800 flex justify-around items-center text-gray-400 colex-container">
                 <button id="navToAddBtnBottom" class="text-2xl font-bold hover:text-amber-custom transition cursor-pointer p-2">+</button>
                 <button id="navToStatsBtn" class="text-xl hover:text-amber-custom transition cursor-pointer p-2" title="Filtros y Estadísticas">🔍</button>
@@ -76,9 +58,7 @@
         <!-- ================= PANTALLA 2: DETALLE DE LA OBRA ================= -->
         <section id="viewDetalle" class="app-screen hidden flex-1 flex flex-col p-5 overflow-y-auto colex-container">
             <button id="backFromDetalle" class="text-amber-custom hover:text-white text-2xl mb-4 self-start cursor-pointer font-bold">←</button>
-            <div id="detalleContent" class="space-y-4">
-                <!-- Se inyecta dinámicamente con JS -->
-            </div>
+            <div id="detalleContent" class="space-y-4"></div>
         </section>
 
         <!-- ================= PANTALLA 3: AGREGAR / EDITAR ÍTEM ================= -->
@@ -92,7 +72,6 @@
                 <input type="hidden" id="editObraId" value="">
 
                 <div class="space-y-3.5">
-                    <!-- Cuadro de Portada / Foto Dual con Compresión -->
                     <div class="flex flex-col p-4 colex-card rounded-2xl border-2 border-dashed border-gray-600 space-y-2.5">
                         <span class="text-xs font-bold text-amber-custom flex items-center justify-between">
                             <span>📷 Foto / Portada</span>
@@ -113,13 +92,13 @@
 
                     <div>
                         <label class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Nombre / Título *</label>
-                        <input type="text" id="titulo" required class="w-full p-3 colex-input rounded-xl text-sm" placeholder="Ej. Charizard Holo / Bone Shaker / Batman">
+                        <input type="text" id="titulo" required class="w-full p-3 colex-input rounded-xl text-sm" placeholder="Ej. Charizard Holo / Bone Shaker">
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label id="lblNumero" class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Número / Set</label>
-                            <input type="text" id="numero" class="w-full p-3 colex-input rounded-xl text-sm" placeholder="Ej. #5 o 025/102">
+                            <input type="text" id="numero" class="w-full p-3 colex-input rounded-xl text-sm" placeholder="Ej. #5">
                         </div>
                         <div>
                             <label class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Año</label>
@@ -150,13 +129,13 @@
 
                     <div>
                         <label id="lblAutor" class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Autor / Artista / Serie</label>
-                        <input type="text" id="autor" class="w-full p-3 colex-input rounded-xl text-sm" placeholder="Ej. Stan Lee / Kenner / Konami">
+                        <input type="text" id="autor" class="w-full p-3 colex-input rounded-xl text-sm" placeholder="Ej. Stan Lee / Konami">
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label id="lblEditorial" class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Editorial / Fabricante</label>
-                            <input type="text" id="editorial" class="w-full p-3 colex-input rounded-xl text-sm" placeholder="Ej. Marvel, Mattel, Konami">
+                            <input type="text" id="editorial" class="w-full p-3 colex-input rounded-xl text-sm" placeholder="Ej. Marvel, Mattel">
                         </div>
                         <div>
                             <label class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Estado</label>
@@ -186,7 +165,6 @@
                 <h2 class="text-xl font-bold text-amber-custom">Filtros & Reportes</h2>
             </div>
 
-            <!-- Panel de Filtros Avanzados -->
             <div class="space-y-3.5 colex-card p-4 rounded-2xl mb-4">
                 <h3 class="font-bold text-xs text-amber-custom uppercase tracking-wider">Filtros de Búsqueda</h3>
                 
@@ -205,7 +183,7 @@
 
                 <div>
                     <label class="text-[11px] text-gray-400 font-semibold">Filtrar por Editorial / Fabricante</label>
-                    <input type="text" id="filtroEditorial" placeholder="Ej. Marvel, Mattel, Konami..." class="w-full p-2.5 colex-input rounded-xl text-xs placeholder-gray-500 mt-1">
+                    <input type="text" id="filtroEditorial" placeholder="Ej. Marvel, Mattel..." class="w-full p-2.5 colex-input rounded-xl text-xs placeholder-gray-500 mt-1">
                 </div>
 
                 <div>
@@ -217,7 +195,6 @@
                 <button id="btnLimpiarFiltros" class="w-full py-1.5 bg-transparent text-gray-400 font-medium rounded-xl text-xs hover:text-white transition cursor-pointer">Limpiar Filtros</button>
             </div>
 
-            <!-- Panel de Métricas -->
             <div class="space-y-3 colex-card p-4 rounded-2xl mb-4">
                 <h3 class="font-bold text-xs text-amber-custom uppercase tracking-wider">Resumen</h3>
                 <div class="flex justify-between text-sm">
@@ -230,7 +207,6 @@
                 </div>
             </div>
 
-            <!-- Botones de Exportación -->
             <div class="space-y-2.5 pt-2">
                 <h3 class="font-bold text-xs text-amber-custom uppercase tracking-wider">Exportar Datos</h3>
                 <div class="grid grid-cols-3 gap-2">
@@ -243,7 +219,6 @@
 
     </div>
 
-    <!-- Script Principal -->
     <script type="module" src="app.js"></script>
 </body>
 </html>
