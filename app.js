@@ -1,12 +1,12 @@
-// app.js - ColeX con Compresión de Imágenes HTML5 Canvas y Edición de Obras
+// app.js - ColeX Multicoleccionista (Cómics, TCG, Hot Wheels, Figuras, Videojuegos)
 
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
 
 // ============================================================
 // CREDENCIALES DE SUPABASE
 // ============================================================
-const SUPABASE_URL = 'https://ljxhehuierhexvkveszr.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_o_m6elxMjBmViae-LChBfQ_G4BB8LAy';
+const SUPABASE_URL = 'https://TU_PROYECTO.supabase.co';
+const SUPABASE_ANON_KEY = 'TU_PUBLISHABLE_KEY_AQUI';
 // ============================================================
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -50,20 +50,38 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('backFromDetalle').addEventListener('click', () => switchScreen('coleccion'));
     document.getElementById('backFromStats').addEventListener('click', () => switchScreen('coleccion'));
 
-    // Subtipos de material
+    // Subtipos y etiquetas dinámicas según la categoría de colección
     const subformatos = {
-        'Cómic': ['Grapa (Floppy)', 'Tomo Rústica (TPB)', 'Tomo Cartoné (Hardcover)'],
-        'Novela Gráfica': ['Tomo Cartoné', 'Tomo Rústica'],
-        'Manga': ['Tankoubon', 'Kanzenban', 'Bunkoban'],
-        'Fanzine': ['Grapa Artesanal', 'Plegado'],
-        'Libro': ['Tapa Dura', 'Tapa Blanda']
+        'Cómic / Manga / Libro': ['Grapa (Floppy)', 'Tomo Rústica (TPB)', 'Tomo Cartoné (Hardcover)', 'Tankoubon', 'Tapa Blanda', 'Tapa Dura'],
+        'Cartas TCG': ['Holofoil / Rara', 'Común / Infrecuente', 'Secreta / Ultra Rara', 'Promo / Edición Especial'],
+        'Vehículos a Escala (Hot Wheels)': ['Mainline', 'Treasure Hunt', 'Super Treasure Hunt', 'Edición Especial / Premium', 'Set de 5 Pack'],
+        'Figuras / Funkos / Estatuas': ['Funko Pop', 'Action Figure (Articulada)', 'Estatua / PVC', 'Nendoroid', 'Busto / Diorama'],
+        'Videojuegos / Retro': ['Formato Físico (Cartucho)', 'Formato Físico (Disco)', 'Edición Coleccionista', 'Consola / Hardware'],
+        'Otro / Fanzine': ['Fanzine / Artesanal', 'Merchandising', 'Otro Coleccionable']
+    };
+
+    const labelConfig = {
+        'Cómic / Manga / Libro': { editorial: 'Editorial', autor: 'Autor / Guionista', numero: 'Número / Tomo', placeholderEditorial: 'Ej. Marvel, Ivrea' },
+        'Cartas TCG': { editorial: 'Juego / Marca', autor: 'Ilustrador / Artista', numero: 'Número / Set (ej. 025/102)', placeholderEditorial: 'Ej. Pokémon TCG, Yu-Gi-Oh' },
+        'Vehículos a Escala (Hot Wheels)': { editorial: 'Fabricante / Marca', autor: 'Serie / Colección', numero: 'Número de Serie / Lote', placeholderEditorial: 'Ej. Mattel, Matchbox' },
+        'Figuras / Funkos / Estatuas': { editorial: 'Fabricante / Marca', autor: 'Franquicia / Línea', numero: 'Número de Figura', placeholderEditorial: 'Ej. Funko, Bandai, Hot Toys' },
+        'Videojuegos / Retro': { editorial: 'Desarrollador / Distribuidor', autor: 'Estudio / Creador', numero: 'Plataforma / Región', placeholderEditorial: 'Ej. Nintendo, Capcom' },
+        'Otro / Fanzine': { editorial: 'Marca / Fabricante', autor: 'Autor / Creador', numero: 'Número / Referencia', placeholderEditorial: 'Ej. Independiente' }
     };
 
     const tipoSelect = document.getElementById('tipoMaterial');
     const subtipoSelect = document.getElementById('subtipoMaterial');
 
-    function actualizarOpcionesSubtipo(tipoSeleccionado, valorSubtipoActual = '') {
-        subtipoSelect.innerHTML = '<option value="">Seleccionar formato...</option>';
+    function actualizarOpcionesSubtipoYEtiquetas(tipoSeleccionado, valorSubtipoActual = '') {
+        subtipoSelect.innerHTML = '<option value="">Seleccionar variante...</option>';
+        
+        // Actualizar etiquetas dinámicas
+        const config = labelConfig[tipoSeleccionado] || { editorial: 'Editorial / Fabricante', autor: 'Autor / Artista', numero: 'Número / Set', placeholderEditorial: 'Ej. Marvel' };
+        document.getElementById('lblEditorial').textContent = config.editorial;
+        document.getElementById('editorial').placeholder = config.placeholderEditorial;
+        document.getElementById('lblAutor').textContent = config.autor;
+        document.getElementById('lblNumero').textContent = config.numero;
+
         if (subformatos[tipoSeleccionado]) {
             subtipoSelect.disabled = false;
             subformatos[tipoSeleccionado].forEach(sub => {
@@ -75,13 +93,13 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         } else {
             subtipoSelect.disabled = true;
-            subtipoSelect.innerHTML = '<option value="">Selecciona tipo primero...</option>';
+            subtipoSelect.innerHTML = '<option value="">Selecciona categoría primero...</option>';
         }
     }
 
-    tipoSelect.addEventListener('change', (e) => actualizarOpcionesSubtipo(e.target.value));
+    tipoSelect.addEventListener('change', (e) => actualizarOpcionesSubtipoYEtiquetas(e.target.value));
 
-    // ================= FUNCIÓN DE COMPRESIÓN DE IMÁGENES =================
+    // Compresión de imágenes HTML5 Canvas
     function comprimirImagen(file, maxAnchoAlto = 600, calidad = 0.7) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -149,7 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Guardar o Editar Obra en Supabase
+    // Guardar o Editar Ítem en Supabase
     const formObra = document.getElementById('formObra');
     formObra.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -157,10 +175,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const editId = document.getElementById('editObraId').value;
         const tituloIngresado = document.getElementById('titulo').value.trim();
         
-        // Validación anticopia (ignorando la misma obra en caso de edición)
         const tituloExistente = obras.some(o => o.titulo.toLowerCase() === tituloIngresado.toLowerCase() && String(o.id) !== String(editId));
         if (tituloExistente) {
-            alert(`⚠️ Ya existe una obra registrada con el título "${tituloIngresado}".`);
+            alert(`⚠️ Ya existe un ítem registrado con el nombre "${tituloIngresado}".`);
             return;
         }
 
@@ -188,7 +205,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         if (editId) {
-            // MODO EDICIÓN (.update)
             const idNumber = Number(editId);
             const { error } = await supabase.from('obras').update(datosObra).eq('id', idNumber);
             if (error) {
@@ -200,7 +216,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 obras[index] = { id: idNumber, ...datosObra };
             }
         } else {
-            // MODO CREACIÓN (.insert)
             const nuevaObra = { id: Date.now(), ...datosObra };
             const { error } = await supabase.from('obras').insert([nuevaObra]);
             if (error) {
@@ -218,28 +233,28 @@ document.addEventListener('DOMContentLoaded', () => {
     function resetForm() {
         formObra.reset();
         document.getElementById('editObraId').value = '';
-        document.getElementById('formTitle').textContent = 'Agregar Obra';
-        document.getElementById('btnSubmitForm').textContent = 'Guardar Obra';
+        document.getElementById('formTitle').textContent = 'Agregar Coleccionable';
+        document.getElementById('btnSubmitForm').textContent = 'Guardar Ítem';
         imagenPortadaBase64 = '';
         fileNameSpan.textContent = 'Sin archivo seleccionado';
         fileNameSpan.classList.remove('text-amber-400', 'font-medium');
         compressBadge.classList.add('hidden');
         subtipoSelect.disabled = true;
-        subtipoSelect.innerHTML = '<option value="">Selecciona tipo primero...</option>';
+        subtipoSelect.innerHTML = '<option value="">Selecciona categoría primero...</option>';
+        actualizarOpcionesSubtipoYEtiquetas('');
     }
 
-    // Cargar formulario con datos existentes para Editar
     function cargarFormularioParaEditar(obra) {
         document.getElementById('editObraId').value = obra.id;
-        document.getElementById('formTitle').textContent = 'Editar Obra';
-        document.getElementById('btnSubmitForm').textContent = 'Actualizar Obra';
+        document.getElementById('formTitle').textContent = 'Editar Coleccionable';
+        document.getElementById('btnSubmitForm').textContent = 'Actualizar Ítem';
 
         document.getElementById('titulo').value = obra.titulo;
         document.getElementById('numero').value = obra.numero !== 'N/A' ? obra.numero : '';
         document.getElementById('anio').value = obra.anio !== 'S/F' ? obra.anio : '';
         document.getElementById('tipoMaterial').value = obra.tipo;
         
-        actualizarOpcionesSubtipo(obra.tipo, obra.subtipo);
+        actualizarOpcionesSubtipoYEtiquetas(obra.tipo, obra.subtipo);
 
         document.getElementById('autor').value = obra.autor !== 'Desconocido' ? obra.autor : '';
         document.getElementById('editorial').value = obra.editorial !== 'Independiente' ? obra.editorial : '';
@@ -251,7 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
             fileNameSpan.textContent = 'Usando URL actual';
         } else {
             document.getElementById('portadaUrl').value = '';
-            fileNameSpan.textContent = 'Portada almacenada en la obra';
+            fileNameSpan.textContent = 'Foto almacenada en el ítem';
         }
 
         imagenPortadaBase64 = '';
@@ -259,13 +274,13 @@ document.addEventListener('DOMContentLoaded', () => {
         switchScreen('form');
     }
 
-    // Renderizar Colección Agrupada por Editorial
+    // Renderizar Colección agrupada por Editorial / Fabricante / Marca
     function renderizarColeccion(listaA_Renderizar) {
         const container = document.getElementById('listColeccion');
         container.innerHTML = '';
 
         if (!listaA_Renderizar || listaA_Renderizar.length === 0) {
-            container.innerHTML = `<p class="text-center text-slate-400 text-sm py-10">No se encontraron obras.</p>`;
+            container.innerHTML = `<p class="text-center text-slate-400 text-sm py-10">No se encontraron coleccionables.</p>`;
             return;
         }
 
@@ -286,8 +301,8 @@ document.addEventListener('DOMContentLoaded', () => {
             
             seccionEditorial.innerHTML = `
                 <div class="flex justify-between items-center px-1 border-b border-amber-900/40 pb-1">
-                    <h3 class="text-xs font-bold text-amber-200 uppercase tracking-wider">📚 ${editorial}</h3>
-                    <span class="text-[10px] bg-slate-800 text-amber-400 px-2 py-0.5 rounded-full border border-slate-700">${obrasDeEditorial.length} obra${obrasDeEditorial.length > 1 ? 's' : ''}</span>
+                    <h3 class="text-xs font-bold text-amber-200 uppercase tracking-wider">🏷️ ${editorial}</h3>
+                    <span class="text-[10px] bg-slate-800 text-amber-400 px-2 py-0.5 rounded-full border border-slate-700">${obrasDeEditorial.length} ítem${obrasDeEditorial.length > 1 ? 's' : ''}</span>
                 </div>
             `;
 
@@ -314,7 +329,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Ver Detalle con opciones de Editar y Eliminar
     function verDetalleObra(id) {
         const obra = obras.find(o => String(o.id) === String(id));
         if (!obra) return;
@@ -328,8 +342,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <p class="text-sm text-slate-400">${obra.autor}</p>
                 </div>
                 <div class="w-full space-y-2 pt-2 border-t border-slate-700 text-sm">
-                    <div class="flex justify-between"><span class="text-slate-400">Tipo:</span> <span class="font-semibold text-slate-200">${obra.tipo} (${obra.subtipo})</span></div>
-                    <div class="flex justify-between"><span class="text-slate-400">Editorial:</span> <span class="font-semibold text-amber-300">${obra.editorial}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-400">Categoría:</span> <span class="font-semibold text-slate-200">${obra.tipo} (${obra.subtipo})</span></div>
+                    <div class="flex justify-between"><span class="text-slate-400">Fabricante / Editorial:</span> <span class="font-semibold text-amber-300">${obra.editorial}</span></div>
                     <div class="flex justify-between"><span class="text-slate-400">Año:</span> <span class="font-semibold text-slate-200">${obra.anio}</span></div>
                     <div class="flex justify-between"><span class="text-slate-400">Estado:</span> <span class="font-semibold text-slate-200">${obra.estado}</span></div>
                     <div class="flex justify-between"><span class="text-slate-400">Precio Aprox:</span> <span class="font-bold text-amber-400">$${obra.valor.toFixed(2)}</span></div>
@@ -337,7 +351,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 <div class="grid grid-cols-2 gap-2 w-full pt-2">
                     <button id="btnEditar" class="py-2.5 bg-amber-700 text-white font-semibold rounded-xl hover:bg-amber-600 transition cursor-pointer text-xs flex items-center justify-center gap-1">
-                        ✏️ Editar Obra
+                        ✏️ Editar Ítem
                     </button>
                     <button id="btnEliminar" class="py-2.5 bg-red-950/60 text-red-400 font-semibold rounded-xl hover:bg-red-900/80 transition cursor-pointer text-xs border border-red-900/50">
                         🗑️ Eliminar
@@ -414,7 +428,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Exportaciones
     document.getElementById('btnExportCSV').addEventListener('click', () => {
         if (obrasFiltradasGlobal.length === 0) { alert('No hay datos para exportar.'); return; }
-        let csvContent = "data:text/csv;charset=utf-8,ID,Titulo,Numero,Anio,Tipo,Subtipo,Autor,Editorial,Estado,PrecioAprox\n";
+        let csvContent = "data:text/csv;charset=utf-8,ID,Titulo,Numero,Anio,Categoria,Variante,Autor,Editorial,Estado,PrecioAprox\n";
         obrasFiltradasGlobal.forEach(o => {
             let row = [o.id, `"${o.titulo}"`, o.numero, o.anio, `"${o.tipo}"`, `"${o.subtipo}"`, `"${o.autor}"`, `"${o.editorial}"`, o.estado, o.valor];
             csvContent += row.join(",") + "\n";
@@ -422,7 +436,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "colex_reporte.csv");
+        link.setAttribute("download", "colex_coleccion.csv");
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -430,7 +444,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('btnExportExcel').addEventListener('click', () => {
         if (obrasFiltradasGlobal.length === 0) { alert('No hay datos para exportar.'); return; }
-        let htmlTabla = `<table><tr><th>ID</th><th>Titulo</th><th>Numero</th><th>Anio</th><th>Tipo</th><th>Subtipo</th><th>Autor</th><th>Editorial</th><th>Estado</th><th>Precio Aprox</th></tr>`;
+        let htmlTabla = `<table><tr><th>ID</th><th>Titulo</th><th>Numero</th><th>Anio</th><th>Categoria</th><th>Variante</th><th>Autor</th><th>Editorial</th><th>Estado</th><th>Precio Aprox</th></tr>`;
         obrasFiltradasGlobal.forEach(o => {
             htmlTabla += `<tr><td>${o.id}</td><td>${o.titulo}</td><td>${o.numero}</td><td>${o.anio}</td><td>${o.tipo}</td><td>${o.subtipo}</td><td>${o.autor}</td><td>${o.editorial}</td><td>${o.estado}</td><td>${o.valor}</td></tr>`;
         });
@@ -439,7 +453,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = 'colex_reporte.xls';
+        link.download = 'colex_coleccion.xls';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -451,9 +465,9 @@ document.addEventListener('DOMContentLoaded', () => {
         ventanaPrint.document.write('<html><head><title>Reporte ColeX</title>');
         ventanaPrint.document.write('<style>body{font-family:sans-serif;padding:20px;} table{width:100%;border-collapse:collapse;margin-top:20px;} th,td{border:1px solid #ddd;padding:8px;text-align:left;font-size:12px;} th{background-color:#b45309;color:white;}</style>');
         ventanaPrint.document.write('</head><body>');
-        ventanaPrint.document.write('<h2>Reporte de Colección - ColeX</h2>');
-        ventanaPrint.document.write('<p>Total de obras listadas: ' + obrasFiltradasGlobal.length + '</p>');
-        ventanaPrint.document.write('<table><thead><tr><th>Título</th><th>Autor</th><th>Tipo</th><th>Editorial</th><th>Año</th><th>Estado</th><th>Precio Aprox</th></tr></thead><tbody>');
+        ventanaPrint.document.write('<h2>Reporte General de Colección - ColeX</h2>');
+        ventanaPrint.document.write('<p>Total de ítems listados: ' + obrasFiltradasGlobal.length + '</p>');
+        ventanaPrint.document.write('<table><thead><tr><th>Título</th><th>Autor / Artista</th><th>Categoría</th><th>Editorial / Marca</th><th>Año</th><th>Estado</th><th>Precio Aprox</th></tr></thead><tbody>');
         obrasFiltradasGlobal.forEach(o => {
             ventanaPrint.document.write(`<tr><td>${o.titulo}</td><td>${o.autor}</td><td>${o.tipo}</td><td>${o.editorial}</td><td>${o.anio}</td><td>${o.estado}</td><td>$${o.valor.toFixed(2)}</td></tr>`);
         });
