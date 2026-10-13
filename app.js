@@ -1,4 +1,4 @@
-// app.js - ColeX Multicoleccionista (Cómics, TCG, Hot Wheels, Figuras, Videojuegos)
+// app.js - ColeX Multicoleccionista
 
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
 
@@ -11,7 +11,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_o_m6elxMjBmViae-LChBfQ_G4BB8LAy';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-document.addEventListener('DOMContentLoaded', () => {
+function initColeX() {
     let obras = [];
     let obrasFiltradasGlobal = [];
     let imagenPortadaBase64 = '';
@@ -24,7 +24,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     function switchScreen(screenName) {
-        Object.values(screens).forEach(screen => screen.classList.add('hidden'));
+        Object.values(screens).forEach(screen => {
+            if (screen) screen.classList.add('hidden');
+        });
         if (screens[screenName]) {
             screens[screenName].classList.remove('hidden');
         }
@@ -42,13 +44,18 @@ document.addEventListener('DOMContentLoaded', () => {
         renderizarColeccion(obras);
     }
 
-    // Navegación
-    document.getElementById('navToAddBtn').addEventListener('click', () => { resetForm(); switchScreen('form'); });
-    document.getElementById('navToAddBtnBottom').addEventListener('click', () => { resetForm(); switchScreen('form'); });
-    document.getElementById('navToStatsBtn').addEventListener('click', () => { actualizarEstadisticas(); switchScreen('stats'); });
-    document.getElementById('backFromForm').addEventListener('click', () => switchScreen('coleccion'));
-    document.getElementById('backFromDetalle').addEventListener('click', () => switchScreen('coleccion'));
-    document.getElementById('backFromStats').addEventListener('click', () => switchScreen('coleccion'));
+    // Navegación con verificación de elementos
+    const bindClick = (id, handler) => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('click', handler);
+    };
+
+    bindClick('navToAddBtn', () => { resetForm(); switchScreen('form'); });
+    bindClick('navToAddBtnBottom', () => { resetForm(); switchScreen('form'); });
+    bindClick('navToStatsBtn', () => { actualizarEstadisticas(); switchScreen('stats'); });
+    bindClick('backFromForm', () => switchScreen('coleccion'));
+    bindClick('backFromDetalle', () => switchScreen('coleccion'));
+    bindClick('backFromStats', () => switchScreen('coleccion'));
 
     // Subtipos y etiquetas dinámicas según la categoría de colección
     const subformatos = {
@@ -73,13 +80,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const subtipoSelect = document.getElementById('subtipoMaterial');
 
     function actualizarOpcionesSubtipoYEtiquetas(tipoSeleccionado, valorSubtipoActual = '') {
+        if (!subtipoSelect) return;
         subtipoSelect.innerHTML = '<option value="">Seleccionar variante...</option>';
         
         const config = labelConfig[tipoSeleccionado] || { editorial: 'Editorial / Fabricante', autor: 'Autor / Artista', numero: 'Número / Set', placeholderEditorial: 'Ej. Marvel' };
-        document.getElementById('lblEditorial').textContent = config.editorial;
-        document.getElementById('editorial').placeholder = config.placeholderEditorial;
-        document.getElementById('lblAutor').textContent = config.autor;
-        document.getElementById('lblNumero').textContent = config.numero;
+        
+        const lblEditorial = document.getElementById('lblEditorial');
+        const inputEditorial = document.getElementById('editorial');
+        const lblAutor = document.getElementById('lblAutor');
+        const lblNumero = document.getElementById('lblNumero');
+
+        if (lblEditorial) lblEditorial.textContent = config.editorial;
+        if (inputEditorial) inputEditorial.placeholder = config.placeholderEditorial;
+        if (lblAutor) lblAutor.textContent = config.autor;
+        if (lblNumero) lblNumero.textContent = config.numero;
 
         if (subformatos[tipoSeleccionado]) {
             subtipoSelect.disabled = false;
@@ -97,7 +111,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    tipoSelect.addEventListener('change', (e) => actualizarOpcionesSubtipoYEtiquetas(e.target.value));
+    if (tipoSelect) {
+        tipoSelect.addEventListener('change', (e) => actualizarOpcionesSubtipoYEtiquetas(e.target.value));
+    }
 
     // Compresión de imágenes HTML5 Canvas
     function comprimirImagen(file, maxAnchoAlto = 600, calidad = 0.7) {
@@ -143,116 +159,137 @@ document.addEventListener('DOMContentLoaded', () => {
     const urlInput = document.getElementById('portadaUrl');
     const compressBadge = document.getElementById('compressBadge');
 
-    fileInput.addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            fileNameSpan.textContent = "Comprimiendo " + file.name + "...";
-            compressBadge.classList.add('hidden');
+    if (fileInput) {
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                if (fileNameSpan) fileNameSpan.textContent = "Comprimiendo " + file.name + "...";
+                if (compressBadge) compressBadge.classList.add('hidden');
 
-            try {
-                imagenPortadaBase64 = await comprimirImagen(file, 600, 0.7);
-                fileNameSpan.textContent = file.name + " (Optimizada)";
-                fileNameSpan.classList.add('text-amber-300', 'font-medium');
-                compressBadge.classList.remove('hidden');
-                urlInput.value = '';
-            } catch (err) {
-                console.error("Error al comprimir:", err);
-                fileNameSpan.textContent = "Error al procesar la imagen";
+                try {
+                    imagenPortadaBase64 = await comprimirImagen(file, 600, 0.7);
+                    if (fileNameSpan) {
+                        fileNameSpan.textContent = file.name + " (Optimizada)";
+                        fileNameSpan.classList.add('text-amber-300', 'font-medium');
+                    }
+                    if (compressBadge) compressBadge.classList.remove('hidden');
+                    if (urlInput) urlInput.value = '';
+                } catch (err) {
+                    console.error("Error al comprimir:", err);
+                    if (fileNameSpan) fileNameSpan.textContent = "Error al procesar la imagen";
+                }
+            } else {
+                if (fileNameSpan) {
+                    fileNameSpan.textContent = 'Sin archivo seleccionado';
+                    fileNameSpan.classList.remove('text-amber-300', 'font-medium');
+                }
+                if (compressBadge) compressBadge.classList.add('hidden');
+                imagenPortadaBase64 = '';
             }
-        } else {
-            fileNameSpan.textContent = 'Sin archivo seleccionado';
-            fileNameSpan.classList.remove('text-amber-300', 'font-medium');
-            compressBadge.classList.add('hidden');
-            imagenPortadaBase64 = '';
-        }
-    });
+        });
+    }
 
     // Guardar o Editar Ítem en Supabase
     const formObra = document.getElementById('formObra');
-    formObra.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const editId = document.getElementById('editObraId').value;
-        const tituloIngresado = document.getElementById('titulo').value.trim();
-        
-        const tituloExistente = obras.some(o => o.titulo.toLowerCase() === tituloIngresado.toLowerCase() && String(o.id) !== String(editId));
-        if (tituloExistente) {
-            alert(`⚠️ Ya existe un ítem registrado con el nombre "${tituloIngresado}".`);
-            return;
-        }
+    if (formObra) {
+        formObra.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const editId = document.getElementById('editObraId').value;
+            const tituloIngresado = document.getElementById('titulo').value.trim();
+            
+            const tituloExistente = obras.some(o => o.titulo.toLowerCase() === tituloIngresado.toLowerCase() && String(o.id) !== String(editId));
+            if (tituloExistente) {
+                alert(`⚠️ Ya existe un ítem registrado con el nombre "${tituloIngresado}".`);
+                return;
+            }
 
-        let finalPortada = imagenPortadaBase64 || urlInput.value.trim();
-        if (!finalPortada) {
+            let finalPortada = imagenPortadaBase64 || (urlInput ? urlInput.value.trim() : '');
+            if (!finalPortada) {
+                if (editId) {
+                    const obraExistente = obras.find(o => String(o.id) === String(editId));
+                    finalPortada = obraExistente ? obraExistente.portada : 'https://via.placeholder.com/150';
+                } else {
+                    finalPortada = 'https://via.placeholder.com/150';
+                }
+            }
+
+            const datosObra = {
+                titulo: tituloIngresado,
+                numero: document.getElementById('numero').value || 'N/A',
+                anio: document.getElementById('anio').value || 'S/F',
+                tipo: tipoSelect ? tipoSelect.value : '',
+                subtipo: subtipoSelect ? subtipoSelect.value : '',
+                autor: document.getElementById('autor').value || 'Desconocido',
+                editorial: document.getElementById('editorial').value.trim() || 'Independiente',
+                estado: document.getElementById('estadoFisico').value,
+                valor: parseFloat(document.getElementById('valorManual').value) || 0,
+                portada: finalPortada
+            };
+
             if (editId) {
-                const obraExistente = obras.find(o => String(o.id) === String(editId));
-                finalPortada = obraExistente ? obraExistente.portada : 'https://via.placeholder.com/150';
+                const idNumber = Number(editId);
+                const { error } = await supabase.from('obras').update(datosObra).eq('id', idNumber);
+                if (error) {
+                    alert('Error al actualizar en la base de datos: ' + error.message);
+                    return;
+                }
+                const index = obras.findIndex(o => String(o.id) === String(editId));
+                if (index !== -1) {
+                    obras[index] = { id: idNumber, ...datosObra };
+                }
             } else {
-                finalPortada = 'https://via.placeholder.com/150';
+                const nuevaObra = { id: Date.now(), ...datosObra };
+                const { error } = await supabase.from('obras').insert([nuevaObra]);
+                if (error) {
+                    alert('Error al guardar en la base de datos: ' + error.message);
+                    return;
+                }
+                obras.unshift(nuevaObra);
             }
-        }
 
-        const datosObra = {
-            titulo: tituloIngresado,
-            numero: document.getElementById('numero').value || 'N/A',
-            anio: document.getElementById('anio').value || 'S/F',
-            tipo: tipoSelect.value,
-            subtipo: subtipoSelect.value,
-            autor: document.getElementById('autor').value || 'Desconocido',
-            editorial: document.getElementById('editorial').value.trim() || 'Independiente',
-            estado: document.getElementById('estadoFisico').value,
-            valor: parseFloat(document.getElementById('valorManual').value) || 0,
-            portada: finalPortada
-        };
-
-        if (editId) {
-            const idNumber = Number(editId);
-            const { error } = await supabase.from('obras').update(datosObra).eq('id', idNumber);
-            if (error) {
-                alert('Error al actualizar en la base de datos: ' + error.message);
-                return;
-            }
-            const index = obras.findIndex(o => String(o.id) === String(editId));
-            if (index !== -1) {
-                obras[index] = { id: idNumber, ...datosObra };
-            }
-        } else {
-            const nuevaObra = { id: Date.now(), ...datosObra };
-            const { error } = await supabase.from('obras').insert([nuevaObra]);
-            if (error) {
-                alert('Error al guardar en la base de datos: ' + error.message);
-                return;
-            }
-            obras.unshift(nuevaObra);
-        }
-
-        obrasFiltradasGlobal = [...obras];
-        renderizarColeccion(obras);
-        switchScreen('coleccion');
-    });
+            obrasFiltradasGlobal = [...obras];
+            renderizarColeccion(obras);
+            switchScreen('coleccion');
+        });
+    }
 
     function resetForm() {
-        formObra.reset();
-        document.getElementById('editObraId').value = '';
-        document.getElementById('formTitle').textContent = 'Agregar Coleccionable';
-        document.getElementById('btnSubmitForm').textContent = 'Guardar Ítem';
+        if (formObra) formObra.reset();
+        const editObraId = document.getElementById('editObraId');
+        const formTitle = document.getElementById('formTitle');
+        const btnSubmitForm = document.getElementById('btnSubmitForm');
+        
+        if (editObraId) editObraId.value = '';
+        if (formTitle) formTitle.textContent = 'Agregar Coleccionable';
+        if (btnSubmitForm) btnSubmitForm.textContent = 'Guardar Ítem';
+        
         imagenPortadaBase64 = '';
-        fileNameSpan.textContent = 'Sin archivo seleccionado';
-        fileNameSpan.classList.remove('text-amber-300', 'font-medium');
-        compressBadge.classList.add('hidden');
-        subtipoSelect.disabled = true;
-        subtipoSelect.innerHTML = '<option value="" class="bg-gray-900">Selecciona categoría primero...</option>';
+        if (fileNameSpan) {
+            fileNameSpan.textContent = 'Sin archivo seleccionado';
+            fileNameSpan.classList.remove('text-amber-300', 'font-medium');
+        }
+        if (compressBadge) compressBadge.classList.add('hidden');
+        if (subtipoSelect) {
+            subtipoSelect.disabled = true;
+            subtipoSelect.innerHTML = '<option value="" class="bg-gray-900">Selecciona categoría primero...</option>';
+        }
         actualizarOpcionesSubtipoYEtiquetas('');
     }
 
     function cargarFormularioParaEditar(obra) {
-        document.getElementById('editObraId').value = obra.id;
-        document.getElementById('formTitle').textContent = 'Editar Coleccionable';
-        document.getElementById('btnSubmitForm').textContent = 'Actualizar Ítem';
+        const editObraId = document.getElementById('editObraId');
+        const formTitle = document.getElementById('formTitle');
+        const btnSubmitForm = document.getElementById('btnSubmitForm');
+
+        if (editObraId) editObraId.value = obra.id;
+        if (formTitle) formTitle.textContent = 'Editar Coleccionable';
+        if (btnSubmitForm) btnSubmitForm.textContent = 'Actualizar Ítem';
 
         document.getElementById('titulo').value = obra.titulo;
         document.getElementById('numero').value = obra.numero !== 'N/A' ? obra.numero : '';
         document.getElementById('anio').value = obra.anio !== 'S/F' ? obra.anio : '';
-        document.getElementById('tipoMaterial').value = obra.tipo;
+        if (tipoSelect) tipoSelect.value = obra.tipo;
         
         actualizarOpcionesSubtipoYEtiquetas(obra.tipo, obra.subtipo);
 
@@ -262,20 +299,21 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('valorManual').value = obra.valor;
 
         if (obra.portada && obra.portada.startsWith('http')) {
-            document.getElementById('portadaUrl').value = obra.portada;
-            fileNameSpan.textContent = 'Usando URL actual';
+            if (urlInput) urlInput.value = obra.portada;
+            if (fileNameSpan) fileNameSpan.textContent = 'Usando URL actual';
         } else {
-            document.getElementById('portadaUrl').value = '';
-            fileNameSpan.textContent = 'Foto almacenada en el ítem';
+            if (urlInput) urlInput.value = '';
+            if (fileNameSpan) fileNameSpan.textContent = 'Foto almacenada en el ítem';
         }
 
         imagenPortadaBase64 = '';
-        compressBadge.classList.add('hidden');
+        if (compressBadge) compressBadge.classList.add('hidden');
         switchScreen('form');
     }
 
     function renderizarColeccion(listaA_Renderizar) {
         const container = document.getElementById('listColeccion');
+        if (!container) return;
         container.innerHTML = '';
 
         if (!listaA_Renderizar || listaA_Renderizar.length === 0) {
@@ -333,6 +371,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!obra) return;
 
         const detalleContent = document.getElementById('detalleContent');
+        if (!detalleContent) return;
+
         detalleContent.innerHTML = `
             <div class="flex flex-col items-center colex-card p-6 rounded-2xl shadow-sm space-y-4">
                 <img src="${obra.portada}" alt="${obra.titulo}" class="w-36 h-48 object-cover rounded-xl shadow-md bg-gray-900">
@@ -359,11 +399,8 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
 
-        document.getElementById('btnEditar').onclick = () => {
-            cargarFormularioParaEditar(obra);
-        };
-
-        document.getElementById('btnEliminar').onclick = async () => {
+        bindClick('btnEditar', () => cargarFormularioParaEditar(obra));
+        bindClick('btnEliminar', async () => {
             if (!confirm(`¿Estás seguro de eliminar "${obra.titulo}"?`)) return;
             const { error } = await supabase.from('obras').delete().eq('id', obra.id);
             if (error) {
@@ -374,24 +411,27 @@ document.addEventListener('DOMContentLoaded', () => {
             obrasFiltradasGlobal = [...obras];
             renderizarColeccion(obras);
             switchScreen('coleccion');
-        };
+        });
 
         switchScreen('detalle');
     }
 
     // Buscador rápido
-    document.getElementById('searchInput').addEventListener('input', (e) => {
-        const texto = e.target.value.toLowerCase();
-        const resultado = obras.filter(o => 
-            o.titulo.toLowerCase().includes(texto) || 
-            o.autor.toLowerCase().includes(texto) ||
-            o.editorial.toLowerCase().includes(texto)
-        );
-        renderizarColeccion(resultado);
-    });
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const texto = e.target.value.toLowerCase();
+            const resultado = obras.filter(o => 
+                o.titulo.toLowerCase().includes(texto) || 
+                o.autor.toLowerCase().includes(texto) ||
+                o.editorial.toLowerCase().includes(texto)
+            );
+            renderizarColeccion(resultado);
+        });
+    }
 
     // Filtros avanzados
-    document.getElementById('btnAplicarFiltros').addEventListener('click', () => {
+    bindClick('btnAplicarFiltros', () => {
         const tipoFiltro = document.getElementById('filtroTipo').value;
         const editorialFiltro = document.getElementById('filtroEditorial').value.toLowerCase();
         const precioMaxFiltro = parseFloat(document.getElementById('filtroPrecio').value);
@@ -409,7 +449,7 @@ document.addEventListener('DOMContentLoaded', () => {
         switchScreen('coleccion');
     });
 
-    document.getElementById('btnLimpiarFiltros').addEventListener('click', () => {
+    bindClick('btnLimpiarFiltros', () => {
         document.getElementById('filtroTipo').value = '';
         document.getElementById('filtroEditorial').value = '';
         document.getElementById('filtroPrecio').value = '';
@@ -419,13 +459,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function actualizarEstadisticas() {
-        document.getElementById('statTotal').textContent = `${obrasFiltradasGlobal.length} / ${obras.length}`;
+        const statTotal = document.getElementById('statTotal');
+        const statValor = document.getElementById('statValor');
+        if (statTotal) statTotal.textContent = `${obrasFiltradasGlobal.length} / ${obras.length}`;
         const valorTotal = obrasFiltradasGlobal.reduce((acc, curr) => acc + curr.valor, 0);
-        document.getElementById('statValor').textContent = `$${valorTotal.toFixed(2)}`;
+        if (statValor) statValor.textContent = `$${valorTotal.toFixed(2)}`;
     }
 
     // Exportaciones
-    document.getElementById('btnExportCSV').addEventListener('click', () => {
+    bindClick('btnExportCSV', () => {
         if (obrasFiltradasGlobal.length === 0) { alert('No hay datos para exportar.'); return; }
         let csvContent = "data:text/csv;charset=utf-8,ID,Titulo,Numero,Anio,Categoria,Variante,Autor,Editorial,Estado,PrecioAprox\n";
         obrasFiltradasGlobal.forEach(o => {
@@ -441,7 +483,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.removeChild(link);
     });
 
-    document.getElementById('btnExportExcel').addEventListener('click', () => {
+    bindClick('btnExportExcel', () => {
         if (obrasFiltradasGlobal.length === 0) { alert('No hay datos para exportar.'); return; }
         let htmlTabla = `<table><tr><th>ID</th><th>Titulo</th><th>Numero</th><th>Anio</th><th>Categoria</th><th>Variante</th><th>Autor</th><th>Editorial</th><th>Estado</th><th>Precio Aprox</th></tr>`;
         obrasFiltradasGlobal.forEach(o => {
@@ -458,7 +500,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.removeChild(link);
     });
 
-    document.getElementById('btnExportPDF').addEventListener('click', () => {
+    bindClick('btnExportPDF', () => {
         if (obrasFiltradasGlobal.length === 0) { alert('No hay datos para exportar.'); return; }
         let ventanaPrint = window.open('', '', 'height=600,width=800');
         ventanaPrint.document.write('<html><head><title>Reporte ColeX</title>');
@@ -481,7 +523,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Carga inicial
     cargarObras();
-});
+}
+
+// Inicialización garantizada independiente del estado del DOM
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initColeX);
+} else {
+    initColeX();
+}
 
     // Carga inicial
     cargarObras();
