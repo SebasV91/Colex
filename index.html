@@ -27,6 +27,28 @@
 
         body.public-mode .admin-only { display: none !important; }
     </style>
+
+    <!-- Stub de seguridad para respuesta instantánea de botones -->
+    <script>
+        window.ColeXApp = {
+            irAFormulario: () => {},
+            irAColeccion: () => {},
+            irAEstadisticas: () => {},
+            guardarObra: (e) => { if(e) e.preventDefault(); },
+            verDetalle: () => {},
+            eliminarObra: () => {},
+            toggleModoVitrina: () => {},
+            buscar: () => {},
+            ordenarColeccion: () => {},
+            cambiarTipo: () => {},
+            procesarArchivo: () => {},
+            aplicarFiltros: () => {},
+            limpiarFiltros: () => {},
+            exportarCSV: () => {},
+            exportarExcel: () => {},
+            exportarPDF: () => {}
+        };
+    </script>
 </head>
 <body class="library-bg text-slate-100 min-h-screen flex justify-center items-center p-0 sm:p-4">
 
@@ -289,10 +311,10 @@
         </div>
     </div>
 
-    <!-- Supabase UMD Script Global -->
+    <!-- Supabase UMD Global Script -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <!-- Script principal enlazado con parámetro de versión para evitar caché -->
-    <script src="app.js?v=2026.0"></script>
+    <!-- Script principal con control de caché forzado -->
+    <script src="app.js?v=99.9"></script>
 </body>
 </html>
