@@ -27,7 +27,6 @@ const SUBTIPOS_MAP = {
     "Música (LPs/Vinilos, CDs)": ["LP / Vinilo", "CD", "Cassette", "Boxset / Edición Especial"]
 };
 
-// Paleta de colores temáticos para las barras gráficas
 const CATEGORIA_COLORES = {
     "Cómic / Manga / Libro / Fanzine / Revista": "bg-amber-500",
     "Cartas TCG": "bg-blue-500",
@@ -464,7 +463,6 @@ function limpiarFiltros() {
     irAColeccion();
 }
 
-// CÁLCULO Y RENDERIZADO DE GRÁFICOS VISUALES
 function calcularEstadisticas() {
     const totalItems = coleccionFiltrada.length;
     const valorTotal = coleccionFiltrada.reduce((acc, curr) => acc + (curr.valor_manual || 0), 0);
@@ -474,7 +472,6 @@ function calcularEstadisticas() {
     if (statTotal) statTotal.innerText = `${totalItems} / ${coleccionData.length}`;
     if (statValor) statValor.innerText = `$${valorTotal.toFixed(2)}`;
 
-    // Acumuladores por categoría
     const desgloses = {};
     const valoresPorCat = {};
 
@@ -527,7 +524,6 @@ function exportarExcel() {
     exportarCSV();
 }
 
-// Generación de Reporte PDF
 function exportarPDF() {
     if (coleccionFiltrada.length === 0) return alert('No hay datos filtrados para exportar a PDF.');
 
@@ -624,7 +620,7 @@ function descargarArchivo(contenido, nombre, tipo) {
     URL.revokeObjectURL(url);
 }
 
-// Inicialización de la App
+// Carga Inicial al Arrancar el DOM
 document.addEventListener('DOMContentLoaded', () => {
     inicializarModoVitrina();
     cargarColeccion();
