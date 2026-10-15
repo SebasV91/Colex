@@ -26,12 +26,15 @@
 </head>
 <body class="library-bg text-slate-100 min-h-screen flex justify-center items-center p-0 sm:p-4">
 
-    <!-- Contenedor Principal con Marca de Agua CX Estilo Escudo Visible -->
+    <!-- Contenedor Principal con Escudo Gigante CX Desvanecido -->
     <div class="w-full max-w-md colex-container min-h-screen sm:min-h-[880px] sm:max-h-[920px] sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden relative">
         
-        <!-- Marca de Agua de Fondo Estilo Escudo CX -->
-        <div class="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden opacity-15 z-0 select-none">
-            <div class="text-[240px] font-black tracking-tighter text-amber-500/50 flex scale-125">C<span class="text-orange-400/50">X</span></div>
+        <!-- Marca de Agua de Fondo: Escudo Gigante CX Central -->
+        <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-0 select-none overflow-hidden">
+            <div class="flex items-center justify-center transform -rotate-6 scale-110 opacity-20 filter drop-shadow-lg">
+                <span class="text-[35vw] sm:text-[220px] font-black tracking-tighter leading-none text-amber-500">C</span>
+                <span class="text-[35vw] sm:text-[220px] font-black tracking-tighter leading-none text-orange-500 -ml-4 sm:-ml-8">X</span>
+            </div>
         </div>
 
         <!-- Contenido Real con z-index superior -->
@@ -269,6 +272,6 @@
     </div>
 
     <!-- Script Principal como Módulo -->
-    <script type="module" src="app.js?v=10.0"></script>
+    <script type="module" src="app.js?v=11.0"></script>
 </body>
 </html>
