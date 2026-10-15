@@ -1,11 +1,33 @@
-// ================= CONFIGURACIÓN SUPABASE (UMD) =================
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+// ================= EXPOSICIÓN GLOBAL INMEDIATA =================
+window.ColeXApp = {
+    irAFormulario,
+    irAColeccion,
+    irAEstadisticas,
+    guardarObra,
+    eliminarObra,
+    verDetalle,
+    toggleModoVitrina,
+    buscar,
+    ordenarColeccion,
+    cambiarTipo,
+    procesarArchivo,
+    aplicarFiltros,
+    limpiarFiltros,
+    exportarCSV,
+    exportarExcel,
+    exportarPDF
+};
+
+// ================= CONFIGURACIÓN SUPABASE =================
 const SUPABASE_URL = 'https://ljxhehuierhexvkveszr.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_o_m6elxMjBmViae-LChBfQ_G4BB8LAy';
 
 let supabase = null;
 try {
-    if (window.supabase && SUPABASE_URL && SUPABASE_ANON_KEY) {
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+        supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 } catch (e) {
     console.error('Error al inicializar Supabase:', e);
@@ -500,26 +522,6 @@ function descargarArchivo(contenido, nombre, tipo) {
     a.click();
     URL.revokeObjectURL(url);
 }
-
-// ================= EXPOSICIÓN GLOBAL INMEDIATA =================
-window.ColeXApp = {
-    irAFormulario,
-    irAColeccion,
-    irAEstadisticas,
-    guardarObra,
-    eliminarObra,
-    verDetalle,
-    toggleModoVitrina,
-    buscar,
-    ordenarColeccion,
-    cambiarTipo,
-    procesarArchivo,
-    aplicarFiltros,
-    limpiarFiltros,
-    exportarCSV,
-    exportarExcel,
-    exportarPDF
-};
 
 // Carga Inicial al Arrancar
 document.addEventListener('DOMContentLoaded', () => {
