@@ -8,7 +8,7 @@
     <!-- Tailwind CSS v2 Estático -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     
-    <!-- Estilos de la biblioteca antigua y opacidad garantizada -->
+    <!-- Estilos de la biblioteca antigua, opacidad y colores forzados -->
     <style>
         .library-bg {
             background-image: linear-gradient(rgba(15, 23, 42, 0.92), rgba(30, 20, 10, 0.96)), url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=1200&q=80');
@@ -22,6 +22,10 @@
         .text-amber-custom { color: #fde68a !important; }
         .bg-amber-btn { background-color: #b45309 !important; }
         .bg-amber-btn:hover { background-color: #d97706 !important; }
+
+        /* Clases personalizadas forzadas para el Logo CX */
+        .cx-block-c { background-color: #ea580c !important; color: #ffffff !important; }
+        .cx-block-x { background-color: #f97316 !important; color: #ffffff !important; }
     </style>
 </head>
 <body class="library-bg text-slate-100 min-h-screen flex justify-center items-center p-0 sm:p-4">
@@ -46,12 +50,12 @@
 
             <!-- ================= PANTALLA 1: MI COLECCIÓN ================= -->
             <section id="viewColeccion" class="app-screen flex-1 flex flex-col p-5 overflow-y-auto">
-                <!-- Header con Logo CX Sólido y Ampliado -->
+                <!-- Header con Logo CX Forzado con Fondo Naranja Sólido y Letras Blancas -->
                 <div class="flex justify-between items-center mb-4 pt-2">
                     <div class="flex items-center space-x-3">
                         <div class="flex items-center shadow-lg rounded-xl overflow-hidden border-2 border-amber-600">
-                            <span class="bg-orange-600 text-white font-black text-base px-4 py-2.5 flex items-center justify-center tracking-tighter">C</span>
-                            <span class="bg-orange-500 text-white font-black text-base px-4 py-2.5 flex items-center justify-center tracking-tighter">X</span>
+                            <span class="cx-block-c font-black text-base px-4 py-2.5 flex items-center justify-center tracking-tighter" style="background-color: #ea580c !important; color: #ffffff !important;">C</span>
+                            <span class="cx-block-x font-black text-base px-4 py-2.5 flex items-center justify-center tracking-tighter" style="background-color: #f97316 !important; color: #ffffff !important;">X</span>
                         </div>
                         <h1 class="text-3xl font-extrabold text-amber-custom tracking-tight">ColeX</h1>
                     </div>
@@ -254,32 +258,4 @@
                     </div>
                     <div class="flex justify-between text-sm">
                         <span class="text-gray-400">Valor total estimado:</span>
-                        <span id="statValor" class="font-bold text-amber-custom">$0.00</span>
-                    </div>
-                    <div id="statDesgloseCategorias" class="pt-2 border-t border-gray-700 space-y-1 text-xs">
-                        <!-- Desglose por categoría inyectado por JS -->
-                    </div>
-                </div>
-
-                <!-- Botones de Exportación -->
-                <div class="space-y-2.5 pt-2">
-                    <h3 class="font-bold text-xs text-amber-custom uppercase tracking-wider">Exportar Datos</h3>
-                    <div class="grid grid-cols-3 gap-2">
-                        <button onclick="ColeXApp.exportarCSV()" class="py-2.5 bg-green-700 text-white font-semibold rounded-xl text-xs hover:bg-green-600 transition cursor-pointer shadow-sm">CSV</button>
-                        <button onclick="ColeXApp.exportarExcel()" class="py-2.5 bg-blue-700 text-white font-semibold rounded-xl text-xs hover:bg-blue-600 transition cursor-pointer shadow-sm">Excel</button>
-                        <button onclick="ColeXApp.exportarPDF()" class="py-2.5 bg-red-700 text-white font-semibold rounded-xl text-xs hover:bg-red-600 transition cursor-pointer shadow-sm">PDF</button>
-                    </div>
-                </div>
-            </section>
-
-        </div>
-    </div>
-
-    <!-- Script Principal como Módulo -->
-    <script type="module" src="app.js?v=15.0"></script>
-</body>
-</html>
-    <!-- Script Principal como Módulo -->
-    <script type="module" src="app.js?v=14.0"></script>
-</body>
-</html>
+                        <span id="statValor" class="font-bold
