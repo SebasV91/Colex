@@ -1,10 +1,17 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
-// Configuración e Inicialización de Supabase
-const SUPABASE_URL = 'https://ljxhehuierhexvkveszr.supabase.co'; // Reemplaza con tu URL real
-const SUPABASE_ANON_KEY = 'sb_publishable_o_m6elxMjBmViae-LChBfQ_G4BB8LAy';           // Reemplaza con tu Key real
+// ================= CONFIGURACIÓN SUPABASE =================
+const SUPABASE_URL = 'https://ljxhehuierhexvkveszr.supabase.co'; // <- REEMPLAZA AQUÍ
+const SUPABASE_ANON_KEY = 'sb_publishable_o_m6elxMjBmViae-LChBfQ_G4BB8LAy';           // <- REEMPLAZA AQUÍ
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let supabase = null;
+try {
+    if (SUPABASE_URL !== 'https://TU_SUPABASE_URL.supabase.co') {
+        supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+} catch (e) {
+    console.error('Error al inicializar Supabase:', e);
+}
 
 // Estado Global de la Aplicación
 let coleccionData = [];
@@ -37,15 +44,21 @@ function irAColeccion() {
 function irAFormulario(obra = null) {
     const formTitle = document.getElementById('formTitle');
     const form = document.getElementById('formObra');
-    form.reset();
+    if (form) form.reset();
     base64Comprimido = '';
-    document.getElementById('editObraId').value = '';
-    document.getElementById('fileName').innerText = 'Sin archivo seleccionado';
-    document.getElementById('compressBadge').classList.add('hidden');
+    
+    const editId = document.getElementById('editObraId');
+    if (editId) editId.value = '';
+    
+    const fileName = document.getElementById('fileName');
+    if (fileName) fileName.innerText = 'Sin archivo seleccionado';
+    
+    const compressBadge = document.getElementById('compressBadge');
+    if (compressBadge) compressBadge.classList.add('hidden');
 
     if (obra) {
-        formTitle.innerText = 'Editar Coleccionable';
-        document.getElementById('editObraId').value = obra.id;
+        if (formTitle) formTitle.innerText = 'Editar Coleccionable';
+        if (editId) editId.value = obra.id;
         document.getElementById('titulo').value = obra.titulo || '';
         document.getElementById('numero').value = obra.numero || '';
         document.getElementById('anio').value = obra.anio || '';
@@ -56,7 +69,6 @@ function irAFormulario(obra = null) {
         document.getElementById('chkLeido').checked = !!obra.leido;
         document.getElementById('estrellas').value = obra.estrellas || 0;
         
-        // Cargar Etiquetas Checkboxes
         const tagsGuardados = (obra.etiquetas || '').split(',').map(t => t.trim());
         document.querySelectorAll('input[name="tagCheck"]').forEach(chk => {
             chk.checked = tagsGuardados.includes(chk.value);
@@ -69,7 +81,7 @@ function irAFormulario(obra = null) {
         document.getElementById('portadaUrl').value = obra.portada_url || '';
         document.getElementById('notas').value = obra.notas || '';
     } else {
-        formTitle.innerText = 'Agregar Coleccionable';
+        if (formTitle) formTitle.innerText = 'Agregar Coleccionable';
         cambiarTipo('');
     }
 
@@ -81,7 +93,6 @@ function irAEstadisticas() {
     cambiarPantalla('viewStats');
 }
 
-// Alternar Modo Vitrina (Público de Solo Lectura)
 function toggleModoVitrina() {
     modoVitrinaActivo = !modoVitrinaActivo;
     const btn = document.getElementById('btnVitrinaToggle');
@@ -98,7 +109,6 @@ function toggleModoVitrina() {
     renderizarColeccion(coleccionFiltrada);
 }
 
-// Cargar preferencia de Modo Vitrina
 function inicializarModoVitrina() {
     const guardado = localStorage.getItem('colex_modo_vitrina');
     if (guardado === 'true') {
@@ -113,6 +123,8 @@ function inicializarModoVitrina() {
 function cambiarTipo(categoria) {
     const subtipoSelect = document.getElementById('subtipoMaterial');
     const leidoContainer = document.getElementById('leidoContainer');
+    if (!subtipoSelect) return;
+    
     subtipoSelect.innerHTML = '<option value="" class="bg-gray-900">Selecciona variante...</option>';
 
     if (categoria && SUBTIPOS_MAP[categoria]) {
@@ -125,10 +137,12 @@ function cambiarTipo(categoria) {
         });
     }
 
-    if (categoria === 'Cómic / Manga / Libro / Fanzine / Revista') {
-        leidoContainer.classList.remove('hidden');
-    } else {
-        leidoContainer.classList.add('hidden');
+    if (leidoContainer) {
+        if (categoria === 'Cómic / Manga / Libro / Fanzine / Revista') {
+            leidoContainer.classList.remove('hidden');
+        } else {
+            leidoContainer.classList.add('hidden');
+        }
     }
 }
 
@@ -136,7 +150,8 @@ function procesarArchivo(input) {
     const file = input.files[0];
     if (!file) return;
 
-    document.getElementById('fileName').innerText = file.name;
+    const fileNameEl = document.getElementById('fileName');
+    if (fileNameEl) fileNameEl.innerText = file.name;
 
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -152,7 +167,8 @@ function procesarArchivo(input) {
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
             base64Comprimido = canvas.toDataURL('image/jpeg', 0.7);
-            document.getElementById('compressBadge').classList.remove('hidden');
+            const badge = document.getElementById('compressBadge');
+            if (badge) badge.classList.remove('hidden');
         };
         img.src = e.target.result;
     };
@@ -161,6 +177,10 @@ function procesarArchivo(input) {
 
 // ================= OPERACIONES DE BASE DE DATOS (CRUD) =================
 async function cargarColeccion() {
+    if (!supabase) {
+        console.warn('Supabase no está configurado correctamente.');
+        return;
+    }
     try {
         const { data, error } = await supabase
             .from('obras')
@@ -179,6 +199,10 @@ async function cargarColeccion() {
 
 async function guardarObra(event) {
     event.preventDefault();
+    if (!supabase) {
+        alert('Supabase no está configurado. Revisa tus credenciales.');
+        return;
+    }
 
     const id = document.getElementById('editObraId').value;
     const urlDirecta = document.getElementById('portadaUrl').value;
@@ -187,7 +211,6 @@ async function guardarObra(event) {
     const tipoCat = document.getElementById('tipoMaterial').value;
     const esLibro = (tipoCat === 'Cómic / Manga / Libro / Fanzine / Revista');
 
-    // Obtener etiquetas seleccionadas
     const selectedTags = Array.from(document.querySelectorAll('input[name="tagCheck"]:checked')).map(c => c.value).join(', ');
 
     const payload = {
@@ -224,7 +247,7 @@ async function guardarObra(event) {
 }
 
 async function eliminarObra(id) {
-    if (modoVitrinaActivo) return;
+    if (modoVitrinaActivo || !supabase) return;
     if (!confirm('¿Estás seguro de que deseas eliminar este coleccionable?')) return;
 
     try {
@@ -241,6 +264,7 @@ async function eliminarObra(id) {
 // ================= RENDERIZADO Y BÚSQUEDA =================
 function renderizarColeccion(lista) {
     const contenedor = document.getElementById('listColeccion');
+    if (!contenedor) return;
     contenedor.innerHTML = '';
 
     if (lista.length === 0) {
@@ -251,13 +275,11 @@ function renderizarColeccion(lista) {
     lista.forEach(item => {
         const esLectura = (item.tipo_material === 'Cómic / Manga / Libro / Fanzine / Revista');
         
-        // Formato Estrellas
         const numEstrellas = item.estrellas || 0;
         const estrellasHtml = numEstrellas > 0 
             ? `<span class="text-amber-400 text-xs font-bold">` + '★'.repeat(numEstrellas) + `</span>` 
             : '';
 
-        // Formato Etiquetas
         const tagsArray = item.etiquetas ? item.etiquetas.split(',').map(t => t.trim()).filter(Boolean) : [];
         const tagsHtml = tagsArray.map(t => `<span class="bg-amber-950/80 text-amber-300 border border-amber-700/50 px-2 py-0.5 rounded-md text-[10px] font-medium">${t}</span>`).join(' ');
 
@@ -273,4 +295,230 @@ function renderizarColeccion(lista) {
                     <p class="text-xs text-amber-custom truncate">${item.autor || 'Sin Autor'} ${item.numero ? `(${item.numero})` : ''}</p>
                     <div class="flex items-center space-x-2">
                         <span class="bg-gray-800 text-gray-300 px-2 py-0.5 rounded-md text-[10px] font-semibold">${item.subtipo_material || item.tipo_material}</span>
-                        ${esLectura ? (item.leido ? `<span
+                        ${esLectura ? (item.leido ? `<span class="text-xs" title="Leído">📖 ✅</span>` : `<span class="text-xs opacity-50" title="Pendiente">📖 ⏳</span>`) : ''}
+                        ${estrellasHtml}
+                    </div>
+                    ${tagsArray.length > 0 ? `<div class="flex flex-wrap gap-1 pt-0.5">${tagsHtml}</div>` : ''}
+                </div>
+            </div>
+            <div class="text-right flex-shrink-0">
+                <span class="block font-bold text-amber-custom text-sm">$${(item.valor_manual || 0).toFixed(2)}</span>
+                <span class="text-[10px] text-gray-400 block">${item.anio || ''}</span>
+            </div>
+        `;
+        contenedor.appendChild(card);
+    });
+}
+
+function verDetalle(item) {
+    const contenedor = document.getElementById('detalleContent');
+    if (!contenedor) return;
+    
+    const esLectura = (item.tipo_material === 'Cómic / Manga / Libro / Fanzine / Revista');
+    const numEstrellas = item.estrellas || 0;
+    const estrellasHtml = numEstrellas > 0 
+        ? `<div class="text-amber-400 text-lg font-bold">` + '★'.repeat(numEstrellas) + ` <span class="text-xs text-gray-400">(${numEstrellas}/5)</span></div>` 
+        : '<span class="text-xs text-gray-500">Sin calificar</span>';
+
+    const tagsArray = item.etiquetas ? item.etiquetas.split(',').map(t => t.trim()).filter(Boolean) : [];
+    const tagsHtml = tagsArray.map(t => `<span class="bg-amber-950 text-amber-300 border border-amber-600/50 px-2.5 py-1 rounded-lg text-xs font-semibold">${t}</span>`).join(' ');
+
+    contenedor.innerHTML = `
+        <div class="flex flex-col items-center space-y-3">
+            <img src="${item.portada_url}" class="w-48 h-64 object-cover rounded-2xl shadow-2xl border-2 border-amber-600/50">
+            <h2 class="text-2xl font-black text-amber-custom text-center leading-tight">${item.titulo}</h2>
+            ${estrellasHtml}
+            ${tagsArray.length > 0 ? `<div class="flex flex-wrap justify-center gap-1.5 pt-1">${tagsHtml}</div>` : ''}
+        </div>
+
+        <div class="colex-card p-4 rounded-2xl space-y-2.5 text-xs">
+            <div class="flex justify-between border-b border-gray-700 pb-1.5">
+                <span class="text-gray-400 font-semibold">Categoría:</span>
+                <span class="text-gray-200 font-bold">${item.tipo_material}</span>
+            </div>
+            <div class="flex justify-between border-b border-gray-700 pb-1.5">
+                <span class="text-gray-400 font-semibold">Variante / Subtipo:</span>
+                <span class="text-gray-200 font-bold">${item.subtipo_material || 'N/A'}</span>
+            </div>
+            ${esLectura ? `
+            <div class="flex justify-between border-b border-gray-700 pb-1.5">
+                <span class="text-gray-400 font-semibold">Estado de Lectura:</span>
+                <span class="font-bold ${item.leido ? 'text-green-400' : 'text-amber-400'}">${item.leido ? '📖 Leído / Completado' : '⏳ Pendiente'}</span>
+            </div>
+            ` : ''}
+            <div class="flex justify-between border-b border-gray-700 pb-1.5">
+                <span class="text-gray-400 font-semibold">Número / Set:</span>
+                <span class="text-gray-200">${item.numero || 'N/A'}</span>
+            </div>
+            <div class="flex justify-between border-b border-gray-700 pb-1.5">
+                <span class="text-gray-400 font-semibold">Año:</span>
+                <span class="text-gray-200">${item.anio || 'N/A'}</span>
+            </div>
+            <div class="flex justify-between border-b border-gray-700 pb-1.5">
+                <span class="text-gray-400 font-semibold">Autor / Artista:</span>
+                <span class="text-gray-200">${item.autor || 'N/A'}</span>
+            </div>
+            <div class="flex justify-between border-b border-gray-700 pb-1.5">
+                <span class="text-gray-400 font-semibold">Editorial / Fabricante:</span>
+                <span class="text-gray-200">${item.editorial || 'N/A'}</span>
+            </div>
+            <div class="flex justify-between border-b border-gray-700 pb-1.5">
+                <span class="text-gray-400 font-semibold">Estado Físico:</span>
+                <span class="text-gray-200">${item.estado_fisico || 'N/A'}</span>
+            </div>
+            <div class="flex justify-between border-b border-gray-700 pb-1.5">
+                <span class="text-gray-400 font-semibold">Precio Estimado:</span>
+                <span class="text-amber-custom font-bold text-sm">$${(item.valor_manual || 0).toFixed(2)}</span>
+            </div>
+            ${item.notas ? `
+            <div class="pt-1">
+                <span class="text-gray-400 font-semibold block mb-1">Notas / Observaciones:</span>
+                <p class="text-gray-300 italic bg-gray-900/60 p-2.5 rounded-xl border border-gray-800">${item.notas}</p>
+            </div>
+            ` : ''}
+        </div>
+
+        <div class="flex space-x-3 pt-2 admin-only">
+            <button onclick='ColeXApp.irAFormulario(${JSON.stringify(item)})' class="flex-1 py-3 bg-blue-700 hover:bg-blue-600 text-white font-bold rounded-xl transition cursor-pointer">Editar</button>
+            <button onclick="ColeXApp.eliminarObra(${item.id})" class="flex-1 py-3 bg-red-700 hover:bg-red-600 text-white font-bold rounded-xl transition cursor-pointer">Eliminar</button>
+        </div>
+    `;
+
+    cambiarPantalla('viewDetalle');
+}
+
+function buscar(query) {
+    const q = query.toLowerCase().trim();
+    coleccionFiltrada = coleccionData.filter(item => 
+        (item.titulo && item.titulo.toLowerCase().includes(q)) ||
+        (item.autor && item.autor.toLowerCase().includes(q)) ||
+        (item.editorial && item.editorial.toLowerCase().includes(q)) ||
+        (item.subtipo_material && item.subtipo_material.toLowerCase().includes(q)) ||
+        (item.etiquetas && item.etiquetas.toLowerCase().includes(q))
+    );
+    renderizarColeccion(coleccionFiltrada);
+}
+
+function ordenarColeccion(criterio) {
+    if (criterio === 'recientes') {
+        coleccionFiltrada.sort((a, b) => b.id - a.id);
+    } else if (criterio === 'alfabetico') {
+        coleccionFiltrada.sort((a, b) => a.titulo.localeCompare(b.titulo));
+    } else if (criterio === 'precio-desc') {
+        coleccionFiltrada.sort((a, b) => (b.valor_manual || 0) - (a.valor_manual || 0));
+    } else if (criterio === 'precio-asc') {
+        coleccionFiltrada.sort((a, b) => (a.valor_manual || 0) - (b.valor_manual || 0));
+    } else if (criterio === 'anio') {
+        coleccionFiltrada.sort((a, b) => (b.anio || 0) - (a.anio || 0));
+    } else if (criterio === 'estrellas') {
+        coleccionFiltrada.sort((a, b) => (b.estrellas || 0) - (a.estrellas || 0));
+    }
+    renderizarColeccion(coleccionFiltrada);
+}
+
+// ================= FILTROS Y ESTADÍSTICAS =================
+function aplicarFiltros() {
+    const tipo = document.getElementById('filtroTipo').value;
+    const editorial = document.getElementById('filtroEditorial').value.toLowerCase().trim();
+    const precioMax = parseFloat(document.getElementById('filtroPrecio').value);
+
+    coleccionFiltrada = coleccionData.filter(item => {
+        let cumple = true;
+        if (tipo && item.tipo_material !== tipo) cumple = false;
+        if (editorial && (!item.editorial || !item.editorial.toLowerCase().includes(editorial))) cumple = false;
+        if (!isNaN(precioMax) && (item.valor_manual || 0) > precioMax) cumple = false;
+        return cumple;
+    });
+
+    renderizarColeccion(coleccionFiltrada);
+    irAColeccion();
+}
+
+function limpiarFiltros() {
+    document.getElementById('filtroTipo').value = '';
+    document.getElementById('filtroEditorial').value = '';
+    document.getElementById('filtroPrecio').value = '';
+    coleccionFiltrada = [...coleccionData];
+    renderizarColeccion(coleccionFiltrada);
+    irAColeccion();
+}
+
+function calcularEstadisticas() {
+    const totalItems = coleccionFiltrada.length;
+    const valorTotal = coleccionFiltrada.reduce((acc, curr) => acc + (curr.valor_manual || 0), 0);
+
+    const statTotal = document.getElementById('statTotal');
+    const statValor = document.getElementById('statValor');
+    if (statTotal) statTotal.innerText = `${totalItems} / ${coleccionData.length}`;
+    if (statValor) statValor.innerText = `$${valorTotal.toFixed(2)}`;
+
+    const desgloses = {};
+    coleccionFiltrada.forEach(item => {
+        const cat = item.tipo_material || 'Sin Categoría';
+        desgloses[cat] = (desgloses[cat] || 0) + 1;
+    });
+
+    const contenedor = document.getElementById('statDesgloseCategorias');
+    if (!contenedor) return;
+    contenedor.innerHTML = '<span class="text-amber-custom font-semibold block mb-1">Desglose por categoría:</span>';
+
+    Object.keys(desgloses).forEach(cat => {
+        const row = document.createElement('div');
+        row.className = 'flex justify-between text-gray-300';
+        row.innerHTML = `<span>${cat}:</span><span class="font-bold">${desgloses[cat]}</span>`;
+        contenedor.appendChild(row);
+    });
+}
+
+// ================= EXPORTACIÓN DE DATOS =================
+function exportarCSV() {
+    if (coleccionFiltrada.length === 0) return alert('No hay datos para exportar.');
+    let csv = 'ID,Título,Número,Año,Categoría,Subtipo,Calificación,Etiquetas,Autor,Editorial,Estado,Precio,Notas\n';
+    coleccionFiltrada.forEach(i => {
+        csv += `"${i.id}","${i.titulo}","${i.numero||''}","${i.anio||''}","${i.tipo_material}","${i.subtipo_material||''}","${i.estrellas||0}","${i.etiquetas||''}","${i.autor||''}","${i.editorial||''}","${i.estado_fisico||''}","${i.valor_manual||0}","${(i.notas||'').replace(/"/g, '""')}"\n`;
+    });
+    descargarArchivo(csv, 'coleccion_colex.csv', 'text/csv');
+}
+
+function exportarExcel() {
+    exportarCSV();
+}
+
+function exportarPDF() {
+    window.print();
+}
+
+function descargarArchivo(contenido, nombre, tipo) {
+    const blob = new Blob([contenido], { type: tipo });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = nombre;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+// ================= VINCULACIÓN GLOBAL ANTI-RACE CONDITION =================
+window.ColeXApp = {
+    irAFormulario,
+    irAColeccion,
+    irAEstadisticas,
+    guardarObra,
+    eliminarObra,
+    toggleModoVitrina,
+    buscar,
+    ordenarColeccion,
+    cambiarTipo,
+    procesarArchivo,
+    aplicarFiltros,
+    limpiarFiltros,
+    exportarCSV,
+    exportarExcel,
+    exportarPDF
+};
+
+// Carga Inicial al Arrancar
+document.addEventListener('DOMContentLoaded', () => {
+    inicializarModoVitrina();
+    cargarColeccion();
+});
