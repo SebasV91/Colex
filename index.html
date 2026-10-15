@@ -159,4 +159,145 @@
                                 </select>
                             </div>
                             <div>
-                                <label class="text-xs text-gray-400 font-semibold uppercase
+                                <label class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Variante / Formato *</label>
+                                <div id="subtipoContainer">
+                                    <select id="subtipoMaterial" required class="w-full p-3 colex-input rounded-xl text-sm">
+                                        <option value="" class="bg-gray-900">Selecciona categoría...</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="leidoContainer" class="hidden flex items-center space-x-3 p-3 colex-card rounded-xl border border-amber-600/40">
+                            <input type="checkbox" id="chkLeido" class="w-5 h-5 text-amber-600 bg-gray-900 border-gray-600 rounded cursor-pointer">
+                            <label for="chkLeido" class="text-xs font-semibold text-amber-custom cursor-pointer select-none flex-1">
+                                📖 ¿Leído / Completado?
+                            </label>
+                        </div>
+
+                        <div>
+                            <label class="text-xs text-amber-custom font-semibold uppercase tracking-wider">Calificación Personal (★)</label>
+                            <select id="estrellas" class="w-full p-3 colex-input rounded-xl text-sm">
+                                <option value="0" class="bg-gray-900">Sin calificación</option>
+                                <option value="1" class="bg-gray-900">★ 1 Estrella</option>
+                                <option value="2" class="bg-gray-900">★★ 2 Estrellas</option>
+                                <option value="3" class="bg-gray-900">★★★ 3 Estrellas</option>
+                                <option value="4" class="bg-gray-900">★★★★ 4 Estrellas</option>
+                                <option value="5" class="bg-gray-900">★★★★★ 5 Estrellas (Obra Maestra)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Autor / Artista / Serie</label>
+                            <input type="text" id="autor" class="w-full p-3 colex-input rounded-xl text-sm" placeholder="Ej. Stan Lee">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Editorial / Fabricante</label>
+                                <input type="text" id="editorial" class="w-full p-3 colex-input rounded-xl text-sm" placeholder="Ej. Marvel">
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Estado</label>
+                                <select id="estadoFisico" class="w-full p-3 colex-input rounded-xl text-sm">
+                                    <option value="Nuevo / Mint" class="bg-gray-900">Nuevo / Mint</option>
+                                    <option value="Excelente" class="bg-gray-900">Excelente</option>
+                                    <option value="Usado / Jugado" class="bg-gray-900">Usado / Jugado</option>
+                                    <option value="Deteriorado" class="bg-gray-900">Deteriorado</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="text-xs text-amber-custom font-semibold uppercase tracking-wider">Precio Aproximado ($)</label>
+                            <input type="number" step="0.01" id="valorManual" value="0.00" class="w-full p-3 colex-input rounded-xl text-sm">
+                        </div>
+
+                        <div>
+                            <label class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Notas / Observaciones</label>
+                            <textarea id="notas" rows="2" class="w-full p-3 colex-input rounded-xl text-xs placeholder-gray-500" placeholder="Ej. Ejemplar firmado por el autor..."></textarea>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="btnSubmitForm" class="w-full py-3.5 bg-amber-btn text-white font-bold rounded-xl transition cursor-pointer mt-4 shadow-md">Guardar Ítem</button>
+                </form>
+            </section>
+
+            <!-- ================= PANTALLA 4: ESTADÍSTICAS & FILTROS ================= -->
+            <section id="viewStats" class="app-screen hidden flex-1 flex flex-col p-5 overflow-y-auto colex-container">
+                <div class="flex items-center mb-4 pt-2">
+                    <button onclick="irAColeccion()" class="text-amber-custom hover:text-white text-2xl mr-4 cursor-pointer font-bold">←</button>
+                    <h2 class="text-xl font-bold text-amber-custom">Filtros & Estadísticas</h2>
+                </div>
+
+                <div class="space-y-3.5 colex-card p-4 rounded-2xl mb-4">
+                    <h3 class="font-bold text-xs text-amber-custom uppercase tracking-wider">Filtros de Búsqueda</h3>
+                    
+                    <div>
+                        <label class="text-[11px] text-gray-400 font-semibold">Categoría</label>
+                        <select id="filtroTipo" class="w-full p-2.5 colex-input rounded-xl text-xs mt-1">
+                            <option value="" class="bg-gray-900">Todas las categorías</option>
+                            <option value="Cómic / Manga / Libro / Fanzine / Revista" class="bg-gray-900">Cómic / Manga / Libro / Fanzine / Revista</option>
+                            <option value="Cartas TCG" class="bg-gray-900">Cartas TCG</option>
+                            <option value="Vehículos a Escala (Hot Wheels)" class="bg-gray-900">Hot Wheels / Vehículos</option>
+                            <option value="Figuras / Funkos / Estatuas" class="bg-gray-900">Figuras / Funkos / Estatuas</option>
+                            <option value="Videojuegos / Retro" class="bg-gray-900">Videojuegos / Retro</option>
+                            <option value="Música (LPs/Vinilos, CDs)" class="bg-gray-900">Música (LPs/Vinilos, CDs)</option>
+                            <option value="Otro" class="bg-gray-900">Otro</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="text-[11px] text-gray-400 font-semibold">Editorial / Fabricante</label>
+                        <input type="text" id="filtroEditorial" placeholder="Ej. Marvel..." class="w-full p-2.5 colex-input rounded-xl text-xs placeholder-gray-500 mt-1">
+                    </div>
+
+                    <div>
+                        <label class="text-[11px] text-gray-400 font-semibold">Precio Máximo ($)</label>
+                        <input type="number" id="filtroPrecio" placeholder="Ej. 100" class="w-full p-2.5 colex-input rounded-xl text-xs placeholder-gray-500 mt-1">
+                    </div>
+
+                    <button onclick="aplicarFiltros()" class="w-full py-2 bg-amber-btn text-white font-semibold rounded-xl text-xs transition cursor-pointer">Aplicar Filtros</button>
+                    <button onclick="limpiarFiltros()" class="w-full py-1.5 bg-transparent text-gray-400 font-medium rounded-xl text-xs hover:text-white transition cursor-pointer">Limpiar Filtros</button>
+                </div>
+
+                <div class="space-y-3 colex-card p-4 rounded-2xl mb-4">
+                    <h3 class="font-bold text-xs text-amber-custom uppercase tracking-wider">Métricas Generales</h3>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-400">Ítems filtrados/totales:</span>
+                        <span id="statTotal" class="font-bold text-gray-200">0</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-400">Valor total estimado:</span>
+                        <span id="statValor" class="font-bold text-amber-custom">$0.00</span>
+                    </div>
+
+                    <!-- Sección Gráfica de Distribución -->
+                    <div class="pt-3 border-t border-gray-700">
+                        <h4 class="font-bold text-xs text-amber-custom uppercase tracking-wider mb-2.5">📈 Distribución por Categoría</h4>
+                        <div id="statGraficoCategorias" class="space-y-3">
+                            <!-- Renderizado dinámico -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-2.5 pt-2">
+                    <h3 class="font-bold text-xs text-amber-custom uppercase tracking-wider">Exportar Datos</h3>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="exportarCSV()" class="py-2.5 bg-green-700 text-white font-semibold rounded-xl text-xs hover:bg-green-600 transition cursor-pointer shadow-sm">CSV</button>
+                        <button onclick="exportarExcel()" class="py-2.5 bg-blue-700 text-white font-semibold rounded-xl text-xs hover:bg-blue-600 transition cursor-pointer shadow-sm">Excel</button>
+                        <button onclick="exportarPDF()" class="py-2.5 bg-red-700 text-white font-semibold rounded-xl text-xs hover:bg-red-600 transition cursor-pointer shadow-sm">PDF</button>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- Supabase UMD Global -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Enlace exacto al archivo colex.js -->
+    <script src="colex.js?v=2.5"></script>
+</body>
+</html>
