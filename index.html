@@ -287,10 +287,7 @@
         </div>
     </div>
 
-    <!-- Supabase UMD Script Global -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <!-- Script Principal Estándar (NO módulo) -->
-    <script src="app.js?v=42.0"></script>
+    <!-- Forzando versión 99.0 para evitar caché del navegador -->
+    <script type="module" src="app.js?v=99.0"></script>
 </body>
 </html>
