@@ -71,11 +71,6 @@ function irAFormulario(idObra = null) {
         document.getElementById('subtipoMaterial').value = obra.subtipo_material || '';
         document.getElementById('chkLeido').checked = !!obra.leido;
         document.getElementById('estrellas').value = obra.estrellas || 0;
-        
-        const tagsGuardados = (obra.etiquetas || '').split(',').map(t => t.trim());
-        document.querySelectorAll('input[name="tagCheck"]').forEach(chk => {
-            chk.checked = tagsGuardados.includes(chk.value);
-        });
 
         document.getElementById('autor').value = obra.autor || '';
         document.getElementById('editorial').value = obra.editorial || '';
@@ -217,8 +212,6 @@ async function guardarObra(event) {
     const tipoCat = document.getElementById('tipoMaterial').value;
     const esLibro = (tipoCat === 'Cómic / Manga / Libro / Fanzine / Revista');
 
-    const selectedTags = Array.from(document.querySelectorAll('input[name="tagCheck"]:checked')).map(c => c.value).join(', ');
-
     const payload = {
         titulo: document.getElementById('titulo').value,
         numero: document.getElementById('numero').value,
@@ -227,7 +220,6 @@ async function guardarObra(event) {
         subtipo_material: document.getElementById('subtipoMaterial').value,
         leido: esLibro ? document.getElementById('chkLeido').checked : false,
         estrellas: parseInt(document.getElementById('estrellas').value) || 0,
-        etiquetas: selectedTags,
         autor: document.getElementById('autor').value,
         editorial: document.getElementById('editorial').value,
         estado_fisico: document.getElementById('estadoFisico').value,
@@ -295,12 +287,7 @@ function renderizarColeccion(lista) {
 
     lista.forEach(item => {
         const esLectura = (item.tipo_material === 'Cómic / Manga / Libro / Fanzine / Revista');
-        
-        // Estrellas doradas + fantasma
         const estrellasHtml = generarEstrellasHtml(item.estrellas, 'text-xs');
-
-        const tagsArray = item.etiquetas ? item.etiquetas.split(',').map(t => t.trim()).filter(Boolean) : [];
-        const tagsHtml = tagsArray.map(t => `<span class="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-md text-[10px] font-semibold">${t}</span>`).join(' ');
 
         const card = document.createElement('div');
         card.className = 'colex-card p-3 rounded-2xl flex items-center justify-between gap-3 shadow-md hover:border-amber-600 transition cursor-pointer relative';
@@ -317,7 +304,6 @@ function renderizarColeccion(lista) {
                         ${esLectura ? (item.leido ? `<span class="text-xs" title="Leído">📖 ✅</span>` : `<span class="text-xs opacity-50" title="Pendiente">📖 ⏳</span>`) : ''}
                         ${estrellasHtml}
                     </div>
-                    ${tagsArray.length > 0 ? `<div class="flex flex-wrap gap-1 pt-0.5">${tagsHtml}</div>` : ''}
                 </div>
             </div>
             <div class="text-right flex-shrink-0">
@@ -344,15 +330,11 @@ function verDetalle(id) {
            </div>`
         : '<span class="text-xs text-gray-500">Sin calificar</span>';
 
-    const tagsArray = item.etiquetas ? item.etiquetas.split(',').map(t => t.trim()).filter(Boolean) : [];
-    const tagsHtml = tagsArray.map(t => `<span class="bg-amber-500/20 text-amber-300 border border-amber-500/50 px-2.5 py-1 rounded-lg text-xs font-semibold">${t}</span>`).join(' ');
-
     contenedor.innerHTML = `
         <div class="flex flex-col items-center space-y-3">
             <img src="${item.portada_url}" class="w-48 h-64 object-cover rounded-2xl shadow-2xl border-2 border-amber-600/50">
             <h2 class="text-2xl font-black text-amber-custom text-center leading-tight">${item.titulo}</h2>
             ${estrellasHtml}
-            ${tagsArray.length > 0 ? `<div class="flex flex-wrap justify-center gap-1.5 pt-1">${tagsHtml}</div>` : ''}
         </div>
 
         <div class="colex-card p-4 rounded-2xl space-y-2.5 text-xs">
@@ -418,7 +400,7 @@ function buscar(query) {
         (item.autor && item.autor.toLowerCase().includes(q)) ||
         (item.editorial && item.editorial.toLowerCase().includes(q)) ||
         (item.subtipo_material && item.subtipo_material.toLowerCase().includes(q)) ||
-        (item.etiquetas && item.etiquetas.toLowerCase().includes(q))
+        (item.notas && item.notas.toLowerCase().includes(q))
     );
     renderizarColeccion(coleccionFiltrada);
 }
@@ -497,9 +479,9 @@ function calcularEstadisticas() {
 // ================= EXPORTACIÓN DE DATOS =================
 function exportarCSV() {
     if (coleccionFiltrada.length === 0) return alert('No hay datos para exportar.');
-    let csv = 'ID,Título,Número,Año,Categoría,Subtipo,Calificación,Etiquetas,Autor,Editorial,Estado,Precio,Notas\n';
+    let csv = 'ID,Título,Número,Año,Categoría,Subtipo,Calificación,Autor,Editorial,Estado,Precio,Notas\n';
     coleccionFiltrada.forEach(i => {
-        csv += `"${i.id}","${i.titulo}","${i.numero||''}","${i.anio||''}","${i.tipo_material}","${i.subtipo_material||''}","${i.estrellas||0}","${i.etiquetas||''}","${i.autor||''}","${i.editorial||''}","${i.estado_fisico||''}","${i.valor_manual||0}","${(i.notas||'').replace(/"/g, '""')}"\n`;
+        csv += `"${i.id}","${i.titulo}","${i.numero||''}","${i.anio||''}","${i.tipo_material}","${i.subtipo_material||''}","${i.estrellas||0}","${i.autor||''}","${i.editorial||''}","${i.estado_fisico||''}","${i.valor_manual||0}","${(i.notas||'').replace(/"/g, '""')}"\n`;
     });
     descargarArchivo(csv, 'coleccion_colex.csv', 'text/csv');
 }
