@@ -21,13 +21,13 @@ let base64Comprimido = '';
 let modoVitrinaActivo = false;
 
 const SUBTIPOS_MAP = {
-    "Cómic / Manga / Libro / Fanzine / Revista": ["Cómic", "Manga", "Libro", "Fanzine", "Revista"],
+    "Cómic / Manga / Libro / Fanzine / Revista": ["Cómic", "Novela Gráfica", "Manga", "Libro", "Fanzine", "Revista"],
     "Cartas TCG": ["Cartas Sueltas / Singles", "Sobres / Packs", "Cajas / Booster Box", "Decks / Mazos", "Accesorios / Protecciones"],
     "Vehículos a Escala (Hot Wheels)": ["Hot Wheels Mainline", "Hot Wheels Premium", "Matchbox", "Majorette", "Greenlight", "1:64", "1:43", "1:18", "Otro Vehículo"],
     "Figuras / Funkos / Estatuas": ["Funko Pop!", "Figura de Acción", "Estatua / Resin", "Nendoroid", "Scale Figure", "Model Kit / Gunpla"],
     "Videojuegos / Retro": ["Juego Físico", "Consola", "Mando / Mandos", "Edición Coleccionista", "Accesorio"],
     "Música (LPs/Vinilos, CDs)": ["LP / Vinilo", "CD", "Cassette", "Boxset / Edición Especial"],
-    "Otro / Fanzine": ["Fanzine / Artbook", "Poster / Arte", "Pin / Insignia", "Merchandising Variado"]
+    "Otro": ["Artículo Variado"]
 };
 
 // ================= NAVEGACIÓN Y VISTAS =================
