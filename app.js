@@ -17,14 +17,25 @@ let coleccionFiltrada = [];
 let mapaObras = {}; 
 let base64Comprimido = '';
 let modoVitrinaActivo = false;
-let monedaSeleccionada = localStorage.getItem('colex_moneda') || 'USD';
+let monedaGlobal = localStorage.getItem('colex_moneda_global') || 'USD';
 
 const SIMBOLOS_MONEDA = {
     "USD": "$",
     "COP": "$",
     "EUR": "€",
     "MXN": "$",
-    "ARS": "$"
+    "GBP": "£",
+    "JPY": "¥"
+};
+
+// Tasas aproximadas relativas al USD para consolidados globales en stats/PDF
+const TASAS_CAMBIO = {
+    "USD": 1.0,
+    "COP": 4100.0,
+    "EUR": 0.92,
+    "MXN": 18.5,
+    "GBP": 0.78,
+    "JPY": 150.0
 };
 
 const SUBTIPOS_MAP = {
@@ -46,17 +57,24 @@ const CATEGORIA_COLORES = {
     "Otro": "bg-gray-400"
 };
 
-// Formateador de dinero (sin decimales y con separación de miles)
-function formatearDinero(valor) {
+// Formateador con separación por comas y sin decimales
+function formatearDinero(valor, codigoMoneda = 'USD') {
     const num = Math.round(valor || 0);
-    const formateado = num.toLocaleString('en-US'); // Separa por comas cada 3 dígitos
-    const simbolo = SIMBOLOS_MONEDA[monedaSeleccionada] || '$';
-    return `${simbolo}${formateado} ${monedaSeleccionada !== 'USD' && monedaSeleccionada !== 'EUR' ? monedaSeleccionada : ''}`.trim();
+    const formateado = num.toLocaleString('en-US');
+    const simbolo = SIMBOLOS_MONEDA[codigoMoneda] || '$';
+    return `${simbolo}${formateado} ${codigoMoneda !== 'USD' && codigoMoneda !== 'EUR' ? codigoMoneda : ''}`.trim();
 }
 
-function cambiarMoneda(nuevaMoneda) {
-    monedaSeleccionada = nuevaMoneda;
-    localStorage.setItem('colex_moneda', nuevaMoneda);
+// Convertir un valor desde su moneda original a la moneda global elegida
+function convertirAMonedaGlobal(valor, monedaOrigen) {
+    const orig = monedaOrigen || 'USD';
+    const valUSD = (valor || 0) / (TASAS_CAMBIO[orig] || 1.0);
+    return valUSD * (TASAS_CAMBIO[monedaGlobal] || 1.0);
+}
+
+function cambiarMonedaGlobal(nuevaMoneda) {
+    monedaGlobal = nuevaMoneda;
+    localStorage.setItem('colex_moneda_global', nuevaMoneda);
     renderizarColeccion(coleccionFiltrada);
     calcularEstadisticas();
 }
@@ -109,10 +127,12 @@ function irAFormulario(idObra = null) {
         document.getElementById('editorial').value = obra.editorial || '';
         document.getElementById('estadoFisico').value = obra.estado_fisico || 'Nuevo / Mint';
         document.getElementById('valorManual').value = Math.round(obra.valor_manual || 0);
+        document.getElementById('itemMoneda').value = obra.moneda || 'USD';
         document.getElementById('portadaUrl').value = obra.portada_url || '';
         document.getElementById('notas').value = obra.notas || '';
     } else {
         if (formTitle) formTitle.innerText = 'Agregar Coleccionable';
+        document.getElementById('itemMoneda').value = 'USD';
         cambiarTipo('');
     }
 
@@ -121,7 +141,7 @@ function irAFormulario(idObra = null) {
 
 function irAEstadisticas() {
     const selectMoneda = document.getElementById('selectMoneda');
-    if (selectMoneda) selectMoneda.value = monedaSeleccionada;
+    if (selectMoneda) selectMoneda.value = monedaGlobal;
     calcularEstadisticas();
     cambiarPantalla('viewStats');
 }
@@ -265,6 +285,7 @@ async function guardarObra(event) {
         editorial: document.getElementById('editorial').value,
         estado_fisico: document.getElementById('estadoFisico').value,
         valor_manual: Math.round(parseFloat(document.getElementById('valorManual').value) || 0),
+        moneda: document.getElementById('itemMoneda').value || 'USD',
         portada_url: portadaFinal,
         notas: document.getElementById('notas').value
     };
@@ -329,6 +350,7 @@ function renderizarColeccion(lista) {
     lista.forEach(item => {
         const esLectura = (item.tipo_material === 'Cómic / Manga / Libro / Fanzine / Revista');
         const estrellasHtml = generarEstrellasHtml(item.estrellas, 'text-xs');
+        const monedaItem = item.moneda || 'USD';
 
         const card = document.createElement('div');
         card.className = 'colex-card p-3 rounded-2xl flex items-center justify-between gap-3 shadow-md hover:border-amber-600 transition cursor-pointer relative';
@@ -348,7 +370,7 @@ function renderizarColeccion(lista) {
                 </div>
             </div>
             <div class="text-right flex-shrink-0">
-                <span class="block font-bold text-amber-custom text-sm">${formatearDinero(item.valor_manual)}</span>
+                <span class="block font-bold text-amber-custom text-sm">${formatearDinero(item.valor_manual, monedaItem)}</span>
                 <span class="text-[10px] text-gray-400 block">${item.anio || ''}</span>
             </div>
         `;
@@ -363,6 +385,7 @@ function verDetalle(id) {
     
     const esLectura = (item.tipo_material === 'Cómic / Manga / Libro / Fanzine / Revista');
     const numEstrellas = item.estrellas || 0;
+    const monedaItem = item.moneda || 'USD';
     
     const estrellasHtml = numEstrellas > 0 
         ? `<div class="flex items-center justify-center gap-1 mt-1">
@@ -414,8 +437,8 @@ function verDetalle(id) {
                 <span class="text-gray-200">${item.estado_fisico || 'N/A'}</span>
             </div>
             <div class="flex justify-between border-b border-gray-700 pb-1.5">
-                <span class="text-gray-400 font-semibold">Precio Estimado:</span>
-                <span class="text-amber-custom font-bold text-sm">${formatearDinero(item.valor_manual)}</span>
+                <span class="text-gray-400 font-semibold">Precio / Valor:</span>
+                <span class="text-amber-custom font-bold text-sm">${formatearDinero(item.valor_manual, monedaItem)}</span>
             </div>
             ${item.notas ? `
             <div class="pt-1">
@@ -452,9 +475,9 @@ function ordenarColeccion(criterio) {
     } else if (criterio === 'alfabetico') {
         coleccionFiltrada.sort((a, b) => a.titulo.localeCompare(b.titulo));
     } else if (criterio === 'precio-desc') {
-        coleccionFiltrada.sort((a, b) => (b.valor_manual || 0) - (a.valor_manual || 0));
+        coleccionFiltrada.sort((a, b) => convertirAMonedaGlobal(b.valor_manual, b.moneda) - convertirAMonedaGlobal(a.valor_manual, a.moneda));
     } else if (criterio === 'precio-asc') {
-        coleccionFiltrada.sort((a, b) => (a.valor_manual || 0) - (b.valor_manual || 0));
+        coleccionFiltrada.sort((a, b) => convertirAMonedaGlobal(a.valor_manual, a.moneda) - convertirAMonedaGlobal(b.valor_manual, b.moneda));
     } else if (criterio === 'anio') {
         coleccionFiltrada.sort((a, b) => (b.anio || 0) - (a.anio || 0));
     } else if (criterio === 'estrellas') {
@@ -472,7 +495,11 @@ function aplicarFiltros() {
         let cumple = true;
         if (tipo && item.tipo_material !== tipo) cumple = false;
         if (editorial && (!item.editorial || !item.editorial.toLowerCase().includes(editorial))) cumple = false;
-        if (!isNaN(precioMax) && (item.valor_manual || 0) > precioMax) cumple = false;
+        
+        if (!isNaN(precioMax)) {
+            const valConvertido = convertirAMonedaGlobal(item.valor_manual, item.moneda);
+            if (valConvertido > precioMax) cumple = false;
+        }
         return cumple;
     });
 
@@ -492,12 +519,16 @@ function limpiarFiltros() {
 // CÁLCULO Y GRÁFICOS
 function calcularEstadisticas() {
     const totalItems = coleccionFiltrada.length;
-    const valorTotal = coleccionFiltrada.reduce((acc, curr) => acc + (curr.valor_manual || 0), 0);
+    
+    // Valor acumulado total convertido a la moneda global seleccionada
+    const valorTotalGlobal = coleccionFiltrada.reduce((acc, curr) => {
+        return acc + convertirAMonedaGlobal(curr.valor_manual, curr.moneda);
+    }, 0);
 
     const statTotal = document.getElementById('statTotal');
     const statValor = document.getElementById('statValor');
     if (statTotal) statTotal.innerText = `${totalItems} / ${coleccionData.length}`;
-    if (statValor) statValor.innerText = formatearDinero(valorTotal);
+    if (statValor) statValor.innerText = formatearDinero(valorTotalGlobal, monedaGlobal);
 
     const desgloses = {};
     const valoresPorCat = {};
@@ -505,7 +536,7 @@ function calcularEstadisticas() {
     coleccionFiltrada.forEach(item => {
         const cat = item.tipo_material || 'Otro';
         desgloses[cat] = (desgloses[cat] || 0) + 1;
-        valoresPorCat[cat] = (valoresPorCat[cat] || 0) + (item.valor_manual || 0);
+        valoresPorCat[cat] = (valoresPorCat[cat] || 0) + convertirAMonedaGlobal(item.valor_manual, item.moneda);
     });
 
     const contenedorGrafico = document.getElementById('statGraficoCategorias');
@@ -528,7 +559,7 @@ function calcularEstadisticas() {
         barBlock.innerHTML = `
             <div class="flex justify-between items-center text-[11px]">
                 <span class="text-gray-300 font-semibold truncate max-w-[180px]" title="${cat}">${cat}</span>
-                <span class="text-gray-400 font-medium">${cantidad} u. (${porcentaje}%) — ${formatearDinero(valorCat)}</span>
+                <span class="text-gray-400 font-medium">${cantidad} u. (${porcentaje}%) — ${formatearDinero(valorCat, monedaGlobal)}</span>
             </div>
             <div class="w-full bg-gray-800 rounded-full h-2.5 overflow-hidden border border-gray-700 flex">
                 <div class="${colorBarra} h-2.5 rounded-full transition-all duration-500" style="width: ${porcentaje}%;"></div>
@@ -540,9 +571,9 @@ function calcularEstadisticas() {
 
 function exportarCSV() {
     if (coleccionFiltrada.length === 0) return alert('No hay datos para exportar.');
-    let csv = 'ID,Título,Número,Año,Categoría,Subtipo,Calificación,Autor,Editorial,Estado,Precio,Notas\n';
+    let csv = 'ID,Título,Número,Año,Categoría,Subtipo,Calificación,Autor,Editorial,Estado,Precio,Moneda,Notas\n';
     coleccionFiltrada.forEach(i => {
-        csv += `"${i.id}","${i.titulo}","${i.numero||''}","${i.anio||''}","${i.tipo_material}","${i.subtipo_material||''}","${i.estrellas||0}","${i.autor||''}","${i.editorial||''}","${i.estado_fisico||''}","${i.valor_manual||0}","${(i.notas||'').replace(/"/g, '""')}"\n`;
+        csv += `"${i.id}","${i.titulo}","${i.numero||''}","${i.anio||''}","${i.tipo_material}","${i.subtipo_material||''}","${i.estrellas||0}","${i.autor||''}","${i.editorial||''}","${i.estado_fisico||''}","${i.valor_manual||0}","${i.moneda||'USD'}","${(i.notas||'').replace(/"/g, '""')}"\n`;
     });
     descargarArchivo(csv, 'coleccion_colex.csv', 'text/csv');
 }
@@ -551,15 +582,18 @@ function exportarExcel() {
     exportarCSV();
 }
 
-// Generación de Reporte PDF Filtrado e Imprimible Robusto
+// PDF con valor original por ítem y total consolidado global
 function exportarPDF() {
     if (coleccionFiltrada.length === 0) return alert('No hay datos filtrados para exportar a PDF.');
 
-    const valorTotal = coleccionFiltrada.reduce((acc, curr) => acc + (curr.valor_manual || 0), 0);
+    const valorTotalGlobal = coleccionFiltrada.reduce((acc, curr) => {
+        return acc + convertirAMonedaGlobal(curr.valor_manual, curr.moneda);
+    }, 0);
     const fechaReporte = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
 
     let filasTabla = '';
     coleccionFiltrada.forEach((item, index) => {
+        const monedaItem = item.moneda || 'USD';
         filasTabla += `
             <tr style="border-bottom: 1px solid #e2e8f0; ${index % 2 === 0 ? 'background-color: #f8fafc;' : ''}">
                 <td style="padding: 8px; text-align: center;">${item.id}</td>
@@ -569,7 +603,7 @@ function exportarPDF() {
                 <td style="padding: 8px;">${item.autor || '-'}</td>
                 <td style="padding: 8px;">${item.editorial || '-'}</td>
                 <td style="padding: 8px; text-align: center;">${item.anio || '-'}</td>
-                <td style="padding: 8px; text-align: right; font-weight: bold; color: #b45309;">${formatearDinero(item.valor_manual)}</td>
+                <td style="padding: 8px; text-align: right; font-weight: bold; color: #b45309;">${formatearDinero(item.valor_manual, monedaItem)}</td>
             </tr>
         `;
     });
@@ -605,13 +639,13 @@ function exportarPDF() {
             <div class="header">
                 <div>
                     <div class="title">ColeX — Reporte de Colección</div>
-                    <div class="meta">Generado el ${fechaReporte} (${monedaSeleccionada})</div>
+                    <div class="meta">Generado el ${fechaReporte} (Total en ${monedaGlobal})</div>
                 </div>
             </div>
 
             <div class="summary">
                 <div class="summary-item">Ítems Filtrados: <span style="color:#b45309">${coleccionFiltrada.length} / ${coleccionData.length}</span></div>
-                <div class="summary-item">Valor Total Estimado: <span style="color:#b45309">${formatearDinero(valorTotal)}</span></div>
+                <div class="summary-item">Valor Total Estimado: <span style="color:#b45309">${formatearDinero(valorTotalGlobal, monedaGlobal)}</span></div>
             </div>
 
             <table>
