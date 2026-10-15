@@ -16,11 +16,10 @@ try {
 // Estado Global de la Aplicación
 let coleccionData = [];
 let coleccionFiltrada = [];
-let mapaObras = {}; // Diccionario seguro por ID
+let mapaObras = {}; 
 let base64Comprimido = '';
 let modoVitrinaActivo = false;
 
-// Subtipos según Categoría
 const SUBTIPOS_MAP = {
     "Cómic / Manga / Libro / Fanzine / Revista": ["Cómic", "Manga", "Libro", "Fanzine", "Revista"],
     "Cartas TCG": ["Cartas Sueltas / Singles", "Sobres / Packs", "Cajas / Booster Box", "Decks / Mazos", "Accesorios / Protecciones"],
@@ -57,7 +56,7 @@ function irAFormulario(idObra = null) {
     const compressBadge = document.getElementById('compressBadge');
     if (compressBadge) compressBadge.classList.add('hidden');
 
-    const obra = idObra !== null ? mapaObras[idObra] : null;
+    const obra = (idObra !== null && idObra !== undefined) ? mapaObras[idObra] : null;
 
     if (obra) {
         if (formTitle) formTitle.innerText = 'Editar Coleccionable';
@@ -199,7 +198,7 @@ async function cargarColeccion() {
 }
 
 async function guardarObra(event) {
-    event.preventDefault();
+    if (event) event.preventDefault();
     if (!supabase) {
         alert('Supabase no está configurado.');
         return;
@@ -298,16 +297,10 @@ function renderizarColeccion(lista) {
                 <img src="${item.portada_url}" class="w-16 h-20 object-cover rounded-xl border border-gray-700 flex-shrink-0" alt="Portada">
                 <div class="overflow-hidden space-y-1">
                     <h3 class="font-bold text-sm text-gray-100 truncate">${item.titulo}</h3>
-                    <p class="text-xs text-amber-custom truncate">${item.autor || 'Sin Autor'} ${item.numero ? `(${item.numero})` : ''}</p>
+                    <p class="text-xs text-amber-custom truncate">${item.autor \vert{}\vert{} 'Sin Autor'}${item.numero ? `(${item.numero})` : ''}</p>
                     <div class="flex items-center space-x-2">
-                        <span class="bg-gray-800 text-gray-300 px-2 py-0.5 rounded-md text-[10px] font-semibold">${item.subtipo_material || item.tipo_material}</span>
-                        ${esLectura ? (item.leido ? `<span class="text-xs" title="Leído">📖 ✅</span>` : `<span class="text-xs opacity-50" title="Pendiente">📖 ⏳</span>`) : ''}
-                        ${estrellasHtml}
-                    </div>
-                </div>
-            </div>
-            <div class="text-right flex-shrink-0">
-                <span class="block font-bold text-amber-custom text-sm">$${(item.valor_manual || 0).toFixed(2)}</span>
+                        <span class="bg-gray-800 text-gray-300 px-2 py-0.5 rounded-md text-[10px] font-semibold">${item.subtipo_material \vert{}\vert{} item.tipo_material}</span>${esLectura ? (item.leido ? `<span class="text-xs" title="Leído">📖 ✅</span>` : `<span class="text-xs opacity-50" title="Pendiente">📖 ⏳</span>`) : ''}
+                        ${estrellasHtml} </div> </div> </div> <div class="text-right flex-shrink-0"> <span class="block font-bold text-amber-custom text-sm">$${(item.valor_manual || 0).toFixed(2)}</span>
                 <span class="text-[10px] text-gray-400 block">${item.anio || ''}</span>
             </div>
         `;
@@ -333,8 +326,7 @@ function verDetalle(id) {
     contenedor.innerHTML = `
         <div class="flex flex-col items-center space-y-3">
             <img src="${item.portada_url}" class="w-48 h-64 object-cover rounded-2xl shadow-2xl border-2 border-amber-600/50">
-            <h2 class="text-2xl font-black text-amber-custom text-center leading-tight">${item.titulo}</h2>
-            ${estrellasHtml}
+            <h2 class="text-2xl font-black text-amber-custom text-center leading-tight">${item.titulo}</h2>${estrellasHtml}
         </div>
 
         <div class="colex-card p-4 rounded-2xl space-y-2.5 text-xs">
@@ -351,181 +343,4 @@ function verDetalle(id) {
                 <span class="text-gray-400 font-semibold">Estado de Lectura:</span>
                 <span class="font-bold ${item.leido ? 'text-green-400' : 'text-amber-400'}">${item.leido ? '📖 Leído / Completado' : '⏳ Pendiente'}</span>
             </div>
-            ` : ''}
-            <div class="flex justify-between border-b border-gray-700 pb-1.5">
-                <span class="text-gray-400 font-semibold">Número / Set:</span>
-                <span class="text-gray-200">${item.numero || 'N/A'}</span>
-            </div>
-            <div class="flex justify-between border-b border-gray-700 pb-1.5">
-                <span class="text-gray-400 font-semibold">Año:</span>
-                <span class="text-gray-200">${item.anio || 'N/A'}</span>
-            </div>
-            <div class="flex justify-between border-b border-gray-700 pb-1.5">
-                <span class="text-gray-400 font-semibold">Autor / Artista:</span>
-                <span class="text-gray-200">${item.autor || 'N/A'}</span>
-            </div>
-            <div class="flex justify-between border-b border-gray-700 pb-1.5">
-                <span class="text-gray-400 font-semibold">Editorial / Fabricante:</span>
-                <span class="text-gray-200">${item.editorial || 'N/A'}</span>
-            </div>
-            <div class="flex justify-between border-b border-gray-700 pb-1.5">
-                <span class="text-gray-400 font-semibold">Estado Físico:</span>
-                <span class="text-gray-200">${item.estado_fisico || 'N/A'}</span>
-            </div>
-            <div class="flex justify-between border-b border-gray-700 pb-1.5">
-                <span class="text-gray-400 font-semibold">Precio Estimado:</span>
-                <span class="text-amber-custom font-bold text-sm">$${(item.valor_manual || 0).toFixed(2)}</span>
-            </div>
-            ${item.notas ? `
-            <div class="pt-1">
-                <span class="text-gray-400 font-semibold block mb-1">Notas / Observaciones:</span>
-                <p class="text-gray-300 italic bg-gray-900/60 p-2.5 rounded-xl border border-gray-800">${item.notas}</p>
-            </div>
-            ` : ''}
-        </div>
-
-        <div class="flex space-x-3 pt-2 admin-only">
-            <button onclick="ColeXApp.irAFormulario(${item.id})" class="flex-1 py-3 bg-blue-700 hover:bg-blue-600 text-white font-bold rounded-xl transition cursor-pointer">Editar</button>
-            <button onclick="ColeXApp.eliminarObra(${item.id})" class="flex-1 py-3 bg-red-700 hover:bg-red-600 text-white font-bold rounded-xl transition cursor-pointer">Eliminar</button>
-        </div>
-    `;
-
-    cambiarPantalla('viewDetalle');
-}
-
-function buscar(query) {
-    const q = query.toLowerCase().trim();
-    coleccionFiltrada = coleccionData.filter(item => 
-        (item.titulo && item.titulo.toLowerCase().includes(q)) ||
-        (item.autor && item.autor.toLowerCase().includes(q)) ||
-        (item.editorial && item.editorial.toLowerCase().includes(q)) ||
-        (item.subtipo_material && item.subtipo_material.toLowerCase().includes(q)) ||
-        (item.notas && item.notas.toLowerCase().includes(q))
-    );
-    renderizarColeccion(coleccionFiltrada);
-}
-
-function ordenarColeccion(criterio) {
-    if (criterio === 'recientes') {
-        coleccionFiltrada.sort((a, b) => b.id - a.id);
-    } else if (criterio === 'alfabetico') {
-        coleccionFiltrada.sort((a, b) => a.titulo.localeCompare(b.titulo));
-    } else if (criterio === 'precio-desc') {
-        coleccionFiltrada.sort((a, b) => (b.valor_manual || 0) - (a.valor_manual || 0));
-    } else if (criterio === 'precio-asc') {
-        coleccionFiltrada.sort((a, b) => (a.valor_manual || 0) - (b.valor_manual || 0));
-    } else if (criterio === 'anio') {
-        coleccionFiltrada.sort((a, b) => (b.anio || 0) - (a.anio || 0));
-    } else if (criterio === 'estrellas') {
-        coleccionFiltrada.sort((a, b) => (b.estrellas || 0) - (a.estrellas || 0));
-    }
-    renderizarColeccion(coleccionFiltrada);
-}
-
-// ================= FILTROS Y ESTADÍSTICAS =================
-function aplicarFiltros() {
-    const tipo = document.getElementById('filtroTipo').value;
-    const editorial = document.getElementById('filtroEditorial').value.toLowerCase().trim();
-    const precioMax = parseFloat(document.getElementById('filtroPrecio').value);
-
-    coleccionFiltrada = coleccionData.filter(item => {
-        let cumple = true;
-        if (tipo && item.tipo_material !== tipo) cumple = false;
-        if (editorial && (!item.editorial || !item.editorial.toLowerCase().includes(editorial))) cumple = false;
-        if (!isNaN(precioMax) && (item.valor_manual || 0) > precioMax) cumple = false;
-        return cumple;
-    });
-
-    renderizarColeccion(coleccionFiltrada);
-    irAColeccion();
-}
-
-function limpiarFiltros() {
-    document.getElementById('filtroTipo').value = '';
-    document.getElementById('filtroEditorial').value = '';
-    document.getElementById('filtroPrecio').value = '';
-    coleccionFiltrada = [...coleccionData];
-    renderizarColeccion(coleccionFiltrada);
-    irAColeccion();
-}
-
-function calcularEstadisticas() {
-    const totalItems = coleccionFiltrada.length;
-    const valorTotal = coleccionFiltrada.reduce((acc, curr) => acc + (curr.valor_manual || 0), 0);
-
-    const statTotal = document.getElementById('statTotal');
-    const statValor = document.getElementById('statValor');
-    if (statTotal) statTotal.innerText = `${totalItems} / ${coleccionData.length}`;
-    if (statValor) statValor.innerText = `$${valorTotal.toFixed(2)}`;
-
-    const desgloses = {};
-    coleccionFiltrada.forEach(item => {
-        const cat = item.tipo_material || 'Sin Categoría';
-        desgloses[cat] = (desgloses[cat] || 0) + 1;
-    });
-
-    const contenedor = document.getElementById('statDesgloseCategorias');
-    if (!contenedor) return;
-    contenedor.innerHTML = '<span class="text-amber-custom font-semibold block mb-1">Desglose por categoría:</span>';
-
-    Object.keys(desgloses).forEach(cat => {
-        const row = document.createElement('div');
-        row.className = 'flex justify-between text-gray-300';
-        row.innerHTML = `<span>${cat}:</span><span class="font-bold">${desgloses[cat]}</span>`;
-        contenedor.appendChild(row);
-    });
-}
-
-// ================= EXPORTACIÓN DE DATOS =================
-function exportarCSV() {
-    if (coleccionFiltrada.length === 0) return alert('No hay datos para exportar.');
-    let csv = 'ID,Título,Número,Año,Categoría,Subtipo,Calificación,Autor,Editorial,Estado,Precio,Notas\n';
-    coleccionFiltrada.forEach(i => {
-        csv += `"${i.id}","${i.titulo}","${i.numero||''}","${i.anio||''}","${i.tipo_material}","${i.subtipo_material||''}","${i.estrellas||0}","${i.autor||''}","${i.editorial||''}","${i.estado_fisico||''}","${i.valor_manual||0}","${(i.notas||'').replace(/"/g, '""')}"\n`;
-    });
-    descargarArchivo(csv, 'coleccion_colex.csv', 'text/csv');
-}
-
-function exportarExcel() {
-    exportarCSV();
-}
-
-function exportarPDF() {
-    window.print();
-}
-
-function descargarArchivo(contenido, nombre, tipo) {
-    const blob = new Blob([contenido], { type: tipo });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = nombre;
-    a.click();
-    URL.revokeObjectURL(url);
-}
-
-// ================= VINCULACIÓN GLOBAL ANTI-RACE CONDITION =================
-window.ColeXApp = {
-    irAFormulario,
-    irAColeccion,
-    irAEstadisticas,
-    guardarObra,
-    eliminarObra,
-    verDetalle,
-    toggleModoVitrina,
-    buscar,
-    ordenarColeccion,
-    cambiarTipo,
-    procesarArchivo,
-    aplicarFiltros,
-    limpiarFiltros,
-    exportarCSV,
-    exportarExcel,
-    exportarPDF
-};
-
-// Carga Inicial al Arrancar
-document.addEventListener('DOMContentLoaded', () => {
-    inicializarModoVitrina();
-    cargarColeccion();
-});
+            ` :
