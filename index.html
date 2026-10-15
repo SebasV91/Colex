@@ -208,9 +208,23 @@
                             </div>
                         </div>
 
-                        <div>
-                            <label class="text-xs text-amber-custom font-semibold uppercase tracking-wider">Precio / Valor</label>
-                            <input type="number" step="1" id="valorManual" value="0" class="w-full p-3 colex-input rounded-xl text-sm">
+                        <!-- Selector de Precio y Moneda Integrado -->
+                        <div class="grid grid-cols-3 gap-3">
+                            <div class="col-span-2">
+                                <label class="text-xs text-amber-custom font-semibold uppercase tracking-wider">Precio / Valor</label>
+                                <input type="number" step="1" id="valorManual" value="0" class="w-full p-3 colex-input rounded-xl text-sm" placeholder="0">
+                            </div>
+                            <div>
+                                <label class="text-xs text-amber-custom font-semibold uppercase tracking-wider">Moneda</label>
+                                <select id="itemMoneda" class="w-full p-3 colex-input rounded-xl text-sm">
+                                    <option value="USD" class="bg-gray-900">USD ($)</option>
+                                    <option value="COP" class="bg-gray-900">COP ($)</option>
+                                    <option value="EUR" class="bg-gray-900">EUR (€)</option>
+                                    <option value="MXN" class="bg-gray-900">MXN ($)</option>
+                                    <option value="GBP" class="bg-gray-900">GBP (£)</option>
+                                    <option value="JPY" class="bg-gray-900">JPY (¥)</option>
+                                </select>
+                            </div>
                         </div>
 
                         <div>
@@ -231,15 +245,16 @@
                 </div>
 
                 <div class="space-y-3.5 colex-card p-4 rounded-2xl mb-4">
-                    <h3 class="font-bold text-xs text-amber-custom uppercase tracking-wider">Preferencias</h3>
+                    <h3 class="font-bold text-xs text-amber-custom uppercase tracking-wider">Visualización Global</h3>
                     <div>
-                        <label class="text-[11px] text-gray-400 font-semibold">Tipo de Moneda</label>
-                        <select id="selectMoneda" onchange="cambiarMoneda(this.value)" class="w-full p-2.5 colex-input rounded-xl text-xs mt-1">
+                        <label class="text-[11px] text-gray-400 font-semibold">Convertir Totales / Reporte a Moneda</label>
+                        <select id="selectMoneda" onchange="cambiarMonedaGlobal(this.value)" class="w-full p-2.5 colex-input rounded-xl text-xs mt-1">
                             <option value="USD" class="bg-gray-900">Dólar ($ USD)</option>
                             <option value="COP" class="bg-gray-900">Peso Colombiano ($ COP)</option>
                             <option value="EUR" class="bg-gray-900">Euro (€ EUR)</option>
                             <option value="MXN" class="bg-gray-900">Peso Mexicano ($ MXN)</option>
-                            <option value="ARS" class="bg-gray-900">Peso Argentino ($ ARS)</option>
+                            <option value="GBP" class="bg-gray-900">Libra Esterlina (£ GBP)</option>
+                            <option value="JPY" class="bg-gray-900">Yen Japonés (¥ JPY)</option>
                         </select>
                     </div>
                 </div>
@@ -308,6 +323,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <!-- Script principal -->
-    <script src="app.js?v=2026.10.102"></script>
+    <script src="app.js?v=2026.10.103"></script>
 </body>
 </html>
