@@ -2,7 +2,6 @@
 const SUPABASE_URL = 'https://ljxhehuierhexvkveszr.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_o_m6elxMjBmViae-LChBfQ_G4BB8LAy';
 
-// Usamos dbClient para NO volver a declarar 'supabase' y evitar el SyntaxError
 let dbClient = null;
 try {
     if (window.supabase && typeof window.supabase.createClient === 'function') {
@@ -65,7 +64,10 @@ function irAFormulario(idObra = null) {
         document.getElementById('tipoMaterial').value = obra.tipo_material || '';
         
         cambiarTipo(obra.tipo_material || '');
-        document.getElementById('subtipoMaterial').value = obra.subtipo_material || '';
+        
+        const subElem = document.getElementById('subtipoMaterial');
+        if (subElem) subElem.value = obra.subtipo_material || '';
+
         document.getElementById('chkLeido').checked = !!obra.leido;
         document.getElementById('estrellas').value = obra.estrellas || 0;
 
@@ -116,20 +118,31 @@ function inicializarModoVitrina() {
 
 // ================= SELECTORES Y COMPRESIÓN =================
 function cambiarTipo(categoria) {
-    const subtipoSelect = document.getElementById('subtipoMaterial');
+    const subtipoContainer = document.getElementById('subtipoContainer');
     const leidoContainer = document.getElementById('leidoContainer');
-    if (!subtipoSelect) return;
+    if (!subtipoContainer) return;
 
-    subtipoSelect.innerHTML = '<option value="" class="bg-gray-900">Selecciona variante...</option>';
+    if (categoria === 'Otro') {
+        subtipoContainer.innerHTML = `
+            <input type="text" id="subtipoMaterial" required placeholder="Escribe el formato o variante..." class="w-full p-3 colex-input rounded-xl text-sm">
+        `;
+    } else {
+        subtipoContainer.innerHTML = `
+            <select id="subtipoMaterial" required class="w-full p-3 colex-input rounded-xl text-sm">
+                <option value="" class="bg-gray-900">Selecciona variante...</option>
+            </select>
+        `;
 
-    if (categoria && SUBTIPOS_MAP[categoria]) {
-        SUBTIPOS_MAP[categoria].forEach(sub => {
-            const opt = document.createElement('option');
-            opt.value = sub;
-            opt.textContent = sub;
-            opt.className = 'bg-gray-900';
-            subtipoSelect.appendChild(opt);
-        });
+        const subtipoSelect = document.getElementById('subtipoMaterial');
+        if (categoria && SUBTIPOS_MAP[categoria]) {
+            SUBTIPOS_MAP[categoria].forEach(sub => {
+                const opt = document.createElement('option');
+                opt.value = sub;
+                opt.textContent = sub;
+                opt.className = 'bg-gray-900';
+                subtipoSelect.appendChild(opt);
+            });
+        }
     }
 
     if (leidoContainer) {
@@ -202,13 +215,14 @@ async function guardarObra(event) {
 
     const tipoCat = document.getElementById('tipoMaterial').value;
     const esLibro = (tipoCat === 'Cómic / Manga / Libro / Fanzine / Revista');
+    const subtipoElem = document.getElementById('subtipoMaterial');
 
     const payload = {
         titulo: document.getElementById('titulo').value,
         numero: document.getElementById('numero').value,
         anio: parseInt(document.getElementById('anio').value) || null,
         tipo_material: tipoCat,
-        subtipo_material: document.getElementById('subtipoMaterial').value,
+        subtipo_material: subtipoElem ? subtipoElem.value : '',
         leido: esLibro ? document.getElementById('chkLeido').checked : false,
         estrellas: parseInt(document.getElementById('estrellas').value) || 0,
         autor: document.getElementById('autor').value,
@@ -479,8 +493,91 @@ function exportarExcel() {
     exportarCSV();
 }
 
+// Generación de Reporte PDF Filtrado e Imprimible
 function exportarPDF() {
-    window.print();
+    if (coleccionFiltrada.length === 0) return alert('No hay datos filtrados para exportar a PDF.');
+
+    const valorTotal = coleccionFiltrada.reduce((acc, curr) => acc + (curr.valor_manual || 0), 0);
+    const fechaReporte = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    let filasTabla = '';
+    coleccionFiltrada.forEach((item, index) => {
+        filasTabla += `
+            <tr style="border-bottom: 1px solid #e2e8f0; ${index % 2 === 0 ? 'background-color: #f8fafc;' : ''}">
+                <td style="padding: 8px; text-align: center;">${item.id}</td>
+                <td style="padding: 8px; font-weight: bold; color: #0f172a;">${item.titulo}</td>
+                <td style="padding: 8px;">${item.tipo_material}</td>
+                <td style="padding: 8px;">${item.subtipo_material || '-'}</td>
+                <td style="padding: 8px;">${item.autor || '-'}</td>
+                <td style="padding: 8px;">${item.editorial || '-'}</td>
+                <td style="padding: 8px; text-align: center;">${item.anio || '-'}</td>
+                <td style="padding: 8px; text-align: right; font-weight: bold; color: #b45309;">$${(item.valor_manual || 0).toFixed(2)}</td>
+            </tr>
+        `;
+    });
+
+    const ventanaImp = window.open('', '_blank');
+    ventanaImp.document.write(`
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+            <meta charset="UTF-8">
+            <title>ColeX - Reporte de Colección</title>
+            <style>
+                body { font-family: system-ui, -apple-system, sans-serif; padding: 25px; color: #1e293b; background: #fff; }
+                .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #b45309; padding-bottom: 12px; margin-bottom: 20px; }
+                .title { font-size: 24px; font-weight: 900; color: #b45309; }
+                .meta { font-size: 12px; color: #64748b; }
+                .summary { display: flex; gap: 20px; margin-bottom: 20px; background: #f1f5f9; padding: 12px 18px; border-radius: 8px; }
+                .summary-item { font-size: 13px; font-weight: 600; }
+                table { width: 100%; border-collapse: collapse; font-size: 12px; }
+                th { background-color: #0f172a; color: #fff; padding: 10px; text-align: left; }
+                @media print {
+                    @page { margin: 1.5cm; }
+                    body { padding: 0; }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <div>
+                    <div class="title">ColeX — Reporte de Colección</div>
+                    <div class="meta">Generado el ${fechaReporte}</div>
+                </div>
+            </div>
+
+            <div class="summary">
+                <div class="summary-item">Ítems Filtrados: <span style="color:#b45309">${coleccionFiltrada.length} / ${coleccionData.length}</span></div>
+                <div class="summary-item">Valor Total Estimado: <span style="color:#b45309">$${valorTotal.toFixed(2)}</span></div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th style="text-align: center;">ID</th>
+                        <th>Título</th>
+                        <th>Categoría</th>
+                        <th>Variante</th>
+                        <th>Autor / Artista</th>
+                        <th>Editorial / Fabricante</th>
+                        <th style="text-align: center;">Año</th>
+                        <th style="text-align: right;">Valor ($)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${filasTabla}
+                </tbody>
+            </table>
+
+            <script>
+                window.onload = function() {
+                    window.print();
+                };
+            </script>
+        </body>
+        </html>
+    `);
+    ventanaImp.document.close();
 }
 
 function descargarArchivo(contenido, nombre, tipo) {
