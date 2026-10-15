@@ -73,7 +73,7 @@
                 </div>
 
                 <div id="listColeccion" class="space-y-4 flex-1 overflow-y-auto pr-1">
-                    <!-- Contenido dinámico -->
+                    <!-- Dinámico -->
                 </div>
 
                 <!-- Barra de Navegación Inferior -->
@@ -155,13 +155,16 @@
                                     <option value="Figuras / Funkos / Estatuas" class="bg-gray-900">Figuras / Funkos / Estatuas</option>
                                     <option value="Videojuegos / Retro" class="bg-gray-900">Videojuegos / Retro</option>
                                     <option value="Música (LPs/Vinilos, CDs)" class="bg-gray-900">Música (LPs/Vinilos, CDs)</option>
+                                    <option value="Otro" class="bg-gray-900">Otro</option>
                                 </select>
                             </div>
                             <div>
                                 <label class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Variante / Formato *</label>
-                                <select id="subtipoMaterial" required class="w-full p-3 colex-input rounded-xl text-sm">
-                                    <option value="" class="bg-gray-900">Selecciona categoría...</option>
-                                </select>
+                                <div id="subtipoContainer">
+                                    <select id="subtipoMaterial" required class="w-full p-3 colex-input rounded-xl text-sm">
+                                        <option value="" class="bg-gray-900">Selecciona categoría...</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
 
@@ -206,8 +209,8 @@
                         </div>
 
                         <div>
-                            <label class="text-xs text-amber-custom font-semibold uppercase tracking-wider">Precio Aproximado ($)</label>
-                            <input type="number" step="0.01" id="valorManual" value="0.00" class="w-full p-3 colex-input rounded-xl text-sm">
+                            <label class="text-xs text-amber-custom font-semibold uppercase tracking-wider">Precio / Valor</label>
+                            <input type="number" step="1" id="valorManual" value="0" class="w-full p-3 colex-input rounded-xl text-sm">
                         </div>
 
                         <div>
@@ -228,8 +231,21 @@
                 </div>
 
                 <div class="space-y-3.5 colex-card p-4 rounded-2xl mb-4">
+                    <h3 class="font-bold text-xs text-amber-custom uppercase tracking-wider">Preferencias</h3>
+                    <div>
+                        <label class="text-[11px] text-gray-400 font-semibold">Tipo de Moneda</label>
+                        <select id="selectMoneda" onchange="cambiarMoneda(this.value)" class="w-full p-2.5 colex-input rounded-xl text-xs mt-1">
+                            <option value="USD" class="bg-gray-900">Dólar ($ USD)</option>
+                            <option value="COP" class="bg-gray-900">Peso Colombiano ($ COP)</option>
+                            <option value="EUR" class="bg-gray-900">Euro (€ EUR)</option>
+                            <option value="MXN" class="bg-gray-900">Peso Mexicano ($ MXN)</option>
+                            <option value="ARS" class="bg-gray-900">Peso Argentino ($ ARS)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="space-y-3.5 colex-card p-4 rounded-2xl mb-4">
                     <h3 class="font-bold text-xs text-amber-custom uppercase tracking-wider">Filtros de Búsqueda</h3>
-                    
                     <div>
                         <label class="text-[11px] text-gray-400 font-semibold">Categoría</label>
                         <select id="filtroTipo" class="w-full p-2.5 colex-input rounded-xl text-xs mt-1">
@@ -240,6 +256,7 @@
                             <option value="Figuras / Funkos / Estatuas" class="bg-gray-900">Figuras / Funkos / Estatuas</option>
                             <option value="Videojuegos / Retro" class="bg-gray-900">Videojuegos / Retro</option>
                             <option value="Música (LPs/Vinilos, CDs)" class="bg-gray-900">Música (LPs/Vinilos, CDs)</option>
+                            <option value="Otro" class="bg-gray-900">Otro</option>
                         </select>
                     </div>
 
@@ -249,7 +266,7 @@
                     </div>
 
                     <div>
-                        <label class="text-[11px] text-gray-400 font-semibold">Precio Máximo ($)</label>
+                        <label class="text-[11px] text-gray-400 font-semibold">Precio Máximo</label>
                         <input type="number" id="filtroPrecio" placeholder="Ej. 100" class="w-full p-2.5 colex-input rounded-xl text-xs placeholder-gray-500 mt-1">
                     </div>
 
@@ -265,9 +282,13 @@
                     </div>
                     <div class="flex justify-between text-sm">
                         <span class="text-gray-400">Valor total estimado:</span>
-                        <span id="statValor" class="font-bold text-amber-custom">$0.00</span>
+                        <span id="statValor" class="font-bold text-amber-custom">$0</span>
                     </div>
-                    <div id="statDesgloseCategorias" class="pt-2 border-t border-gray-700 space-y-1 text-xs"></div>
+
+                    <div class="pt-3 border-t border-gray-700">
+                        <h4 class="font-bold text-xs text-amber-custom uppercase tracking-wider mb-2.5">📈 Distribución por Categoría</h4>
+                        <div id="statGraficoCategorias" class="space-y-3"></div>
+                    </div>
                 </div>
 
                 <div class="space-y-2.5 pt-2">
@@ -286,7 +307,7 @@
     <!-- Supabase UMD Global -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <!-- Script principal apuntando a app.js con parámetro de versión -->
-    <script src="app.js?v=1.0.0"></script>
+    <!-- Script principal -->
+    <script src="app.js?v=2026.10.102"></script>
 </body>
 </html>
