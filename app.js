@@ -1,4 +1,4 @@
-// app.js - ColeX Multicoleccionista (Controlador Global)
+// app.js - ColeX Multicoleccionista (Controlador Global con Música y Estado de Lectura)
 
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
 
@@ -17,7 +17,7 @@ window.ColeXApp = {
     imagenPortadaBase64: '',
 
     init: async function() {
-        console.log("🚀 ColeXApp inicializada correctamente.");
+        console.log("🚀 ColeXApp inicializada correctamente con Nuevas Categorías.");
         await this.cargarObras();
     },
 
@@ -77,15 +77,25 @@ window.ColeXApp = {
             listaTarjetas.className = "space-y-2.5";
 
             items.forEach(obra => {
+                let badgeLeidoHtml = '';
+                if (obra.tipo === 'Cómic / Manga / Libro / Fanzine / Revista') {
+                    badgeLeidoHtml = obra.leido 
+                        ? `<span class="text-[10px] bg-green-900/80 text-green-300 px-1.5 py-0.5 rounded border border-green-700">✓ Leído</span>`
+                        : `<span class="text-[10px] bg-amber-900/80 text-amber-300 px-1.5 py-0.5 rounded border border-amber-700">⏳ Pendiente</span>`;
+                }
+
                 const card = document.createElement('div');
                 card.className = "flex items-center colex-card hover:bg-gray-800 p-3 rounded-2xl shadow-sm transition cursor-pointer gap-3";
                 card.onclick = () => ColeXApp.verDetalle(obra.id);
                 card.innerHTML = `
                     <img src="${obra.portada}" alt="${obra.titulo}" class="w-14 h-16 object-cover rounded-xl bg-gray-900">
                     <div class="flex-1 min-w-0">
-                        <h4 class="font-bold text-sm text-gray-100 truncate">${obra.titulo}</h4>
-                        <p class="text-xs text-gray-400">${obra.autor} • <span class="text-amber-300 font-medium">${obra.tipo}</span></p>
-                        <p class="text-[11px] text-gray-400 mt-0.5">${obra.anio} - <strong class="text-amber-300">$${obra.valor.toFixed(2)}</strong></p>
+                        <div class="flex items-center justify-between gap-1">
+                            <h4 class="font-bold text-sm text-gray-100 truncate">${obra.titulo}</h4>
+                            ${badgeLeidoHtml}
+                        </div>
+                        <p class="text-xs text-gray-400 truncate">${obra.autor} • <span class="text-amber-300 font-medium">${obra.tipo.split('/')[0]}</span></p>
+                        <p class="text-[11px] text-gray-400 mt-0.5">${obra.anio} - <strong class="text-amber-300">$${Number(obra.valor || 0).toFixed(2)}</strong></p>
                     </div>
                 `;
                 listaTarjetas.appendChild(card);
@@ -102,6 +112,16 @@ window.ColeXApp = {
         const detalleContent = document.getElementById('detalleContent');
         if (!detalleContent) return;
 
+        let estadoLecturaHtml = '';
+        if (obra.tipo === 'Cómic / Manga / Libro / Fanzine / Revista') {
+            estadoLecturaHtml = `
+                <div class="flex justify-between items-center"><span class="text-gray-400">Estado de Lectura:</span> 
+                    <span class="font-semibold ${obra.leido ? 'text-green-400' : 'text-amber-300'}">
+                        ${obra.leido ? '✓ Leído / Completado' : '⏳ Pendiente por leer'}
+                    </span>
+                </div>`;
+        }
+
         detalleContent.innerHTML = `
             <div class="flex flex-col items-center colex-card p-6 rounded-2xl shadow-sm space-y-4">
                 <img src="${obra.portada}" alt="${obra.titulo}" class="w-36 h-48 object-cover rounded-xl shadow-md bg-gray-900">
@@ -111,10 +131,11 @@ window.ColeXApp = {
                 </div>
                 <div class="w-full space-y-2 pt-2 border-t border-gray-700 text-sm">
                     <div class="flex justify-between"><span class="text-gray-400">Categoría:</span> <span class="font-semibold text-gray-200">${obra.tipo} (${obra.subtipo})</span></div>
-                    <div class="flex justify-between"><span class="text-gray-400">Fabricante / Editorial:</span> <span class="font-semibold text-amber-300">${obra.editorial}</span></div>
+                    <div class="flex justify-between"><span class="text-gray-400">Fabricante / Sello / Editorial:</span> <span class="font-semibold text-amber-300">${obra.editorial}</span></div>
                     <div class="flex justify-between"><span class="text-gray-400">Año:</span> <span class="font-semibold text-gray-200">${obra.anio}</span></div>
-                    <div class="flex justify-between"><span class="text-gray-400">Estado:</span> <span class="font-semibold text-gray-200">${obra.estado}</span></div>
-                    <div class="flex justify-between"><span class="text-gray-400">Precio Aprox:</span> <span class="font-bold text-amber-300">$${obra.valor.toFixed(2)}</span></div>
+                    <div class="flex justify-between"><span class="text-gray-400">Condición física:</span> <span class="font-semibold text-gray-200">${obra.estado}</span></div>
+                    ${estadoLecturaHtml}
+                    <div class="flex justify-between"><span class="text-gray-400">Precio Aprox:</span> <span class="font-bold text-amber-300">$${Number(obra.valor || 0).toFixed(2)}</span></div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-2 w-full pt-2">
@@ -128,23 +149,26 @@ window.ColeXApp = {
 
     cambiarTipo: function(tipo) {
         const subtipoSelect = document.getElementById('subtipoMaterial');
+        const leidoContainer = document.getElementById('leidoContainer');
         if (!subtipoSelect) return;
 
         const subformatos = {
-            'Cómic / Manga / Libro': ['Grapa (Floppy)', 'Tomo Rústica (TPB)', 'Tomo Cartoné (Hardcover)', 'Tankoubon', 'Tapa Blanda', 'Tapa Dura'],
+            'Cómic / Manga / Libro / Fanzine / Revista': ['Grapa (Floppy)', 'Tomo Rústica (TPB)', 'Tomo Cartoné (Hardcover)', 'Tankoubon', 'Tapa Blanda', 'Tapa Dura', 'Fanzine Artesanal', 'Revista / Publicación'],
             'Cartas TCG': ['Holofoil / Rara', 'Común / Infrecuente', 'Secreta / Ultra Rara', 'Promo / Edición Especial'],
             'Vehículos a Escala (Hot Wheels)': ['Mainline', 'Treasure Hunt', 'Super Treasure Hunt', 'Edición Especial / Premium', 'Set de 5 Pack'],
             'Figuras / Funkos / Estatuas': ['Funko Pop', 'Action Figure (Articulada)', 'Estatua / PVC', 'Nendoroid', 'Busto / Diorama'],
             'Videojuegos / Retro': ['Formato Físico (Cartucho)', 'Formato Físico (Disco)', 'Edición Coleccionista', 'Consola / Hardware'],
-            'Otro / Fanzine': ['Fanzine / Artesanal', 'Merchandising', 'Otro Coleccionable']
+            'Música (LPs/Vinilos, CDs)': ['LP / Vinilo 12"', 'Vinilo 7" (Single)', 'CD Album', 'Casete / Cinta', 'Boxset / Edición Especial'],
+            'Otro / Fanzine': ['Merchandising', 'Otro Coleccionable']
         };
 
         const labelConfig = {
-            'Cómic / Manga / Libro': { editorial: 'Editorial', autor: 'Autor / Guionista', numero: 'Número / Tomo', placeholderEditorial: 'Ej. Marvel, Ivrea' },
+            'Cómic / Manga / Libro / Fanzine / Revista': { editorial: 'Editorial / Editor', autor: 'Autor / Guionista / Artista', numero: 'Número / Tomo / Edición', placeholderEditorial: 'Ej. Marvel, Ivrea, Independiente' },
             'Cartas TCG': { editorial: 'Juego / Marca', autor: 'Ilustrador / Artista', numero: 'Número / Set (ej. 025/102)', placeholderEditorial: 'Ej. Pokémon TCG, Yu-Gi-Oh' },
             'Vehículos a Escala (Hot Wheels)': { editorial: 'Fabricante / Marca', autor: 'Serie / Colección', numero: 'Número de Serie / Lote', placeholderEditorial: 'Ej. Mattel, Matchbox' },
             'Figuras / Funkos / Estatuas': { editorial: 'Fabricante / Marca', autor: 'Franquicia / Línea', numero: 'Número de Figura', placeholderEditorial: 'Ej. Funko, Bandai, Hot Toys' },
             'Videojuegos / Retro': { editorial: 'Desarrollador / Distribuidor', autor: 'Estudio / Creador', numero: 'Plataforma / Región', placeholderEditorial: 'Ej. Nintendo, Capcom' },
+            'Música (LPs/Vinilos, CDs)': { editorial: 'Disquera / Sello Discográfico', autor: 'Artista / Banda', numero: 'Número de Catálogo / Edición', placeholderEditorial: 'Ej. Sony Music, Columbia, Indie' },
             'Otro / Fanzine': { editorial: 'Marca / Fabricante', autor: 'Autor / Creador', numero: 'Número / Referencia', placeholderEditorial: 'Ej. Independiente' }
         };
 
@@ -159,6 +183,16 @@ window.ColeXApp = {
         if (inputEditorial) inputEditorial.placeholder = config.placeholderEditorial;
         if (lblAutor) lblAutor.textContent = config.autor;
         if (lblNumero) lblNumero.textContent = config.numero;
+
+        // Mostrar u ocultar checkbox de leído
+        if (leidoContainer) {
+            if (tipo === 'Cómic / Manga / Libro / Fanzine / Revista') {
+                leidoContainer.classList.remove('hidden');
+            } else {
+                leidoContainer.classList.add('hidden');
+                document.getElementById('chkLeido').checked = false;
+            }
+        }
 
         subtipoSelect.innerHTML = '<option value="" class="bg-gray-900">Seleccionar variante...</option>';
         if (subformatos[tipo]) {
@@ -222,23 +256,28 @@ window.ColeXApp = {
         const editId = document.getElementById('editObraId').value;
         const titulo = document.getElementById('titulo').value.trim();
         const urlInput = document.getElementById('portadaUrl').value.trim();
+        const tipoSeleccionado = document.getElementById('tipoMaterial').value;
 
         let finalPortada = this.imagenPortadaBase64 || urlInput;
         if (!finalPortada) {
             finalPortada = editId ? (this.obras.find(o => String(o.id) === String(editId))?.portada || 'https://via.placeholder.com/150') : 'https://via.placeholder.com/150';
         }
 
+        const esLectura = (tipoSeleccionado === 'Cómic / Manga / Libro / Fanzine / Revista');
+        const leidoValor = esLectura ? document.getElementById('chkLeido').checked : false;
+
         const datosObra = {
             titulo: titulo,
             numero: document.getElementById('numero').value || 'N/A',
             anio: document.getElementById('anio').value || 'S/F',
-            tipo: document.getElementById('tipoMaterial').value,
+            tipo: tipoSeleccionado,
             subtipo: document.getElementById('subtipoMaterial').value,
             autor: document.getElementById('autor').value || 'Desconocido',
             editorial: document.getElementById('editorial').value.trim() || 'Independiente',
             estado: document.getElementById('estadoFisico').value,
             valor: parseFloat(document.getElementById('valorManual').value) || 0,
-            portada: finalPortada
+            portada: finalPortada,
+            leido: leidoValor
         };
 
         if (editId) {
@@ -263,6 +302,8 @@ window.ColeXApp = {
         document.getElementById('fileName').textContent = 'Sin archivo seleccionado';
         const badge = document.getElementById('compressBadge');
         if (badge) badge.classList.add('hidden');
+        const leidoContainer = document.getElementById('leidoContainer');
+        if (leidoContainer) leidoContainer.classList.add('hidden');
         const subtipoSelect = document.getElementById('subtipoMaterial');
         if (subtipoSelect) {
             subtipoSelect.disabled = true;
@@ -282,6 +323,13 @@ window.ColeXApp = {
         document.getElementById('tipoMaterial').value = obra.tipo;
         this.cambiarTipo(obra.tipo);
         document.getElementById('subtipoMaterial').value = obra.subtipo;
+        
+        const leidoContainer = document.getElementById('leidoContainer');
+        if (obra.tipo === 'Cómic / Manga / Libro / Fanzine / Revista') {
+            if (leidoContainer) leidoContainer.classList.remove('hidden');
+            document.getElementById('chkLeido').checked = obra.leido || false;
+        }
+
         document.getElementById('autor').value = obra.autor !== 'Desconocido' ? obra.autor : '';
         document.getElementById('editorial').value = obra.editorial !== 'Independiente' ? obra.editorial : '';
         document.getElementById('estadoFisico').value = obra.estado;
@@ -336,15 +384,15 @@ window.ColeXApp = {
         const statTotal = document.getElementById('statTotal');
         const statValor = document.getElementById('statValor');
         if (statTotal) statTotal.textContent = `${this.obrasFiltradas.length} / ${this.obras.length}`;
-        const total = this.obrasFiltradas.reduce((acc, curr) => acc + curr.valor, 0);
+        const total = this.obrasFiltradas.reduce((acc, curr) => acc + Number(curr.valor || 0), 0);
         if (statValor) statValor.textContent = `$${total.toFixed(2)}`;
     },
 
     exportarCSV: function() {
         if (this.obrasFiltradas.length === 0) { alert('No hay datos para exportar.'); return; }
-        let csv = "data:text/csv;charset=utf-8,ID,Titulo,Numero,Anio,Categoria,Variante,Autor,Editorial,Estado,Precio\n";
+        let csv = "data:text/csv;charset=utf-8,ID,Titulo,Numero,Anio,Categoria,Variante,Leido,Autor,Editorial,Estado,Precio\n";
         this.obrasFiltradas.forEach(o => {
-            csv += [o.id, `"${o.titulo}"`, o.numero, o.anio, `"${o.tipo}"`, `"${o.subtipo}"`, `"${o.autor}"`, `"${o.editorial}"`, o.estado, o.valor].join(",") + "\n";
+            csv += [o.id, `"${o.titulo}"`, o.numero, o.anio, `"${o.tipo}"`, `"${o.subtipo}"`, o.leido ? 'Si' : 'No', `"${o.autor}"`, `"${o.editorial}"`, o.estado, o.valor].join(",") + "\n";
         });
         const a = document.createElement("a");
         a.href = encodeURI(csv);
@@ -354,9 +402,9 @@ window.ColeXApp = {
 
     exportarExcel: function() {
         if (this.obrasFiltradas.length === 0) { alert('No hay datos para exportar.'); return; }
-        let tabla = `<table><tr><th>ID</th><th>Titulo</th><th>Numero</th><th>Anio</th><th>Categoria</th><th>Variante</th><th>Autor</th><th>Editorial</th><th>Estado</th><th>Precio</th></tr>`;
+        let tabla = `<table><tr><th>ID</th><th>Titulo</th><th>Numero</th><th>Anio</th><th>Categoria</th><th>Variante</th><th>Leido</th><th>Autor</th><th>Editorial</th><th>Estado</th><th>Precio</th></tr>`;
         this.obrasFiltradas.forEach(o => {
-            tabla += `<tr><td>${o.id}</td><td>${o.titulo}</td><td>${o.numero}</td><td>${o.anio}</td><td>${o.tipo}</td><td>${o.subtipo}</td><td>${o.autor}</td><td>${o.editorial}</td><td>${o.estado}</td><td>${o.valor}</td></tr>`;
+            tabla += `<tr><td>${o.id}</td><td>${o.titulo}</td><td>${o.numero}</td><td>${o.anio}</td><td>${o.tipo}</td><td>${o.subtipo}</td><td>${o.leido ? 'Si' : 'No'}</td><td>${o.autor}</td><td>${o.editorial}</td><td>${o.estado}</td><td>${o.valor}</td></tr>`;
         });
         tabla += `</table>`;
         const blob = new Blob([tabla], { type: 'application/vnd.ms-excel' });
@@ -371,7 +419,7 @@ window.ColeXApp = {
         let win = window.open('', '', 'height=600,width=800');
         win.document.write('<html><head><title>ColeX</title></head><body><h2>Reporte ColeX</h2><table>');
         this.obrasFiltradas.forEach(o => {
-            win.document.write(`<tr><td>${o.titulo}</td><td>${o.tipo}</td><td>$${o.valor}</td></tr>`);
+            win.document.write(`<tr><td>${o.titulo}</td><td>${o.tipo}</td><td>$${Number(o.valor || 0).toFixed(2)}</td></tr>`);
         });
         win.document.write('</table></body></html>');
         win.document.close();
@@ -379,5 +427,5 @@ window.ColeXApp = {
     }
 };
 
-// Inicialización automática al cargar el módulo
+// Inicialización automática
 ColeXApp.init();
