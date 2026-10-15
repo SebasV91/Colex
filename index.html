@@ -30,7 +30,6 @@
 
     <div class="w-full max-w-md colex-container min-h-screen sm:min-h-[880px] sm:max-h-[920px] sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden relative">
         
-        <!-- Marca de Agua de Fondo -->
         <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-0 select-none overflow-hidden opacity-8">
             <svg class="w-80 h-80 sm:w-96 sm:h-96 text-amber-500" viewBox="0 0 200 220" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M100 15 L180 38 C180 120 145 175 100 205 C55 175 20 120 20 38 Z" fill="none" stroke="currentColor" stroke-width="6" stroke-linejoin="round" stroke-opacity="0.35"/>
@@ -41,7 +40,7 @@
 
         <div class="relative z-10 flex-1 flex flex-col overflow-hidden">
 
-            <!-- ================= PANTALLA 1: MI COLECCIÓN ================= -->
+            <!-- PANTALLA 1: MI COLECCIÓN -->
             <section id="viewColeccion" class="app-screen flex-1 flex flex-col p-5 overflow-y-auto">
                 <div class="flex justify-between items-center mb-4 pt-2">
                     <div class="flex items-center space-x-3">
@@ -52,7 +51,7 @@
                         <h1 class="text-3xl font-extrabold text-amber-custom tracking-tight">ColeX</h1>
                     </div>
                     <div class="flex items-center space-x-2">
-                        <button onclick="toggleModoVitrina()" id="btnVitrinaToggle" class="w-10 h-10 colex-card text-amber-custom hover:bg-amber-700 hover:text-white rounded-full flex items-center justify-center text-base transition cursor-pointer shadow-md" title="Alternar Modo Vitrina / Público">👁️</button>
+                        <button onclick="toggleModoVitrina()" id="btnVitrinaToggle" class="w-10 h-10 colex-card text-amber-custom hover:bg-amber-700 hover:text-white rounded-full flex items-center justify-center text-base transition cursor-pointer shadow-md" title="Alternar Modo Vitrina">👁️</button>
                         <button onclick="irAFormulario()" class="w-10 h-10 colex-card text-amber-custom hover:bg-amber-700 hover:text-white rounded-full flex items-center justify-center text-3xl font-light transition cursor-pointer shadow-md admin-only">+</button>
                     </div>
                 </div>
@@ -72,11 +71,8 @@
                     </div>
                 </div>
 
-                <div id="listColeccion" class="space-y-4 flex-1 overflow-y-auto pr-1">
-                    <!-- Dinámico -->
-                </div>
+                <div id="listColeccion" class="space-y-4 flex-1 overflow-y-auto pr-1"></div>
 
-                <!-- Barra de Navegación Inferior -->
                 <div class="pt-3 pb-2 mt-2 border-t border-gray-800 flex justify-around items-center text-amber-custom colex-container rounded-2xl">
                     <button onclick="irAColeccion()" class="flex flex-col items-center text-xs hover:text-white transition cursor-pointer p-1">
                         <span class="text-xl">📚</span>
@@ -93,13 +89,13 @@
                 </div>
             </section>
 
-            <!-- ================= PANTALLA 2: DETALLE ================= -->
+            <!-- PANTALLA 2: DETALLE -->
             <section id="viewDetalle" class="app-screen hidden flex-1 flex flex-col p-5 overflow-y-auto colex-container">
                 <button onclick="irAColeccion()" class="text-amber-custom hover:text-white text-2xl mb-4 self-start cursor-pointer font-bold">← Volver</button>
                 <div id="detalleContent" class="space-y-4"></div>
             </section>
 
-            <!-- ================= PANTALLA 3: FORMULARIO ================= -->
+            <!-- PANTALLA 3: FORMULARIO -->
             <section id="viewForm" class="app-screen hidden flex-1 flex flex-col p-5 overflow-y-auto colex-container">
                 <div class="flex items-center mb-6 pt-2">
                     <button onclick="irAColeccion()" class="text-amber-custom hover:text-white text-2xl mr-4 cursor-pointer font-bold">←</button>
@@ -117,12 +113,12 @@
                             </span>
                             <div>
                                 <label for="portadaFile" class="flex items-center justify-center gap-2 w-full py-2.5 px-3 colex-card hover:bg-gray-700 rounded-xl text-xs font-semibold text-amber-custom cursor-pointer transition shadow-sm">
-                                    📁 Elegir archivo local (jpg, png, webp)
+                                    📁 Elegir archivo local
                                 </label>
                                 <input type="file" id="portadaFile" onchange="procesarArchivo(this)" accept=".jpg, .jpeg, .png, .webp" class="hidden">
                                 <span id="fileName" class="block text-[11px] text-gray-400 mt-1 text-center truncate">Sin archivo seleccionado</span>
                             </div>
-                            <div class="text-center text-[10px] text-gray-400 font-medium uppercase tracking-wider">- o pega la url de la imagen -</div>
+                            <div class="text-center text-[10px] text-gray-400 font-medium uppercase tracking-wider">- o pega la url -</div>
                             <div>
                                 <input type="url" id="portadaUrl" placeholder="https://..." class="w-full text-center text-xs p-2.5 colex-input rounded-lg placeholder-gray-500">
                             </div>
@@ -159,7 +155,7 @@
                                 </select>
                             </div>
                             <div>
-                                <label class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Variante / Formato *</label>
+                                <label class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Variante *</label>
                                 <div id="subtipoContainer">
                                     <select id="subtipoMaterial" required class="w-full p-3 colex-input rounded-xl text-sm">
                                         <option value="" class="bg-gray-900">Selecciona categoría...</option>
@@ -170,31 +166,29 @@
 
                         <div id="leidoContainer" class="hidden flex items-center space-x-3 p-3 colex-card rounded-xl border border-amber-600/40">
                             <input type="checkbox" id="chkLeido" class="w-5 h-5 text-amber-600 bg-gray-900 border-gray-600 rounded cursor-pointer">
-                            <label for="chkLeido" class="text-xs font-semibold text-amber-custom cursor-pointer select-none flex-1">
-                                📖 ¿Leído / Completado?
-                            </label>
+                            <label for="chkLeido" class="text-xs font-semibold text-amber-custom cursor-pointer select-none flex-1">📖 ¿Leído / Completado?</label>
                         </div>
 
                         <div>
-                            <label class="text-xs text-amber-custom font-semibold uppercase tracking-wider">Calificación Personal (★)</label>
+                            <label class="text-xs text-amber-custom font-semibold uppercase tracking-wider">Calificación (★)</label>
                             <select id="estrellas" class="w-full p-3 colex-input rounded-xl text-sm">
                                 <option value="0" class="bg-gray-900">Sin calificación</option>
                                 <option value="1" class="bg-gray-900">★ 1 Estrella</option>
                                 <option value="2" class="bg-gray-900">★★ 2 Estrellas</option>
                                 <option value="3" class="bg-gray-900">★★★ 3 Estrellas</option>
                                 <option value="4" class="bg-gray-900">★★★★ 4 Estrellas</option>
-                                <option value="5" class="bg-gray-900">★★★★★ 5 Estrellas (Obra Maestra)</option>
+                                <option value="5" class="bg-gray-900">★★★★★ 5 Estrellas</option>
                             </select>
                         </div>
 
                         <div>
-                            <label class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Autor / Artista / Serie</label>
+                            <label class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Autor / Artista</label>
                             <input type="text" id="autor" class="w-full p-3 colex-input rounded-xl text-sm" placeholder="Ej. Stan Lee">
                         </div>
 
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Editorial / Fabricante</label>
+                                <label class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Editorial</label>
                                 <input type="text" id="editorial" class="w-full p-3 colex-input rounded-xl text-sm" placeholder="Ej. Marvel">
                             </div>
                             <div>
@@ -209,21 +203,21 @@
                         </div>
 
                         <div>
-                            <label class="text-xs text-amber-custom font-semibold uppercase tracking-wider">Precio Aproximado ($)</label>
+                            <label class="text-xs text-amber-custom font-semibold uppercase tracking-wider">Precio ($)</label>
                             <input type="number" step="0.01" id="valorManual" value="0.00" class="w-full p-3 colex-input rounded-xl text-sm">
                         </div>
 
                         <div>
-                            <label class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Notas / Observaciones</label>
-                            <textarea id="notas" rows="2" class="w-full p-3 colex-input rounded-xl text-xs placeholder-gray-500" placeholder="Ej. Ejemplar firmado por el autor..."></textarea>
+                            <label class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Notas</label>
+                            <textarea id="notas" rows="2" class="w-full p-3 colex-input rounded-xl text-xs placeholder-gray-500" placeholder="Observaciones..."></textarea>
                         </div>
                     </div>
 
-                    <button type="submit" id="btnSubmitForm" class="w-full py-3.5 bg-amber-btn text-white font-bold rounded-xl transition cursor-pointer mt-4 shadow-md">Guardar Ítem</button>
+                    <button type="submit" class="w-full py-3.5 bg-amber-btn text-white font-bold rounded-xl transition cursor-pointer mt-4 shadow-md">Guardar Ítem</button>
                 </form>
             </section>
 
-            <!-- ================= PANTALLA 4: ESTADÍSTICAS & FILTROS ================= -->
+            <!-- PANTALLA 4: ESTADÍSTICAS & FILTROS -->
             <section id="viewStats" class="app-screen hidden flex-1 flex flex-col p-5 overflow-y-auto colex-container">
                 <div class="flex items-center mb-4 pt-2">
                     <button onclick="irAColeccion()" class="text-amber-custom hover:text-white text-2xl mr-4 cursor-pointer font-bold">←</button>
@@ -231,8 +225,7 @@
                 </div>
 
                 <div class="space-y-3.5 colex-card p-4 rounded-2xl mb-4">
-                    <h3 class="font-bold text-xs text-amber-custom uppercase tracking-wider">Filtros de Búsqueda</h3>
-                    
+                    <h3 class="font-bold text-xs text-amber-custom uppercase tracking-wider">Filtros</h3>
                     <div>
                         <label class="text-[11px] text-gray-400 font-semibold">Categoría</label>
                         <select id="filtroTipo" class="w-full p-2.5 colex-input rounded-xl text-xs mt-1">
@@ -246,43 +239,32 @@
                             <option value="Otro" class="bg-gray-900">Otro</option>
                         </select>
                     </div>
-
                     <div>
-                        <label class="text-[11px] text-gray-400 font-semibold">Editorial / Fabricante</label>
+                        <label class="text-[11px] text-gray-400 font-semibold">Editorial</label>
                         <input type="text" id="filtroEditorial" placeholder="Ej. Marvel..." class="w-full p-2.5 colex-input rounded-xl text-xs placeholder-gray-500 mt-1">
                     </div>
-
                     <div>
                         <label class="text-[11px] text-gray-400 font-semibold">Precio Máximo ($)</label>
                         <input type="number" id="filtroPrecio" placeholder="Ej. 100" class="w-full p-2.5 colex-input rounded-xl text-xs placeholder-gray-500 mt-1">
                     </div>
-
                     <button onclick="aplicarFiltros()" class="w-full py-2 bg-amber-btn text-white font-semibold rounded-xl text-xs transition cursor-pointer">Aplicar Filtros</button>
                     <button onclick="limpiarFiltros()" class="w-full py-1.5 bg-transparent text-gray-400 font-medium rounded-xl text-xs hover:text-white transition cursor-pointer">Limpiar Filtros</button>
                 </div>
 
                 <div class="space-y-3 colex-card p-4 rounded-2xl mb-4">
-                    <h3 class="font-bold text-xs text-amber-custom uppercase tracking-wider">Métricas Generales</h3>
+                    <h3 class="font-bold text-xs text-amber-custom uppercase tracking-wider">Métricas</h3>
                     <div class="flex justify-between text-sm">
                         <span class="text-gray-400">Ítems filtrados/totales:</span>
                         <span id="statTotal" class="font-bold text-gray-200">0</span>
                     </div>
                     <div class="flex justify-between text-sm">
-                        <span class="text-gray-400">Valor total estimado:</span>
+                        <span class="text-gray-400">Valor total:</span>
                         <span id="statValor" class="font-bold text-amber-custom">$0.00</span>
-                    </div>
-
-                    <!-- Sección Gráfica de Distribución -->
-                    <div class="pt-3 border-t border-gray-700">
-                        <h4 class="font-bold text-xs text-amber-custom uppercase tracking-wider mb-2.5">📈 Distribución por Categoría</h4>
-                        <div id="statGraficoCategorias" class="space-y-3">
-                            <!-- Renderizado dinámico -->
-                        </div>
                     </div>
                 </div>
 
                 <div class="space-y-2.5 pt-2">
-                    <h3 class="font-bold text-xs text-amber-custom uppercase tracking-wider">Exportar Datos</h3>
+                    <h3 class="font-bold text-xs text-amber-custom uppercase tracking-wider">Exportar</h3>
                     <div class="grid grid-cols-3 gap-2">
                         <button onclick="exportarCSV()" class="py-2.5 bg-green-700 text-white font-semibold rounded-xl text-xs hover:bg-green-600 transition cursor-pointer shadow-sm">CSV</button>
                         <button onclick="exportarExcel()" class="py-2.5 bg-blue-700 text-white font-semibold rounded-xl text-xs hover:bg-blue-600 transition cursor-pointer shadow-sm">Excel</button>
@@ -294,10 +276,9 @@
         </div>
     </div>
 
-    <!-- Supabase UMD Global -->
+    <!-- Supabase UMD -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <!-- Enlace exacto al archivo colex.js -->
-    <script src="colex.js?v=2.5"></script>
+    <!-- Archivo JS limpio -->
+    <script src="app.js?v=3.0"></script>
 </body>
 </html>
