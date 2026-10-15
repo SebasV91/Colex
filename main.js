@@ -3,17 +3,14 @@ const SUPABASE_URL = 'https://ljxhehuierhexvkveszr.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_o_m6elxMjBmViae-LChBfQ_G4BB8LAy';
 
 // Inicialización blindada contra re-declaraciones múltiples
-if (typeof window.dbClient === 'undefined') {
-    window.dbClient = null;
-    try {
-        if (window.supabase && typeof window.supabase.createClient === 'function') {
-            window.dbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        }
-    } catch (e) {
-        console.error('Error al inicializar Supabase:', e);
+let supabase = null;
+try {
+    if (window.supabase && typeof window.supabase.createClient === 'function') {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
+} catch (e) {
+    console.error('Error al inicializar Supabase:', e);
 }
-const supabase = window.dbClient;
 
 // Estado Global de la Aplicación
 let coleccionData = [];
