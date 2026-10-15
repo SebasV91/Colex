@@ -27,6 +27,25 @@
         .cx-block-c { background-color: #ea580c !important; color: #ffffff !important; }
         .cx-block-x { background-color: #f97316 !important; color: #ffffff !important; }
     </style>
+
+    <!-- Stub de Seguridad contra Race Conditions (Evita que los botones fallen al cargar) -->
+    <script>
+        window.ColeXApp = window.ColeXApp || {
+            irAFormulario: () => console.log('Cargando sistema...'),
+            irAColeccion: () => console.log('Cargando sistema...'),
+            irAEstadisticas: () => console.log('Cargando sistema...'),
+            guardarObra: (e) => { e.preventDefault(); console.log('Cargando sistema...'); },
+            buscar: () => {},
+            ordenarColeccion: () => {},
+            cambiarTipo: () => {},
+            procesarArchivo: () => {},
+            aplicarFiltros: () => {},
+            limpiarFiltros: () => {},
+            exportarCSV: () => {},
+            exportarExcel: () => {},
+            exportarPDF: () => {}
+        };
+    </script>
 </head>
 <body class="library-bg text-slate-100 min-h-screen flex justify-center items-center p-0 sm:p-4">
 
@@ -258,4 +277,28 @@
                     </div>
                     <div class="flex justify-between text-sm">
                         <span class="text-gray-400">Valor total estimado:</span>
-                        <span id="statValor" class="font-bold
+                        <span id="statValor" class="font-bold text-amber-custom">$0.00</span>
+                    </div>
+                    <div id="statDesgloseCategorias" class="pt-2 border-t border-gray-700 space-y-1 text-xs">
+                        <!-- Desglose por categoría inyectado por JS -->
+                    </div>
+                </div>
+
+                <!-- Botones de Exportación -->
+                <div class="space-y-2.5 pt-2">
+                    <h3 class="font-bold text-xs text-amber-custom uppercase tracking-wider">Exportar Datos</h3>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="ColeXApp.exportarCSV()" class="py-2.5 bg-green-700 text-white font-semibold rounded-xl text-xs hover:bg-green-600 transition cursor-pointer shadow-sm">CSV</button>
+                        <button onclick="ColeXApp.exportarExcel()" class="py-2.5 bg-blue-700 text-white font-semibold rounded-xl text-xs hover:bg-blue-600 transition cursor-pointer shadow-sm">Excel</button>
+                        <button onclick="ColeXApp.exportarPDF()" class="py-2.5 bg-red-700 text-white font-semibold rounded-xl text-xs hover:bg-red-600 transition cursor-pointer shadow-sm">PDF</button>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- Script Principal como Módulo -->
+    <script type="module" src="app.js?v=17.0"></script>
+</body>
+</html>
