@@ -157,14 +157,16 @@
                                     <option value="Figuras / Funkos / Estatuas" class="bg-gray-900">Figuras / Funkos / Estatuas</option>
                                     <option value="Videojuegos / Retro" class="bg-gray-900">Videojuegos / Retro</option>
                                     <option value="Música (LPs/Vinilos, CDs)" class="bg-gray-900">Música (LPs/Vinilos, CDs)</option>
-                                    <option value="Otro / Fanzine" class="bg-gray-900">Otro / Fanzine</option>
+                                    <option value="Otro" class="bg-gray-900">Otro</option>
                                 </select>
                             </div>
                             <div>
                                 <label class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Variante / Formato *</label>
-                                <select id="subtipoMaterial" required class="w-full p-3 colex-input rounded-xl text-sm">
-                                    <option value="" class="bg-gray-900">Selecciona categoría...</option>
-                                </select>
+                                <div id="subtipoContainer">
+                                    <select id="subtipoMaterial" required class="w-full p-3 colex-input rounded-xl text-sm">
+                                        <option value="" class="bg-gray-900">Selecciona categoría...</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
 
@@ -243,7 +245,7 @@
                             <option value="Figuras / Funkos / Estatuas" class="bg-gray-900">Figuras / Funkos / Estatuas</option>
                             <option value="Videojuegos / Retro" class="bg-gray-900">Videojuegos / Retro</option>
                             <option value="Música (LPs/Vinilos, CDs)" class="bg-gray-900">Música (LPs/Vinilos, CDs)</option>
-                            <option value="Otro / Fanzine" class="bg-gray-900">Otro / Fanzine</option>
+                            <option value="Otro" class="bg-gray-900">Otro</option>
                         </select>
                     </div>
 
@@ -287,7 +289,10 @@
         </div>
     </div>
 
-    <!-- Forzando versión 99.0 para evitar caché del navegador -->
-    <script type="module" src="app.js?v=99.0"></script>
+    <!-- Supabase UMD Script Global -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Script Principal Estándar -->
+    <script src="app.js?v=50.0"></script>
 </body>
 </html>
