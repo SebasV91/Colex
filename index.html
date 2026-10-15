@@ -26,15 +26,15 @@
 </head>
 <body class="library-bg text-slate-100 min-h-screen flex justify-center items-center p-0 sm:p-4">
 
-    <!-- Contenedor Principal con Marca de Agua CX Estilo Escudo -->
-    <div class="w-full max-w-md colex-container min-h-screen sm:min-h-[850px] sm:max-h-[880px] sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden relative">
+    <!-- Contenedor Principal con Marca de Agua CX Estilo Escudo Visible -->
+    <div class="w-full max-w-md colex-container min-h-screen sm:min-h-[880px] sm:max-h-[920px] sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden relative">
         
-    <!-- Marca de Agua de Fondo Estilo Escudo CX -->
-        <div class="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden opacity-5 z-0 select-none">
-            <div class="text-[280px] font-black tracking-tighter text-amber-600 flex scale-125">C<span class="text-orange-500">X</span></div>
+        <!-- Marca de Agua de Fondo Estilo Escudo CX -->
+        <div class="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden opacity-15 z-0 select-none">
+            <div class="text-[240px] font-black tracking-tighter text-amber-500/50 flex scale-125">C<span class="text-orange-400/50">X</span></div>
         </div>
 
-        <!-- Contenido Real con z-index superior para estar sobre la marca de agua -->
+        <!-- Contenido Real con z-index superior -->
         <div class="relative z-10 flex-1 flex flex-col overflow-hidden">
 
             <!-- ================= PANTALLA 1: MI COLECCIÓN ================= -->
@@ -51,9 +51,19 @@
                     <button onclick="ColeXApp.irAFormulario()" class="w-10 h-10 colex-card text-amber-custom hover:bg-amber-700 hover:text-white rounded-full flex items-center justify-center text-3xl font-light transition cursor-pointer shadow-md">+</button>
                 </div>
 
-                <!-- Buscador -->
-                <div class="mb-4">
+                <!-- Buscador y Selector de Ordenamiento -->
+                <div class="mb-4 space-y-2">
                     <input type="text" id="searchInput" oninput="ColeXApp.buscar(this.value)" placeholder="🔍 Buscar por título, autor, marca..." class="w-full p-3 colex-input rounded-xl text-sm placeholder-gray-400 transition">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] text-amber-custom font-semibold">Ordenar por:</span>
+                        <select id="selectOrden" onchange="ColeXApp.ordenarColeccion(this.value)" class="p-2 colex-input rounded-xl text-xs">
+                            <option value="recientes" class="bg-gray-900">Más recientes (ID)</option>
+                            <option value="alfabetico" class="bg-gray-900">Alfabético (A-Z)</option>
+                            <option value="precio-desc" class="bg-gray-900">Precio: Mayor a Menor</option>
+                            <option value="precio-asc" class="bg-gray-900">Precio: Menor a Mayor</option>
+                            <option value="anio" class="bg-gray-900">Año de lanzamiento</option>
+                        </select>
+                    </div>
                 </div>
 
                 <!-- Lista de la Colección -->
@@ -144,7 +154,7 @@
                             </div>
                         </div>
 
-                        <!-- CheckBox de Leído (Aparece solo para Cómic/Manga/Libro/Fanzine/Revista) -->
+                        <!-- CheckBox de Leído -->
                         <div id="leidoContainer" class="hidden flex items-center space-x-3 p-3 colex-card rounded-xl border border-amber-600/40">
                             <input type="checkbox" id="chkLeido" class="w-5 h-5 text-amber-600 bg-gray-900 border-gray-600 rounded focus:ring-amber-500 cursor-pointer">
                             <label for="chkLeido" class="text-xs font-semibold text-amber-custom cursor-pointer select-none flex-1">
@@ -177,6 +187,12 @@
                             <label class="text-xs text-amber-custom font-semibold uppercase tracking-wider">Precio Aproximado ($)</label>
                             <input type="number" step="0.01" id="valorManual" value="0.00" class="w-full p-3 colex-input rounded-xl text-sm">
                         </div>
+
+                        <!-- Campo de Notas u Observaciones Personalizadas -->
+                        <div>
+                            <label class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Notas / Observaciones</label>
+                            <textarea id="notas" rows="2" class="w-full p-3 colex-input rounded-xl text-xs placeholder-gray-500" placeholder="Ej. Con estuche protector, edición firmada, detalles en esquina..."></textarea>
+                        </div>
                     </div>
 
                     <button type="submit" id="btnSubmitForm" class="w-full py-3.5 bg-amber-btn text-white font-bold rounded-xl transition cursor-pointer mt-4 shadow-md">Guardar Ítem</button>
@@ -187,7 +203,7 @@
             <section id="viewStats" class="app-screen hidden flex-1 flex flex-col p-5 overflow-y-auto colex-container">
                 <div class="flex items-center mb-4 pt-2">
                     <button onclick="ColeXApp.irAColeccion()" class="text-amber-custom hover:text-white text-2xl mr-4 cursor-pointer font-bold">←</button>
-                    <h2 class="text-xl font-bold text-amber-custom">Filtros & Reportes</h2>
+                    <h2 class="text-xl font-bold text-amber-custom">Filtros & Estadísticas Avanzadas</h2>
                 </div>
 
                 <!-- Panel de Filtros Avanzados -->
@@ -222,16 +238,19 @@
                     <button onclick="ColeXApp.limpiarFiltros()" class="w-full py-1.5 bg-transparent text-gray-400 font-medium rounded-xl text-xs hover:text-white transition cursor-pointer">Limpiar Filtros</button>
                 </div>
 
-                <!-- Panel de Métricas -->
+                <!-- Panel de Métricas Avanzadas -->
                 <div class="space-y-3 colex-card p-4 rounded-2xl mb-4">
-                    <h3 class="font-bold text-xs text-amber-custom uppercase tracking-wider">Resumen</h3>
+                    <h3 class="font-bold text-xs text-amber-custom uppercase tracking-wider">Métricas Generales</h3>
                     <div class="flex justify-between text-sm">
                         <span class="text-gray-400">Ítems filtrados/totales:</span>
                         <span id="statTotal" class="font-bold text-gray-200">0</span>
                     </div>
                     <div class="flex justify-between text-sm">
-                        <span class="text-gray-400">Valor estimado:</span>
+                        <span class="text-gray-400">Valor total estimado:</span>
                         <span id="statValor" class="font-bold text-amber-custom">$0.00</span>
+                    </div>
+                    <div id="statDesgloseCategorias" class="pt-2 border-t border-gray-700 space-y-1 text-xs">
+                        <!-- Desglose por categoría inyectado por JS -->
                     </div>
                 </div>
 
@@ -250,6 +269,6 @@
     </div>
 
     <!-- Script Principal como Módulo -->
-    <script type="module" src="app.js?v=9.0"></script>
+    <script type="module" src="app.js?v=10.0"></script>
 </body>
 </html>
