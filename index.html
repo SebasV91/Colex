@@ -32,7 +32,7 @@
 
     <div class="w-full max-w-md colex-container min-h-screen sm:min-h-[880px] sm:max-h-[920px] sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden relative">
         
-        <!-- Marca de Agua de Fondo protegida con pointer-events-none para no bloquear clics -->
+        <!-- Marca de Agua de Fondo -->
         <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-0 select-none overflow-hidden opacity-8">
             <svg class="w-80 h-80 sm:w-96 sm:h-96 text-amber-500" viewBox="0 0 200 220" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M100 15 L180 38 C180 120 145 175 100 205 C55 175 20 120 20 38 Z" fill="none" stroke="currentColor" stroke-width="6" stroke-linejoin="round" stroke-opacity="0.35"/>
@@ -54,16 +54,16 @@
                         <h1 class="text-3xl font-extrabold text-amber-custom tracking-tight">ColeX</h1>
                     </div>
                     <div class="flex items-center space-x-2">
-                        <button id="btnVitrinaToggle" class="w-10 h-10 colex-card text-amber-custom hover:bg-amber-700 hover:text-white rounded-full flex items-center justify-center text-base transition cursor-pointer shadow-md" title="Alternar Modo Vitrina / Público">👁️</button>
-                        <button id="btnIrFormularioHeader" class="w-10 h-10 colex-card text-amber-custom hover:bg-amber-700 hover:text-white rounded-full flex items-center justify-center text-3xl font-light transition cursor-pointer shadow-md admin-only">+</button>
+                        <button onclick="toggleModoVitrina()" id="btnVitrinaToggle" class="w-10 h-10 colex-card text-amber-custom hover:bg-amber-700 hover:text-white rounded-full flex items-center justify-center text-base transition cursor-pointer shadow-md" title="Alternar Modo Vitrina / Público">👁️</button>
+                        <button onclick="irAFormulario()" class="w-10 h-10 colex-card text-amber-custom hover:bg-amber-700 hover:text-white rounded-full flex items-center justify-center text-3xl font-light transition cursor-pointer shadow-md admin-only">+</button>
                     </div>
                 </div>
 
                 <div class="mb-4 space-y-2">
-                    <input type="text" id="searchInput" placeholder="🔍 Buscar por título, autor, notas..." class="w-full p-3 colex-input rounded-xl text-sm placeholder-gray-400 transition">
+                    <input type="text" id="searchInput" oninput="buscar(this.value)" placeholder="🔍 Buscar por título, autor, notas..." class="w-full p-3 colex-input rounded-xl text-sm placeholder-gray-400 transition">
                     <div class="flex items-center justify-between">
                         <span class="text-[11px] text-amber-custom font-semibold">Ordenar por:</span>
-                        <select id="selectOrden" class="p-2 colex-input rounded-xl text-xs">
+                        <select id="selectOrden" onchange="ordenarColeccion(this.value)" class="p-2 colex-input rounded-xl text-xs">
                             <option value="recientes" class="bg-gray-900">Más recientes (ID)</option>
                             <option value="alfabetico" class="bg-gray-900">Alfabético (A-Z)</option>
                             <option value="precio-desc" class="bg-gray-900">Precio: Mayor a Menor</option>
@@ -80,15 +80,15 @@
 
                 <!-- Barra de Navegación Inferior -->
                 <div class="pt-3 pb-2 mt-2 border-t border-gray-800 flex justify-around items-center text-amber-custom colex-container rounded-2xl">
-                    <button id="navColeccion" class="flex flex-col items-center text-xs hover:text-white transition cursor-pointer p-1">
+                    <button onclick="irAColeccion()" class="flex flex-col items-center text-xs hover:text-white transition cursor-pointer p-1">
                         <span class="text-xl">📚</span>
                         <span>Colección</span>
                     </button>
-                    <button id="navAgregar" class="flex flex-col items-center text-xs hover:text-white transition cursor-pointer p-1 admin-only">
+                    <button onclick="irAFormulario()" class="flex flex-col items-center text-xs hover:text-white transition cursor-pointer p-1 admin-only">
                         <span class="text-xl">➕</span>
                         <span>Agregar</span>
                     </button>
-                    <button id="navStats" class="flex flex-col items-center text-xs hover:text-white transition cursor-pointer p-1">
+                    <button onclick="irAEstadisticas()" class="flex flex-col items-center text-xs hover:text-white transition cursor-pointer p-1">
                         <span class="text-xl">📊</span>
                         <span>Filtros & Stats</span>
                     </button>
@@ -97,18 +97,18 @@
 
             <!-- ================= PANTALLA 2: DETALLE ================= -->
             <section id="viewDetalle" class="app-screen hidden flex-1 flex flex-col p-5 overflow-y-auto colex-container">
-                <button id="btnVolverDetalle" class="text-amber-custom hover:text-white text-2xl mb-4 self-start cursor-pointer font-bold">← Volver</button>
+                <button onclick="irAColeccion()" class="text-amber-custom hover:text-white text-2xl mb-4 self-start cursor-pointer font-bold">← Volver</button>
                 <div id="detalleContent" class="space-y-4"></div>
             </section>
 
             <!-- ================= PANTALLA 3: FORMULARIO ================= -->
             <section id="viewForm" class="app-screen hidden flex-1 flex flex-col p-5 overflow-y-auto colex-container">
                 <div class="flex items-center mb-6 pt-2">
-                    <button id="btnVolverForm" class="text-amber-custom hover:text-white text-2xl mr-4 cursor-pointer font-bold">←</button>
+                    <button onclick="irAColeccion()" class="text-amber-custom hover:text-white text-2xl mr-4 cursor-pointer font-bold">←</button>
                     <h2 id="formTitle" class="text-xl font-bold text-amber-custom">Agregar Coleccionable</h2>
                 </div>
 
-                <form id="formObra" class="space-y-4 flex-1 flex flex-col justify-between pb-4">
+                <form id="formObra" onsubmit="guardarObra(event)" class="space-y-4 flex-1 flex flex-col justify-between pb-4">
                     <input type="hidden" id="editObraId" value="">
 
                     <div class="space-y-3.5">
@@ -121,7 +121,7 @@
                                 <label for="portadaFile" class="flex items-center justify-center gap-2 w-full py-2.5 px-3 colex-card hover:bg-gray-700 rounded-xl text-xs font-semibold text-amber-custom cursor-pointer transition shadow-sm">
                                     📁 Elegir archivo local (jpg, png, webp)
                                 </label>
-                                <input type="file" id="portadaFile" accept=".jpg, .jpeg, .png, .webp" class="hidden">
+                                <input type="file" id="portadaFile" onchange="procesarArchivo(this)" accept=".jpg, .jpeg, .png, .webp" class="hidden">
                                 <span id="fileName" class="block text-[11px] text-gray-400 mt-1 text-center truncate">Sin archivo seleccionado</span>
                             </div>
                             <div class="text-center text-[10px] text-gray-400 font-medium uppercase tracking-wider">- o pega la url de la imagen -</div>
@@ -149,7 +149,7 @@
                         <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Categoría *</label>
-                                <select id="tipoMaterial" required class="w-full p-3 colex-input rounded-xl text-sm">
+                                <select id="tipoMaterial" required onchange="cambiarTipo(this.value)" class="w-full p-3 colex-input rounded-xl text-sm">
                                     <option value="" class="bg-gray-900">Seleccionar...</option>
                                     <option value="Cómic / Manga / Libro / Fanzine / Revista" class="bg-gray-900">Cómic / Manga / Libro / Fanzine / Revista</option>
                                     <option value="Cartas TCG" class="bg-gray-900">Cartas TCG</option>
@@ -157,7 +157,6 @@
                                     <option value="Figuras / Funkos / Estatuas" class="bg-gray-900">Figuras / Funkos / Estatuas</option>
                                     <option value="Videojuegos / Retro" class="bg-gray-900">Videojuegos / Retro</option>
                                     <option value="Música (LPs/Vinilos, CDs)" class="bg-gray-900">Música (LPs/Vinilos, CDs)</option>
-                                    <option value="Otro" class="bg-gray-900">Otro</option>
                                 </select>
                             </div>
                             <div>
@@ -228,7 +227,7 @@
             <!-- ================= PANTALLA 4: ESTADÍSTICAS & FILTROS ================= -->
             <section id="viewStats" class="app-screen hidden flex-1 flex flex-col p-5 overflow-y-auto colex-container">
                 <div class="flex items-center mb-4 pt-2">
-                    <button id="btnVolverStats" class="text-amber-custom hover:text-white text-2xl mr-4 cursor-pointer font-bold">←</button>
+                    <button onclick="irAColeccion()" class="text-amber-custom hover:text-white text-2xl mr-4 cursor-pointer font-bold">←</button>
                     <h2 class="text-xl font-bold text-amber-custom">Filtros & Estadísticas</h2>
                 </div>
 
@@ -245,7 +244,6 @@
                             <option value="Figuras / Funkos / Estatuas" class="bg-gray-900">Figuras / Funkos / Estatuas</option>
                             <option value="Videojuegos / Retro" class="bg-gray-900">Videojuegos / Retro</option>
                             <option value="Música (LPs/Vinilos, CDs)" class="bg-gray-900">Música (LPs/Vinilos, CDs)</option>
-                            <option value="Otro" class="bg-gray-900">Otro</option>
                         </select>
                     </div>
 
@@ -259,8 +257,8 @@
                         <input type="number" id="filtroPrecio" placeholder="Ej. 100" class="w-full p-2.5 colex-input rounded-xl text-xs placeholder-gray-500 mt-1">
                     </div>
 
-                    <button id="btnAplicarFiltros" class="w-full py-2 bg-amber-btn text-white font-semibold rounded-xl text-xs transition cursor-pointer">Aplicar Filtros</button>
-                    <button id="btnLimpiarFiltros" class="w-full py-1.5 bg-transparent text-gray-400 font-medium rounded-xl text-xs hover:text-white transition cursor-pointer">Limpiar Filtros</button>
+                    <button onclick="aplicarFiltros()" class="w-full py-2 bg-amber-btn text-white font-semibold rounded-xl text-xs transition cursor-pointer">Aplicar Filtros</button>
+                    <button onclick="limpiarFiltros()" class="w-full py-1.5 bg-transparent text-gray-400 font-medium rounded-xl text-xs hover:text-white transition cursor-pointer">Limpiar Filtros</button>
                 </div>
 
                 <div class="space-y-3 colex-card p-4 rounded-2xl mb-4">
@@ -279,9 +277,9 @@
                 <div class="space-y-2.5 pt-2">
                     <h3 class="font-bold text-xs text-amber-custom uppercase tracking-wider">Exportar Datos</h3>
                     <div class="grid grid-cols-3 gap-2">
-                        <button id="btnExportCSV" class="py-2.5 bg-green-700 text-white font-semibold rounded-xl text-xs hover:bg-green-600 transition cursor-pointer shadow-sm">CSV</button>
-                        <button id="btnExportExcel" class="py-2.5 bg-blue-700 text-white font-semibold rounded-xl text-xs hover:bg-blue-600 transition cursor-pointer shadow-sm">Excel</button>
-                        <button id="btnExportPDF" class="py-2.5 bg-red-700 text-white font-semibold rounded-xl text-xs hover:bg-red-600 transition cursor-pointer shadow-sm">PDF</button>
+                        <button onclick="exportarCSV()" class="py-2.5 bg-green-700 text-white font-semibold rounded-xl text-xs hover:bg-green-600 transition cursor-pointer shadow-sm">CSV</button>
+                        <button onclick="exportarExcel()" class="py-2.5 bg-blue-700 text-white font-semibold rounded-xl text-xs hover:bg-blue-600 transition cursor-pointer shadow-sm">Excel</button>
+                        <button onclick="exportarPDF()" class="py-2.5 bg-red-700 text-white font-semibold rounded-xl text-xs hover:bg-red-600 transition cursor-pointer shadow-sm">PDF</button>
                     </div>
                 </div>
             </section>
@@ -292,7 +290,7 @@
     <!-- Supabase UMD Global -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <!-- Script Principal con enlace dinámico por listeners -->
-    <script src="app.js?v=2026.10.3"></script>
+    <!-- Script Principal -->
+    <script src="app.js?v=2026.10.4"></script>
 </body>
 </html>
