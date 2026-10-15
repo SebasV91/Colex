@@ -1,12 +1,12 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
 // ================= CONFIGURACIÓN SUPABASE =================
-const SUPABASE_URL = 'https://ljxhehuierhexvkveszr.supabase.co'; // <- REEMPLAZA AQUÍ
-const SUPABASE_ANON_KEY = 'sb_publishable_o_m6elxMjBmViae-LChBfQ_G4BB8LAy';           // <- REEMPLAZA AQUÍ
+const SUPABASE_URL = 'https://ljxhehuierhexvkveszr.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_o_m6elxMjBmViae-LChBfQ_G4BB8LAy';
 
 let supabase = null;
 try {
-    if (SUPABASE_URL !== 'https://ljxhehuierhexvkveszr.supabase.co') {
+    if (SUPABASE_URL) {
         supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 } catch (e) {
@@ -323,6 +323,8 @@ function verDetalle(item) {
     const tagsArray = item.etiquetas ? item.etiquetas.split(',').map(t => t.trim()).filter(Boolean) : [];
     const tagsHtml = tagsArray.map(t => `<span class="bg-amber-950 text-amber-300 border border-amber-600/50 px-2.5 py-1 rounded-lg text-xs font-semibold">${t}</span>`).join(' ');
 
+    const itemJson = JSON.stringify(item).replace(/"/g, '&quot;');
+
     contenedor.innerHTML = `
         <div class="flex flex-col items-center space-y-3">
             <img src="${item.portada_url}" class="w-48 h-64 object-cover rounded-2xl shadow-2xl border-2 border-amber-600/50">
@@ -379,7 +381,7 @@ function verDetalle(item) {
         </div>
 
         <div class="flex space-x-3 pt-2 admin-only">
-            <button onclick='ColeXApp.irAFormulario(${JSON.stringify(item)})' class="flex-1 py-3 bg-blue-700 hover:bg-blue-600 text-white font-bold rounded-xl transition cursor-pointer">Editar</button>
+            <button onclick='ColeXApp.irAFormulario(${itemJson})' class="flex-1 py-3 bg-blue-700 hover:bg-blue-600 text-white font-bold rounded-xl transition cursor-pointer">Editar</button>
             <button onclick="ColeXApp.eliminarObra(${item.id})" class="flex-1 py-3 bg-red-700 hover:bg-red-600 text-white font-bold rounded-xl transition cursor-pointer">Eliminar</button>
         </div>
     `;
@@ -409,116 +411,4 @@ function ordenarColeccion(criterio) {
     } else if (criterio === 'precio-asc') {
         coleccionFiltrada.sort((a, b) => (a.valor_manual || 0) - (b.valor_manual || 0));
     } else if (criterio === 'anio') {
-        coleccionFiltrada.sort((a, b) => (b.anio || 0) - (a.anio || 0));
-    } else if (criterio === 'estrellas') {
-        coleccionFiltrada.sort((a, b) => (b.estrellas || 0) - (a.estrellas || 0));
-    }
-    renderizarColeccion(coleccionFiltrada);
-}
-
-// ================= FILTROS Y ESTADÍSTICAS =================
-function aplicarFiltros() {
-    const tipo = document.getElementById('filtroTipo').value;
-    const editorial = document.getElementById('filtroEditorial').value.toLowerCase().trim();
-    const precioMax = parseFloat(document.getElementById('filtroPrecio').value);
-
-    coleccionFiltrada = coleccionData.filter(item => {
-        let cumple = true;
-        if (tipo && item.tipo_material !== tipo) cumple = false;
-        if (editorial && (!item.editorial || !item.editorial.toLowerCase().includes(editorial))) cumple = false;
-        if (!isNaN(precioMax) && (item.valor_manual || 0) > precioMax) cumple = false;
-        return cumple;
-    });
-
-    renderizarColeccion(coleccionFiltrada);
-    irAColeccion();
-}
-
-function limpiarFiltros() {
-    document.getElementById('filtroTipo').value = '';
-    document.getElementById('filtroEditorial').value = '';
-    document.getElementById('filtroPrecio').value = '';
-    coleccionFiltrada = [...coleccionData];
-    renderizarColeccion(coleccionFiltrada);
-    irAColeccion();
-}
-
-function calcularEstadisticas() {
-    const totalItems = coleccionFiltrada.length;
-    const valorTotal = coleccionFiltrada.reduce((acc, curr) => acc + (curr.valor_manual || 0), 0);
-
-    const statTotal = document.getElementById('statTotal');
-    const statValor = document.getElementById('statValor');
-    if (statTotal) statTotal.innerText = `${totalItems} / ${coleccionData.length}`;
-    if (statValor) statValor.innerText = `$${valorTotal.toFixed(2)}`;
-
-    const desgloses = {};
-    coleccionFiltrada.forEach(item => {
-        const cat = item.tipo_material || 'Sin Categoría';
-        desgloses[cat] = (desgloses[cat] || 0) + 1;
-    });
-
-    const contenedor = document.getElementById('statDesgloseCategorias');
-    if (!contenedor) return;
-    contenedor.innerHTML = '<span class="text-amber-custom font-semibold block mb-1">Desglose por categoría:</span>';
-
-    Object.keys(desgloses).forEach(cat => {
-        const row = document.createElement('div');
-        row.className = 'flex justify-between text-gray-300';
-        row.innerHTML = `<span>${cat}:</span><span class="font-bold">${desgloses[cat]}</span>`;
-        contenedor.appendChild(row);
-    });
-}
-
-// ================= EXPORTACIÓN DE DATOS =================
-function exportarCSV() {
-    if (coleccionFiltrada.length === 0) return alert('No hay datos para exportar.');
-    let csv = 'ID,Título,Número,Año,Categoría,Subtipo,Calificación,Etiquetas,Autor,Editorial,Estado,Precio,Notas\n';
-    coleccionFiltrada.forEach(i => {
-        csv += `"${i.id}","${i.titulo}","${i.numero||''}","${i.anio||''}","${i.tipo_material}","${i.subtipo_material||''}","${i.estrellas||0}","${i.etiquetas||''}","${i.autor||''}","${i.editorial||''}","${i.estado_fisico||''}","${i.valor_manual||0}","${(i.notas||'').replace(/"/g, '""')}"\n`;
-    });
-    descargarArchivo(csv, 'coleccion_colex.csv', 'text/csv');
-}
-
-function exportarExcel() {
-    exportarCSV();
-}
-
-function exportarPDF() {
-    window.print();
-}
-
-function descargarArchivo(contenido, nombre, tipo) {
-    const blob = new Blob([contenido], { type: tipo });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = nombre;
-    a.click();
-    URL.revokeObjectURL(url);
-}
-
-// ================= VINCULACIÓN GLOBAL ANTI-RACE CONDITION =================
-window.ColeXApp = {
-    irAFormulario,
-    irAColeccion,
-    irAEstadisticas,
-    guardarObra,
-    eliminarObra,
-    toggleModoVitrina,
-    buscar,
-    ordenarColeccion,
-    cambiarTipo,
-    procesarArchivo,
-    aplicarFiltros,
-    limpiarFiltros,
-    exportarCSV,
-    exportarExcel,
-    exportarPDF
-};
-
-// Carga Inicial al Arrancar
-document.addEventListener('DOMContentLoaded', () => {
-    inicializarModoVitrina();
-    cargarColeccion();
-});
+        coleccionFiltrada.sort((a, b) => (b.anio || 0) - (a.anio ||
