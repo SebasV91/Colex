@@ -1,16 +1,11 @@
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
-
-// Asegurar el objeto global inmediatamente
-window.ColeXApp = window.ColeXApp || {};
-
-// ================= CONFIGURACIÓN SUPABASE =================
+// ================= CONFIGURACIÓN SUPABASE (UMD) =================
 const SUPABASE_URL = 'https://ljxhehuierhexvkveszr.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_o_m6elxMjBmViae-LChBfQ_G4BB8LAy';
 
 let supabase = null;
 try {
-    if (SUPABASE_URL && SUPABASE_ANON_KEY) {
-        supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    if (window.supabase && SUPABASE_URL && SUPABASE_ANON_KEY) {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 } catch (e) {
     console.error('Error al inicializar Supabase:', e);
@@ -168,7 +163,7 @@ function procesarArchivo(input) {
 
             base64Comprimido = canvas.toDataURL('image/jpeg', 0.7);
             const badge = document.getElementById('compressBadge');
-            if (badge) badge.classList.add('hidden'); // Corregido de add a remove si se desea
+            if (badge) badge.classList.remove('hidden');
         };
         img.src = e.target.result;
     };
@@ -293,7 +288,7 @@ function renderizarColeccion(lista) {
 
         const card = document.createElement('div');
         card.className = 'colex-card p-3 rounded-2xl flex items-center justify-between gap-3 shadow-md hover:border-amber-600 transition cursor-pointer relative';
-        card.onclick = () => verDetalle(item.id);
+        card.onclick = () => window.ColeXApp.verDetalle(item.id);
 
         card.innerHTML = `
             <div class="flex items-center space-x-3 overflow-hidden">
@@ -387,8 +382,8 @@ function verDetalle(id) {
         </div>
 
         <div class="flex space-x-3 pt-2 admin-only">
-            <button onclick="ColeXApp.irAFormulario(${item.id})" class="flex-1 py-3 bg-blue-700 hover:bg-blue-600 text-white font-bold rounded-xl transition cursor-pointer">Editar</button>
-            <button onclick="ColeXApp.eliminarObra(${item.id})" class="flex-1 py-3 bg-red-700 hover:bg-red-600 text-white font-bold rounded-xl transition cursor-pointer">Eliminar</button>
+            <button onclick="window.ColeXApp.irAFormulario(${item.id})" class="flex-1 py-3 bg-blue-700 hover:bg-blue-600 text-white font-bold rounded-xl transition cursor-pointer">Editar</button>
+            <button onclick="window.ColeXApp.eliminarObra(${item.id})" class="flex-1 py-3 bg-red-700 hover:bg-red-600 text-white font-bold rounded-xl transition cursor-pointer">Eliminar</button>
         </div>
     `;
 
@@ -506,8 +501,8 @@ function descargarArchivo(contenido, nombre, tipo) {
     URL.revokeObjectURL(url);
 }
 
-// ================= VINCULACIÓN GLOBAL SEGURA =================
-Object.assign(window.ColeXApp, {
+// ================= EXPOSICIÓN GLOBAL INMEDIATA =================
+window.ColeXApp = {
     irAFormulario,
     irAColeccion,
     irAEstadisticas,
@@ -524,7 +519,7 @@ Object.assign(window.ColeXApp, {
     exportarCSV,
     exportarExcel,
     exportarPDF
-});
+};
 
 // Carga Inicial al Arrancar
 document.addEventListener('DOMContentLoaded', () => {
