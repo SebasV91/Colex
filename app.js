@@ -1,4 +1,4 @@
-// ================= CONFIGURACIÓN SUPABASE SIN CONFLICTOS DE NOMBRE =================
+// ================= CONFIGURACIÓN SUPABASE =================
 const SUPABASE_URL = 'https://ljxhehuierhexvkveszr.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_o_m6elxMjBmViae-LChBfQ_G4BB8LAy';
 
@@ -8,7 +8,7 @@ try {
         dbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 } catch (e) {
-    console.error('Error al inicializar cliente de datos:', e);
+    console.error('Error al inicializar Supabase:', e);
 }
 
 // Estado Global
@@ -27,17 +27,7 @@ const SUBTIPOS_MAP = {
     "Música (LPs/Vinilos, CDs)": ["LP / Vinilo", "CD", "Cassette", "Boxset / Edición Especial"]
 };
 
-const CATEGORIA_COLORES = {
-    "Cómic / Manga / Libro / Fanzine / Revista": "bg-amber-500",
-    "Cartas TCG": "bg-blue-500",
-    "Vehículos a Escala (Hot Wheels)": "bg-red-500",
-    "Figuras / Funkos / Estatuas": "bg-purple-500",
-    "Videojuegos / Retro": "bg-green-500",
-    "Música (LPs/Vinilos, CDs)": "bg-pink-500",
-    "Otro": "bg-gray-400"
-};
-
-// ================= NAVEGACIÓN Y VISTAS =================
+// ================= NAVEGACIÓN =================
 function cambiarPantalla(idPantalla) {
     document.querySelectorAll('.app-screen').forEach(screen => screen.classList.add('hidden'));
     const target = document.getElementById(idPantalla);
@@ -80,7 +70,6 @@ function irAFormulario(idObra = null) {
 
         document.getElementById('chkLeido').checked = !!obra.leido;
         document.getElementById('estrellas').value = obra.estrellas || 0;
-
         document.getElementById('autor').value = obra.autor || '';
         document.getElementById('editorial').value = obra.editorial || '';
         document.getElementById('estadoFisico').value = obra.estado_fisico || 'Nuevo / Mint';
@@ -103,7 +92,6 @@ function irAEstadisticas() {
 function toggleModoVitrina() {
     modoVitrinaActivo = !modoVitrinaActivo;
     const btn = document.getElementById('btnVitrinaToggle');
-    
     if (modoVitrinaActivo) {
         document.body.classList.add('public-mode');
         if (btn) btn.innerText = '🔒';
@@ -111,7 +99,6 @@ function toggleModoVitrina() {
         document.body.classList.remove('public-mode');
         if (btn) btn.innerText = '👁️';
     }
-
     localStorage.setItem('colex_modo_vitrina', modoVitrinaActivo ? 'true' : 'false');
     renderizarColeccion(coleccionFiltrada);
 }
@@ -133,16 +120,9 @@ function cambiarTipo(categoria) {
     if (!subtipoContainer) return;
 
     if (categoria === 'Otro') {
-        subtipoContainer.innerHTML = `
-            <input type="text" id="subtipoMaterial" required placeholder="Escribe el formato o variante..." class="w-full p-3 colex-input rounded-xl text-sm">
-        `;
+        subtipoContainer.innerHTML = `<input type="text" id="subtipoMaterial" required placeholder="Escribe la variante..." class="w-full p-3 colex-input rounded-xl text-sm">`;
     } else {
-        subtipoContainer.innerHTML = `
-            <select id="subtipoMaterial" required class="w-full p-3 colex-input rounded-xl text-sm">
-                <option value="" class="bg-gray-900">Selecciona variante...</option>
-            </select>
-        `;
-
+        subtipoContainer.innerHTML = `<select id="subtipoMaterial" required class="w-full p-3 colex-input rounded-xl text-sm"><option value="" class="bg-gray-900">Selecciona variante...</option></select>`;
         const subtipoSelect = document.getElementById('subtipoMaterial');
         if (categoria && SUBTIPOS_MAP[categoria]) {
             SUBTIPOS_MAP[categoria].forEach(sub => {
@@ -193,7 +173,7 @@ function procesarArchivo(input) {
     reader.readAsDataURL(file);
 }
 
-// ================= OPERACIONES DE BASE DE DATOS (CRUD) =================
+// ================= CRUD (SUPABASE) =================
 async function cargarColeccion() {
     if (!dbClient) return;
     try {
@@ -261,7 +241,7 @@ async function guardarObra(event) {
 
 async function eliminarObra(id) {
     if (modoVitrinaActivo || !dbClient) return;
-    if (!confirm('¿Estás seguro de que deseas eliminar este coleccionable?')) return;
+    if (!confirm('¿Deseas eliminar este coleccionable?')) return;
 
     try {
         const { error } = await dbClient.from('obras').delete().eq('id', id);
@@ -274,14 +254,13 @@ async function eliminarObra(id) {
     }
 }
 
-// ================= RENDERIZADO Y BÚSQUEDA =================
-function generarEstrellasHtml(numEstrellas, tamano = 'text-xs') {
+// ================= RENDERIZADO =================
+function generarEstrellasHtml(numEstrellas) {
     if (!numEstrellas || numEstrellas <= 0) return '';
-
-    let html = `<span class="${tamano} font-bold inline-flex items-center space-x-0.5">`;
+    let html = `<span class="text-xs font-bold inline-flex items-center space-x-0.5">`;
     for (let i = 1; i <= 5; i++) {
         if (i <= numEstrellas) {
-            html += `<span style="color: #fbbf24 !important; text-shadow: 0 0 3px rgba(251, 191, 36, 0.4);">★</span>`;
+            html += `<span style="color: #fbbf24 !important;">★</span>`;
         } else {
             html += `<span class="opacity-30" style="color: #64748b !important;">★</span>`;
         }
@@ -302,7 +281,7 @@ function renderizarColeccion(lista) {
 
     lista.forEach(item => {
         const esLectura = (item.tipo_material === 'Cómic / Manga / Libro / Fanzine / Revista');
-        const estrellasHtml = generarEstrellasHtml(item.estrellas, 'text-xs');
+        const estrellasHtml = generarEstrellasHtml(item.estrellas);
 
         const card = document.createElement('div');
         card.className = 'colex-card p-3 rounded-2xl flex items-center justify-between gap-3 shadow-md hover:border-amber-600 transition cursor-pointer relative';
@@ -316,7 +295,7 @@ function renderizarColeccion(lista) {
                     <p class="text-xs text-amber-custom truncate">${item.autor || 'Sin Autor'} ${item.numero ? `(${item.numero})` : ''}</p>
                     <div class="flex items-center space-x-2">
                         <span class="bg-gray-800 text-gray-300 px-2 py-0.5 rounded-md text-[10px] font-semibold">${item.subtipo_material || item.tipo_material}</span>
-                        ${esLectura ? (item.leido ? `<span class="text-xs" title="Leído">📖 ✅</span>` : `<span class="text-xs opacity-50" title="Pendiente">📖 ⏳</span>`) : ''}
+                        ${esLectura ? (item.leido ? `<span class="text-xs">📖 ✅</span>` : `<span class="text-xs opacity-50">📖 ⏳</span>`) : ''}
                         ${estrellasHtml}
                     </div>
                 </div>
@@ -336,67 +315,21 @@ function verDetalle(id) {
     if (!contenedor || !item) return;
     
     const esLectura = (item.tipo_material === 'Cómic / Manga / Libro / Fanzine / Revista');
-    const numEstrellas = item.estrellas || 0;
     
-    const estrellasHtml = numEstrellas > 0 
-        ? `<div class="flex items-center justify-center gap-1 mt-1">
-            ${generarEstrellasHtml(numEstrellas, 'text-lg')}
-            <span class="text-xs text-gray-400 font-normal ml-1">(${numEstrellas}/5)</span>
-           </div>`
-        : '<span class="text-xs text-gray-500">Sin calificar</span>';
-
     contenedor.innerHTML = `
         <div class="flex flex-col items-center space-y-3">
             <img src="${item.portada_url}" class="w-48 h-64 object-cover rounded-2xl shadow-2xl border-2 border-amber-600/50">
             <h2 class="text-2xl font-black text-amber-custom text-center leading-tight">${item.titulo}</h2>
-            ${estrellasHtml}
         </div>
 
         <div class="colex-card p-4 rounded-2xl space-y-2.5 text-xs">
-            <div class="flex justify-between border-b border-gray-700 pb-1.5">
-                <span class="text-gray-400 font-semibold">Categoría:</span>
-                <span class="text-gray-200 font-bold">${item.tipo_material}</span>
-            </div>
-            <div class="flex justify-between border-b border-gray-700 pb-1.5">
-                <span class="text-gray-400 font-semibold">Variante / Subtipo:</span>
-                <span class="text-gray-200 font-bold">${item.subtipo_material || 'N/A'}</span>
-            </div>
-            ${esLectura ? `
-            <div class="flex justify-between border-b border-gray-700 pb-1.5">
-                <span class="text-gray-400 font-semibold">Estado de Lectura:</span>
-                <span class="font-bold ${item.leido ? 'text-green-400' : 'text-amber-400'}">${item.leido ? '📖 Leído / Completado' : '⏳ Pendiente'}</span>
-            </div>
-            ` : ''}
-            <div class="flex justify-between border-b border-gray-700 pb-1.5">
-                <span class="text-gray-400 font-semibold">Número / Set:</span>
-                <span class="text-gray-200">${item.numero || 'N/A'}</span>
-            </div>
-            <div class="flex justify-between border-b border-gray-700 pb-1.5">
-                <span class="text-gray-400 font-semibold">Año:</span>
-                <span class="text-gray-200">${item.anio || 'N/A'}</span>
-            </div>
-            <div class="flex justify-between border-b border-gray-700 pb-1.5">
-                <span class="text-gray-400 font-semibold">Autor / Artista:</span>
-                <span class="text-gray-200">${item.autor || 'N/A'}</span>
-            </div>
-            <div class="flex justify-between border-b border-gray-700 pb-1.5">
-                <span class="text-gray-400 font-semibold">Editorial / Fabricante:</span>
-                <span class="text-gray-200">${item.editorial || 'N/A'}</span>
-            </div>
-            <div class="flex justify-between border-b border-gray-700 pb-1.5">
-                <span class="text-gray-400 font-semibold">Estado Físico:</span>
-                <span class="text-gray-200">${item.estado_fisico || 'N/A'}</span>
-            </div>
-            <div class="flex justify-between border-b border-gray-700 pb-1.5">
-                <span class="text-gray-400 font-semibold">Precio Estimado:</span>
-                <span class="text-amber-custom font-bold text-sm">$${(item.valor_manual || 0).toFixed(2)}</span>
-            </div>
-            ${item.notas ? `
-            <div class="pt-1">
-                <span class="text-gray-400 font-semibold block mb-1">Notas / Observaciones:</span>
-                <p class="text-gray-300 italic bg-gray-900/60 p-2.5 rounded-xl border border-gray-800">${item.notas}</p>
-            </div>
-            ` : ''}
+            <div class="flex justify-between border-b border-gray-700 pb-1.5"><span class="text-gray-400">Categoría:</span><span class="text-gray-200 font-bold">${item.tipo_material}</span></div>
+            <div class="flex justify-between border-b border-gray-700 pb-1.5"><span class="text-gray-400">Variante:</span><span class="text-gray-200 font-bold">${item.subtipo_material || 'N/A'}</span></div>
+            ${esLectura ? `<div class="flex justify-between border-b border-gray-700 pb-1.5"><span class="text-gray-400">Lectura:</span><span class="font-bold ${item.leido ? 'text-green-400' : 'text-amber-400'}">${item.leido ? 'Leído' : 'Pendiente'}</span></div>` : ''}
+            <div class="flex justify-between border-b border-gray-700 pb-1.5"><span class="text-gray-400">Autor:</span><span class="text-gray-200">${item.autor || 'N/A'}</span></div>
+            <div class="flex justify-between border-b border-gray-700 pb-1.5"><span class="text-gray-400">Editorial:</span><span class="text-gray-200">${item.editorial || 'N/A'}</span></div>
+            <div class="flex justify-between border-b border-gray-700 pb-1.5"><span class="text-gray-400">Precio Estimado:</span><span class="text-amber-custom font-bold">$${(item.valor_manual || 0).toFixed(2)}</span></div>
+            ${item.notas ? `<div class="pt-1"><span class="text-gray-400 block mb-1">Notas:</span><p class="text-gray-300 italic bg-gray-900/60 p-2.5 rounded-xl">${item.notas}</p></div>` : ''}
         </div>
 
         <div class="flex space-x-3 pt-2 admin-only">
@@ -404,7 +337,6 @@ function verDetalle(id) {
             <button onclick="eliminarObra(${item.id})" class="flex-1 py-3 bg-red-700 hover:bg-red-600 text-white font-bold rounded-xl transition cursor-pointer">Eliminar</button>
         </div>
     `;
-
     cambiarPantalla('viewDetalle');
 }
 
@@ -413,27 +345,18 @@ function buscar(query) {
     coleccionFiltrada = coleccionData.filter(item => 
         (item.titulo && item.titulo.toLowerCase().includes(q)) ||
         (item.autor && item.autor.toLowerCase().includes(q)) ||
-        (item.editorial && item.editorial.toLowerCase().includes(q)) ||
-        (item.subtipo_material && item.subtipo_material.toLowerCase().includes(q)) ||
-        (item.notas && item.notas.toLowerCase().includes(q))
+        (item.editorial && item.editorial.toLowerCase().includes(q))
     );
     renderizarColeccion(coleccionFiltrada);
 }
 
 function ordenarColeccion(criterio) {
-    if (criterio === 'recientes') {
-        coleccionFiltrada.sort((a, b) => b.id - a.id);
-    } else if (criterio === 'alfabetico') {
-        coleccionFiltrada.sort((a, b) => a.titulo.localeCompare(b.titulo));
-    } else if (criterio === 'precio-desc') {
-        coleccionFiltrada.sort((a, b) => (b.valor_manual || 0) - (a.valor_manual || 0));
-    } else if (criterio === 'precio-asc') {
-        coleccionFiltrada.sort((a, b) => (a.valor_manual || 0) - (b.valor_manual || 0));
-    } else if (criterio === 'anio') {
-        coleccionFiltrada.sort((a, b) => (b.anio || 0) - (a.anio || 0));
-    } else if (criterio === 'estrellas') {
-        coleccionFiltrada.sort((a, b) => (b.estrellas || 0) - (a.estrellas || 0));
-    }
+    if (criterio === 'recientes') coleccionFiltrada.sort((a, b) => b.id - a.id);
+    else if (criterio === 'alfabetico') coleccionFiltrada.sort((a, b) => a.titulo.localeCompare(b.titulo));
+    else if (criterio === 'precio-desc') coleccionFiltrada.sort((a, b) => (b.valor_manual || 0) - (a.valor_manual || 0));
+    else if (criterio === 'precio-asc') coleccionFiltrada.sort((a, b) => (a.valor_manual || 0) - (b.valor_manual || 0));
+    else if (criterio === 'anio') coleccionFiltrada.sort((a, b) => (b.anio || 0) - (a.anio || 0));
+    else if (criterio === 'estrellas') coleccionFiltrada.sort((a, b) => (b.estrellas || 0) - (a.estrellas || 0));
     renderizarColeccion(coleccionFiltrada);
 }
 
@@ -449,7 +372,6 @@ function aplicarFiltros() {
         if (!isNaN(precioMax) && (item.valor_manual || 0) > precioMax) cumple = false;
         return cumple;
     });
-
     renderizarColeccion(coleccionFiltrada);
     irAColeccion();
 }
@@ -466,148 +388,22 @@ function limpiarFiltros() {
 function calcularEstadisticas() {
     const totalItems = coleccionFiltrada.length;
     const valorTotal = coleccionFiltrada.reduce((acc, curr) => acc + (curr.valor_manual || 0), 0);
-
-    const statTotal = document.getElementById('statTotal');
-    const statValor = document.getElementById('statValor');
-    if (statTotal) statTotal.innerText = `${totalItems} / ${coleccionData.length}`;
-    if (statValor) statValor.innerText = `$${valorTotal.toFixed(2)}`;
-
-    const desgloses = {};
-    const valoresPorCat = {};
-
-    coleccionFiltrada.forEach(item => {
-        const cat = item.tipo_material || 'Otro';
-        desgloses[cat] = (desgloses[cat] || 0) + 1;
-        valoresPorCat[cat] = (valoresPorCat[cat] || 0) + (item.valor_manual || 0);
-    });
-
-    const contenedorGrafico = document.getElementById('statGraficoCategorias');
-    if (!contenedorGrafico) return;
-    contenedorGrafico.innerHTML = '';
-
-    if (totalItems === 0) {
-        contenedorGrafico.innerHTML = '<span class="text-xs text-gray-500 italic block">Sin datos disponibles para graficar.</span>';
-        return;
-    }
-
-    Object.keys(desgloses).forEach(cat => {
-        const cantidad = desgloses[cat];
-        const valorCat = valoresPorCat[cat] || 0;
-        const porcentaje = ((cantidad / totalItems) * 100).toFixed(1);
-        const colorBarra = CATEGORIA_COLORES[cat] || 'bg-amber-600';
-
-        const barBlock = document.createElement('div');
-        barBlock.className = 'space-y-1';
-        barBlock.innerHTML = `
-            <div class="flex justify-between items-center text-[11px]">
-                <span class="text-gray-300 font-semibold truncate max-w-[200px]" title="${cat}">${cat}</span>
-                <span class="text-gray-400 font-medium">${cantidad} u. <span class="text-amber-custom font-bold">(${porcentaje}%)</span> — $${valorCat.toFixed(2)}</span>
-            </div>
-            <div class="w-full bg-gray-800 rounded-full h-2.5 overflow-hidden border border-gray-700 flex">
-                <div class="${colorBarra} h-2.5 rounded-full transition-all duration-500" style="width: ${porcentaje}%;"></div>
-            </div>
-        `;
-        contenedorGrafico.appendChild(barBlock);
-    });
+    document.getElementById('statTotal').innerText = `${totalItems} / ${coleccionData.length}`;
+    document.getElementById('statValor').innerText = `$${valorTotal.toFixed(2)}`;
 }
 
 function exportarCSV() {
-    if (coleccionFiltrada.length === 0) return alert('No hay datos para exportar.');
-    let csv = 'ID,Título,Número,Año,Categoría,Subtipo,Calificación,Autor,Editorial,Estado,Precio,Notas\n';
-    coleccionFiltrada.forEach(i => {
-        csv += `"${i.id}","${i.titulo}","${i.numero||''}","${i.anio||''}","${i.tipo_material}","${i.subtipo_material||''}","${i.estrellas||0}","${i.autor||''}","${i.editorial||''}","${i.estado_fisico||''}","${i.valor_manual||0}","${(i.notas||'').replace(/"/g, '""')}"\n`;
-    });
-    descargarArchivo(csv, 'coleccion_colex.csv', 'text/csv');
+    if (coleccionFiltrada.length === 0) return alert('No hay datos.');
+    let csv = 'ID,Título,Categoría,Precio\n';
+    coleccionFiltrada.forEach(i => { csv += `"${i.id}","${i.titulo}","${i.tipo_material}","${i.valor_manual||0}"\n`; });
+    descargarArchivo(csv, 'colex.csv', 'text/csv');
 }
 
-function exportarExcel() {
-    exportarCSV();
-}
+function exportarExcel() { exportarCSV(); }
 
 function exportarPDF() {
-    if (coleccionFiltrada.length === 0) return alert('No hay datos filtrados para exportar a PDF.');
-
-    const valorTotal = coleccionFiltrada.reduce((acc, curr) => acc + (curr.valor_manual || 0), 0);
-    const fechaReporte = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
-
-    let filasTabla = '';
-    coleccionFiltrada.forEach((item, index) => {
-        filasTabla += `
-            <tr style="border-bottom: 1px solid #e2e8f0; ${index % 2 === 0 ? 'background-color: #f8fafc;' : ''}">
-                <td style="padding: 8px; text-align: center;">${item.id}</td>
-                <td style="padding: 8px; font-weight: bold; color: #0f172a;">${item.titulo}</td>
-                <td style="padding: 8px;">${item.tipo_material}</td>
-                <td style="padding: 8px;">${item.subtipo_material || '-'}</td>
-                <td style="padding: 8px;">${item.autor || '-'}</td>
-                <td style="padding: 8px;">${item.editorial || '-'}</td>
-                <td style="padding: 8px; text-align: center;">${item.anio || '-'}</td>
-                <td style="padding: 8px; text-align: right; font-weight: bold; color: #b45309;">$${(item.valor_manual || 0).toFixed(2)}</td>
-            </tr>
-        `;
-    });
-
-    const ventanaImp = window.open('', '_blank');
-    ventanaImp.document.write(`
-        <!DOCTYPE html>
-        <html lang="es">
-        <head>
-            <meta charset="UTF-8">
-            <title>ColeX - Reporte de Colección</title>
-            <style>
-                body { font-family: system-ui, -apple-system, sans-serif; padding: 25px; color: #1e293b; background: #fff; }
-                .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #b45309; padding-bottom: 12px; margin-bottom: 20px; }
-                .title { font-size: 24px; font-weight: 900; color: #b45309; }
-                .meta { font-size: 12px; color: #64748b; }
-                .summary { display: flex; gap: 20px; margin-bottom: 20px; background: #f1f5f9; padding: 12px 18px; border-radius: 8px; }
-                .summary-item { font-size: 13px; font-weight: 600; }
-                table { width: 100%; border-collapse: collapse; font-size: 12px; }
-                th { background-color: #0f172a; color: #fff; padding: 10px; text-align: left; }
-                @media print {
-                    @page { margin: 1.5cm; }
-                    body { padding: 0; }
-                }
-            </style>
-        </head>
-        <body>
-            <div class="header">
-                <div>
-                    <div class="title">ColeX — Reporte de Colección</div>
-                    <div class="meta">Generado el ${fechaReporte}</div>
-                </div>
-            </div>
-
-            <div class="summary">
-                <div class="summary-item">Ítems Filtrados: <span style="color:#b45309">${coleccionFiltrada.length} / ${coleccionData.length}</span></div>
-                <div class="summary-item">Valor Total Estimado: <span style="color:#b45309">$${valorTotal.toFixed(2)}</span></div>
-            </div>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th style="text-align: center;">ID</th>
-                        <th>Título</th>
-                        <th>Categoría</th>
-                        <th>Variante</th>
-                        <th>Autor / Artista</th>
-                        <th>Editorial / Fabricante</th>
-                        <th style="text-align: center;">Año</th>
-                        <th style="text-align: right;">Valor ($)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${filasTabla}
-                </tbody>
-            </table>
-
-            <script>
-                window.onload = function() {
-                    window.print();
-                };
-            </script>
-        </body>
-        </html>
-    `);
-    ventanaImp.document.close();
+    if (coleccionFiltrada.length === 0) return alert('No hay datos.');
+    window.print();
 }
 
 function descargarArchivo(contenido, nombre, tipo) {
@@ -620,7 +416,7 @@ function descargarArchivo(contenido, nombre, tipo) {
     URL.revokeObjectURL(url);
 }
 
-// Carga Inicial al Arrancar el DOM
+// Inicialización
 document.addEventListener('DOMContentLoaded', () => {
     inicializarModoVitrina();
     cargarColeccion();
