@@ -1,13 +1,11 @@
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
-
-// ================= CONFIGURACIÓN SUPABASE =================
+// ================= CONFIGURACIÓN SUPABASE (UMD) =================
 const SUPABASE_URL = 'https://ljxhehuierhexvkveszr.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_o_m6elxMjBmViae-LChBfQ_G4BB8LAy';
 
 let supabase = null;
 try {
-    if (SUPABASE_URL && SUPABASE_ANON_KEY) {
-        supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    if (window.supabase && SUPABASE_URL && SUPABASE_ANON_KEY) {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 } catch (e) {
     console.error('Error al inicializar Supabase:', e);
@@ -26,8 +24,7 @@ const SUBTIPOS_MAP = {
     "Vehículos a Escala (Hot Wheels)": ["Hot Wheels Mainline", "Hot Wheels Premium", "Matchbox", "Majorette", "Greenlight", "1:64", "1:43", "1:18", "Otro Vehículo"],
     "Figuras / Funkos / Estatuas": ["Funko Pop!", "Figura de Acción", "Estatua / Resin", "Nendoroid", "Scale Figure", "Model Kit / Gunpla"],
     "Videojuegos / Retro": ["Juego Físico", "Consola", "Mando / Mandos", "Edición Coleccionista", "Accesorio"],
-    "Música (LPs/Vinilos, CDs)": ["LP / Vinilo", "CD", "Cassette", "Boxset / Edición Especial"],
-    "Otro": ["Artículo Variado"]
+    "Música (LPs/Vinilos, CDs)": ["LP / Vinilo", "CD", "Cassette", "Boxset / Edición Especial"]
 };
 
 // ================= NAVEGACIÓN Y VISTAS =================
@@ -118,20 +115,31 @@ function inicializarModoVitrina() {
 
 // ================= SELECTORES Y COMPRESIÓN =================
 function cambiarTipo(categoria) {
-    const subtipoSelect = document.getElementById('subtipoMaterial');
+    const subtipoContainer = document.getElementById('subtipoContainer');
     const leidoContainer = document.getElementById('leidoContainer');
-    if (!subtipoSelect) return;
-    
-    subtipoSelect.innerHTML = '<option value="" class="bg-gray-900">Selecciona variante...</option>';
+    if (!subtipoContainer) return;
 
-    if (categoria && SUBTIPOS_MAP[categoria]) {
-        SUBTIPOS_MAP[categoria].forEach(sub => {
-            const opt = document.createElement('option');
-            opt.value = sub;
-            opt.textContent = sub;
-            opt.className = 'bg-gray-900';
-            subtipoSelect.appendChild(opt);
-        });
+    if (categoria === 'Otro') {
+        subtipoContainer.innerHTML = `
+            <input type="text" id="subtipoMaterial" required placeholder="Escribe el formato o variante..." class="w-full p-3 colex-input rounded-xl text-sm">
+        `;
+    } else {
+        subtipoContainer.innerHTML = `
+            <select id="subtipoMaterial" required class="w-full p-3 colex-input rounded-xl text-sm">
+                <option value="" class="bg-gray-900">Selecciona variante...</option>
+            </select>
+        `;
+
+        const subtipoSelect = document.getElementById('subtipoMaterial');
+        if (categoria && SUBTIPOS_MAP[categoria]) {
+            SUBTIPOS_MAP[categoria].forEach(sub => {
+                const opt = document.createElement('option');
+                opt.value = sub;
+                opt.textContent = sub;
+                opt.className = 'bg-gray-900';
+                subtipoSelect.appendChild(opt);
+            });
+        }
     }
 
     if (leidoContainer) {
