@@ -6,7 +6,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_o_m6elxMjBmViae-LChBfQ_G4BB8LAy';     
 
 let supabase = null;
 try {
-    if (SUPABASE_URL !== 'https://TU_SUPABASE_URL.supabase.co') {
+    if (SUPABASE_URL !== 'https://ljxhehuierhexvkveszr.supabase.co') {
         supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 } catch (e) {
