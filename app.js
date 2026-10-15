@@ -1,431 +1,276 @@
-// app.js - ColeX Multicoleccionista (Controlador Global con Música y Estado de Lectura)
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
-
-// ============================================================
-// CREDENCIALES DE SUPABASE (REEMPLAZA CON TUS CLAVES REALES)
-// ============================================================
-const SUPABASE_URL = 'https://ljxhehuierhexvkveszr.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_o_m6elxMjBmViae-LChBfQ_G4BB8LAy';
-// ============================================================
+// Configuración e Inicialización de Supabase
+const SUPABASE_URL = 'https://TU_SUPABASE_URL.supabase.co'; // Reemplaza con tu URL real
+const SUPABASE_ANON_KEY = 'TU_SUPABASE_ANON_KEY';           // Reemplaza con tu Key real
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-window.ColeXApp = {
-    obras: [],
-    obrasFiltradas: [],
-    imagenPortadaBase64: '',
+// Estado Global de la Aplicación
+let coleccionData = [];
+let coleccionFiltrada = [];
+let base64Comprimido = '';
+let modoVitrinaActivo = false;
 
-    init: async function() {
-        console.log("🚀 ColeXApp inicializada correctamente con Nuevas Categorías.");
-        await this.cargarObras();
-    },
-
-    switchScreen: function(screenName) {
-        const screens = ['viewColeccion', 'viewDetalle', 'viewForm', 'viewStats'];
-        screens.forEach(s => {
-            const el = document.getElementById(s);
-            if (el) el.classList.add('hidden');
-        });
-        const target = document.getElementById(screenName);
-        if (target) target.classList.remove('hidden');
-    },
-
-    irAColeccion: function() { this.switchScreen('viewColeccion'); },
-    irAFormulario: function() { this.resetForm(); this.switchScreen('viewForm'); },
-    irAEstadisticas: function() { this.actualizarEstadisticas(); this.switchScreen('viewStats'); },
-
-    cargarObras: async function() {
-        const { data, error } = await supabase.from('obras').select('*').order('id', { ascending: false });
-        if (error) {
-            console.error('Error al cargar de Supabase:', error.message);
-            return;
-        }
-        this.obras = data || [];
-        this.obrasFiltradas = [...this.obras];
-        this.renderizarColeccion(this.obras);
-    },
-
-    renderizarColeccion: function(lista) {
-        const container = document.getElementById('listColeccion');
-        if (!container) return;
-        container.innerHTML = '';
-
-        if (!lista || lista.length === 0) {
-            container.innerHTML = `<p class="text-center text-gray-400 text-sm py-10">No se encontraron coleccionables.</p>`;
-            return;
-        }
-
-        const grupos = {};
-        lista.forEach(item => {
-            const editorial = item.editorial || 'Independiente';
-            if (!grupos[editorial]) grupos[editorial] = [];
-            grupos[editorial].push(item);
-        });
-
-        Object.keys(grupos).sort().forEach(editorial => {
-            const items = grupos[editorial];
-            const seccion = document.createElement('div');
-            seccion.className = "space-y-2 mb-4";
-            seccion.innerHTML = `
-                <div class="flex justify-between items-center px-1 border-b border-amber-900 pb-1">
-                    <h3 class="text-xs font-bold text-amber-300 uppercase tracking-wider">🏷️ ${editorial}</h3>
-                    <span class="text-[10px] colex-card text-amber-300 px-2 py-0.5 rounded-full border border-gray-700">${items.length} ítem${items.length > 1 ? 's' : ''}</span>
-                </div>
-            `;
-            const listaTarjetas = document.createElement('div');
-            listaTarjetas.className = "space-y-2.5";
-
-            items.forEach(obra => {
-                let badgeLeidoHtml = '';
-                if (obra.tipo === 'Cómic / Manga / Libro / Fanzine / Revista') {
-                    badgeLeidoHtml = obra.leido 
-                        ? `<span class="text-[10px] bg-green-900/80 text-green-300 px-1.5 py-0.5 rounded border border-green-700">✓ Leído</span>`
-                        : `<span class="text-[10px] bg-amber-900/80 text-amber-300 px-1.5 py-0.5 rounded border border-amber-700">⏳ Pendiente</span>`;
-                }
-
-                const card = document.createElement('div');
-                card.className = "flex items-center colex-card hover:bg-gray-800 p-3 rounded-2xl shadow-sm transition cursor-pointer gap-3";
-                card.onclick = () => ColeXApp.verDetalle(obra.id);
-                card.innerHTML = `
-                    <img src="${obra.portada}" alt="${obra.titulo}" class="w-14 h-16 object-cover rounded-xl bg-gray-900">
-                    <div class="flex-1 min-w-0">
-                        <div class="flex items-center justify-between gap-1">
-                            <h4 class="font-bold text-sm text-gray-100 truncate">${obra.titulo}</h4>
-                            ${badgeLeidoHtml}
-                        </div>
-                        <p class="text-xs text-gray-400 truncate">${obra.autor} • <span class="text-amber-300 font-medium">${obra.tipo.split('/')[0]}</span></p>
-                        <p class="text-[11px] text-gray-400 mt-0.5">${obra.anio} - <strong class="text-amber-300">$${Number(obra.valor || 0).toFixed(2)}</strong></p>
-                    </div>
-                `;
-                listaTarjetas.appendChild(card);
-            });
-            seccion.appendChild(listaTarjetas);
-            container.appendChild(seccion);
-        });
-    },
-
-    verDetalle: function(id) {
-        const obra = this.obras.find(o => String(o.id) === String(id));
-        if (!obra) return;
-
-        const detalleContent = document.getElementById('detalleContent');
-        if (!detalleContent) return;
-
-        let estadoLecturaHtml = '';
-        if (obra.tipo === 'Cómic / Manga / Libro / Fanzine / Revista') {
-            estadoLecturaHtml = `
-                <div class="flex justify-between items-center"><span class="text-gray-400">Estado de Lectura:</span> 
-                    <span class="font-semibold ${obra.leido ? 'text-green-400' : 'text-amber-300'}">
-                        ${obra.leido ? '✓ Leído / Completado' : '⏳ Pendiente por leer'}
-                    </span>
-                </div>`;
-        }
-
-        detalleContent.innerHTML = `
-            <div class="flex flex-col items-center colex-card p-6 rounded-2xl shadow-sm space-y-4">
-                <img src="${obra.portada}" alt="${obra.titulo}" class="w-36 h-48 object-cover rounded-xl shadow-md bg-gray-900">
-                <div class="text-center">
-                    <h3 class="text-lg font-bold text-gray-100">${obra.titulo} ${obra.numero !== 'N/A' ? obra.numero : ''}</h3>
-                    <p class="text-sm text-gray-400">${obra.autor}</p>
-                </div>
-                <div class="w-full space-y-2 pt-2 border-t border-gray-700 text-sm">
-                    <div class="flex justify-between"><span class="text-gray-400">Categoría:</span> <span class="font-semibold text-gray-200">${obra.tipo} (${obra.subtipo})</span></div>
-                    <div class="flex justify-between"><span class="text-gray-400">Fabricante / Sello / Editorial:</span> <span class="font-semibold text-amber-300">${obra.editorial}</span></div>
-                    <div class="flex justify-between"><span class="text-gray-400">Año:</span> <span class="font-semibold text-gray-200">${obra.anio}</span></div>
-                    <div class="flex justify-between"><span class="text-gray-400">Condición física:</span> <span class="font-semibold text-gray-200">${obra.estado}</span></div>
-                    ${estadoLecturaHtml}
-                    <div class="flex justify-between"><span class="text-gray-400">Precio Aprox:</span> <span class="font-bold text-amber-300">$${Number(obra.valor || 0).toFixed(2)}</span></div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-2 w-full pt-2">
-                    <button onclick="ColeXApp.cargarEditar(${obra.id})" class="py-2.5 bg-amber-btn text-white font-semibold rounded-xl hover:bg-amber-600 transition cursor-pointer text-xs flex items-center justify-center gap-1">✏️ Editar Ítem</button>
-                    <button onclick="ColeXApp.eliminarObra(${obra.id})" class="py-2.5 bg-red-900 text-red-200 font-semibold rounded-xl hover:bg-red-800 transition cursor-pointer text-xs border border-red-700">🗑️ Eliminar</button>
-                </div>
-            </div>
-        `;
-        this.switchScreen('viewDetalle');
-    },
-
-    cambiarTipo: function(tipo) {
-        const subtipoSelect = document.getElementById('subtipoMaterial');
-        const leidoContainer = document.getElementById('leidoContainer');
-        if (!subtipoSelect) return;
-
-        const subformatos = {
-            'Cómic / Manga / Libro / Fanzine / Revista': ['Grapa (Floppy)', 'Tomo Rústica (TPB)', 'Tomo Cartoné (Hardcover)', 'Tankoubon', 'Tapa Blanda', 'Tapa Dura', 'Fanzine Artesanal', 'Revista / Publicación'],
-            'Cartas TCG': ['Holofoil / Rara', 'Común / Infrecuente', 'Secreta / Ultra Rara', 'Promo / Edición Especial'],
-            'Vehículos a Escala (Hot Wheels)': ['Mainline', 'Treasure Hunt', 'Super Treasure Hunt', 'Edición Especial / Premium', 'Set de 5 Pack'],
-            'Figuras / Funkos / Estatuas': ['Funko Pop', 'Action Figure (Articulada)', 'Estatua / PVC', 'Nendoroid', 'Busto / Diorama'],
-            'Videojuegos / Retro': ['Formato Físico (Cartucho)', 'Formato Físico (Disco)', 'Edición Coleccionista', 'Consola / Hardware'],
-            'Música (LPs/Vinilos, CDs)': ['LP / Vinilo 12"', 'Vinilo 7" (Single)', 'CD Album', 'Casete / Cinta', 'Boxset / Edición Especial'],
-            'Otro / Fanzine': ['Merchandising', 'Otro Coleccionable']
-        };
-
-        const labelConfig = {
-            'Cómic / Manga / Libro / Fanzine / Revista': { editorial: 'Editorial / Editor', autor: 'Autor / Guionista / Artista', numero: 'Número / Tomo / Edición', placeholderEditorial: 'Ej. Marvel, Ivrea, Independiente' },
-            'Cartas TCG': { editorial: 'Juego / Marca', autor: 'Ilustrador / Artista', numero: 'Número / Set (ej. 025/102)', placeholderEditorial: 'Ej. Pokémon TCG, Yu-Gi-Oh' },
-            'Vehículos a Escala (Hot Wheels)': { editorial: 'Fabricante / Marca', autor: 'Serie / Colección', numero: 'Número de Serie / Lote', placeholderEditorial: 'Ej. Mattel, Matchbox' },
-            'Figuras / Funkos / Estatuas': { editorial: 'Fabricante / Marca', autor: 'Franquicia / Línea', numero: 'Número de Figura', placeholderEditorial: 'Ej. Funko, Bandai, Hot Toys' },
-            'Videojuegos / Retro': { editorial: 'Desarrollador / Distribuidor', autor: 'Estudio / Creador', numero: 'Plataforma / Región', placeholderEditorial: 'Ej. Nintendo, Capcom' },
-            'Música (LPs/Vinilos, CDs)': { editorial: 'Disquera / Sello Discográfico', autor: 'Artista / Banda', numero: 'Número de Catálogo / Edición', placeholderEditorial: 'Ej. Sony Music, Columbia, Indie' },
-            'Otro / Fanzine': { editorial: 'Marca / Fabricante', autor: 'Autor / Creador', numero: 'Número / Referencia', placeholderEditorial: 'Ej. Independiente' }
-        };
-
-        const config = labelConfig[tipo] || { editorial: 'Editorial / Fabricante', autor: 'Autor / Artista', numero: 'Número / Set', placeholderEditorial: 'Ej. Marvel' };
-        
-        const lblEditorial = document.getElementById('lblEditorial');
-        const inputEditorial = document.getElementById('editorial');
-        const lblAutor = document.getElementById('lblAutor');
-        const lblNumero = document.getElementById('lblNumero');
-
-        if (lblEditorial) lblEditorial.textContent = config.editorial;
-        if (inputEditorial) inputEditorial.placeholder = config.placeholderEditorial;
-        if (lblAutor) lblAutor.textContent = config.autor;
-        if (lblNumero) lblNumero.textContent = config.numero;
-
-        // Mostrar u ocultar checkbox de leído
-        if (leidoContainer) {
-            if (tipo === 'Cómic / Manga / Libro / Fanzine / Revista') {
-                leidoContainer.classList.remove('hidden');
-            } else {
-                leidoContainer.classList.add('hidden');
-                document.getElementById('chkLeido').checked = false;
-            }
-        }
-
-        subtipoSelect.innerHTML = '<option value="" class="bg-gray-900">Seleccionar variante...</option>';
-        if (subformatos[tipo]) {
-            subtipoSelect.disabled = false;
-            subformatos[tipo].forEach(s => {
-                const opt = document.createElement('option');
-                opt.value = s;
-                opt.textContent = s;
-                opt.className = "bg-gray-900";
-                subtipoSelect.appendChild(opt);
-            });
-        } else {
-            subtipoSelect.disabled = true;
-        }
-    },
-
-    procesarArchivo: async function(input) {
-        const file = input.files[0];
-        const span = document.getElementById('fileName');
-        const badge = document.getElementById('compressBadge');
-        if (file) {
-            if (span) span.textContent = "Comprimiendo " + file.name + "...";
-            try {
-                this.imagenPortadaBase64 = await this.comprimir(file);
-                if (span) {
-                    span.textContent = file.name + " (Optimizada)";
-                    span.classList.add('text-amber-300', 'font-medium');
-                }
-                if (badge) badge.classList.remove('hidden');
-                document.getElementById('portadaUrl').value = '';
-            } catch (err) {
-                console.error("Error al comprimir:", err);
-            }
-        }
-    },
-
-    comprimir: function(file) {
-        return new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = (e) => {
-                const img = new Image();
-                img.src = e.target.result;
-                img.onload = () => {
-                    let w = img.width, h = img.height;
-                    const max = 600;
-                    if (w > h && w > max) { h = Math.round((h * max) / w); w = max; }
-                    else if (h > max) { w = Math.round((w * max) / h); h = max; }
-                    const canvas = document.createElement('canvas');
-                    canvas.width = w; canvas.height = h;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, w, h);
-                    resolve(canvas.toDataURL('image/webp', 0.7));
-                };
-            };
-        });
-    },
-
-    guardarObra: async function(e) {
-        e.preventDefault();
-        const editId = document.getElementById('editObraId').value;
-        const titulo = document.getElementById('titulo').value.trim();
-        const urlInput = document.getElementById('portadaUrl').value.trim();
-        const tipoSeleccionado = document.getElementById('tipoMaterial').value;
-
-        let finalPortada = this.imagenPortadaBase64 || urlInput;
-        if (!finalPortada) {
-            finalPortada = editId ? (this.obras.find(o => String(o.id) === String(editId))?.portada || 'https://via.placeholder.com/150') : 'https://via.placeholder.com/150';
-        }
-
-        const esLectura = (tipoSeleccionado === 'Cómic / Manga / Libro / Fanzine / Revista');
-        const leidoValor = esLectura ? document.getElementById('chkLeido').checked : false;
-
-        const datosObra = {
-            titulo: titulo,
-            numero: document.getElementById('numero').value || 'N/A',
-            anio: document.getElementById('anio').value || 'S/F',
-            tipo: tipoSeleccionado,
-            subtipo: document.getElementById('subtipoMaterial').value,
-            autor: document.getElementById('autor').value || 'Desconocido',
-            editorial: document.getElementById('editorial').value.trim() || 'Independiente',
-            estado: document.getElementById('estadoFisico').value,
-            valor: parseFloat(document.getElementById('valorManual').value) || 0,
-            portada: finalPortada,
-            leido: leidoValor
-        };
-
-        if (editId) {
-            const { error } = await supabase.from('obras').update(datosObra).eq('id', Number(editId));
-            if (error) { alert('Error: ' + error.message); return; }
-        } else {
-            const nueva = { id: Date.now(), ...datosObra };
-            const { error } = await supabase.from('obras').insert([nueva]);
-            if (error) { alert('Error: ' + error.message); return; }
-        }
-
-        await this.cargarObras();
-        this.switchScreen('viewColeccion');
-    },
-
-    resetForm: function() {
-        document.getElementById('formObra').reset();
-        document.getElementById('editObraId').value = '';
-        document.getElementById('formTitle').textContent = 'Agregar Coleccionable';
-        document.getElementById('btnSubmitForm').textContent = 'Guardar Ítem';
-        this.imagenPortadaBase64 = '';
-        document.getElementById('fileName').textContent = 'Sin archivo seleccionado';
-        const badge = document.getElementById('compressBadge');
-        if (badge) badge.classList.add('hidden');
-        const leidoContainer = document.getElementById('leidoContainer');
-        if (leidoContainer) leidoContainer.classList.add('hidden');
-        const subtipoSelect = document.getElementById('subtipoMaterial');
-        if (subtipoSelect) {
-            subtipoSelect.disabled = true;
-            subtipoSelect.innerHTML = '<option value="" class="bg-gray-900">Selecciona categoría primero...</option>';
-        }
-    },
-
-    cargarEditar: function(id) {
-        const obra = this.obras.find(o => String(o.id) === String(id));
-        if (!obra) return;
-        document.getElementById('editObraId').value = obra.id;
-        document.getElementById('formTitle').textContent = 'Editar Coleccionable';
-        document.getElementById('btnSubmitForm').textContent = 'Actualizar Ítem';
-        document.getElementById('titulo').value = obra.titulo;
-        document.getElementById('numero').value = obra.numero !== 'N/A' ? obra.numero : '';
-        document.getElementById('anio').value = obra.anio !== 'S/F' ? obra.anio : '';
-        document.getElementById('tipoMaterial').value = obra.tipo;
-        this.cambiarTipo(obra.tipo);
-        document.getElementById('subtipoMaterial').value = obra.subtipo;
-        
-        const leidoContainer = document.getElementById('leidoContainer');
-        if (obra.tipo === 'Cómic / Manga / Libro / Fanzine / Revista') {
-            if (leidoContainer) leidoContainer.classList.remove('hidden');
-            document.getElementById('chkLeido').checked = obra.leido || false;
-        }
-
-        document.getElementById('autor').value = obra.autor !== 'Desconocido' ? obra.autor : '';
-        document.getElementById('editorial').value = obra.editorial !== 'Independiente' ? obra.editorial : '';
-        document.getElementById('estadoFisico').value = obra.estado;
-        document.getElementById('valorManual').value = obra.valor;
-        this.switchScreen('viewForm');
-    },
-
-    eliminarObra: async function(id) {
-        if (!confirm('¿Estás seguro de eliminar este ítem?')) return;
-        const { error } = await supabase.from('obras').delete().eq('id', Number(id));
-        if (error) { alert('Error: ' + error.message); return; }
-        await this.cargarObras();
-        this.switchScreen('viewColeccion');
-    },
-
-    buscar: function(texto) {
-        const res = this.obras.filter(o => 
-            o.titulo.toLowerCase().includes(texto.toLowerCase()) ||
-            o.autor.toLowerCase().includes(texto.toLowerCase()) ||
-            o.editorial.toLowerCase().includes(texto.toLowerCase())
-        );
-        this.renderizarColeccion(res);
-    },
-
-    aplicarFiltros: function() {
-        const tipo = document.getElementById('filtroTipo').value;
-        const editorial = document.getElementById('filtroEditorial').value.toLowerCase();
-        const precio = parseFloat(document.getElementById('filtroPrecio').value);
-
-        this.obrasFiltradas = this.obras.filter(o => {
-            const matchTipo = tipo ? o.tipo === tipo : true;
-            const matchEd = editorial ? o.editorial.toLowerCase().includes(editorial) : true;
-            const matchPrecio = !isNaN(precio) ? o.valor <= precio : true;
-            return matchTipo && matchEd && matchPrecio;
-        });
-
-        this.renderizarColeccion(this.obrasFiltradas);
-        this.actualizarEstadisticas();
-        this.switchScreen('viewColeccion');
-    },
-
-    limpiarFiltros: function() {
-        document.getElementById('filtroTipo').value = '';
-        document.getElementById('filtroEditorial').value = '';
-        document.getElementById('filtroPrecio').value = '';
-        this.obrasFiltradas = [...this.obras];
-        this.renderizarColeccion(this.obras);
-        this.actualizarEstadisticas();
-    },
-
-    actualizarEstadisticas: function() {
-        const statTotal = document.getElementById('statTotal');
-        const statValor = document.getElementById('statValor');
-        if (statTotal) statTotal.textContent = `${this.obrasFiltradas.length} / ${this.obras.length}`;
-        const total = this.obrasFiltradas.reduce((acc, curr) => acc + Number(curr.valor || 0), 0);
-        if (statValor) statValor.textContent = `$${total.toFixed(2)}`;
-    },
-
-    exportarCSV: function() {
-        if (this.obrasFiltradas.length === 0) { alert('No hay datos para exportar.'); return; }
-        let csv = "data:text/csv;charset=utf-8,ID,Titulo,Numero,Anio,Categoria,Variante,Leido,Autor,Editorial,Estado,Precio\n";
-        this.obrasFiltradas.forEach(o => {
-            csv += [o.id, `"${o.titulo}"`, o.numero, o.anio, `"${o.tipo}"`, `"${o.subtipo}"`, o.leido ? 'Si' : 'No', `"${o.autor}"`, `"${o.editorial}"`, o.estado, o.valor].join(",") + "\n";
-        });
-        const a = document.createElement("a");
-        a.href = encodeURI(csv);
-        a.download = "colex_coleccion.csv";
-        a.click();
-    },
-
-    exportarExcel: function() {
-        if (this.obrasFiltradas.length === 0) { alert('No hay datos para exportar.'); return; }
-        let tabla = `<table><tr><th>ID</th><th>Titulo</th><th>Numero</th><th>Anio</th><th>Categoria</th><th>Variante</th><th>Leido</th><th>Autor</th><th>Editorial</th><th>Estado</th><th>Precio</th></tr>`;
-        this.obrasFiltradas.forEach(o => {
-            tabla += `<tr><td>${o.id}</td><td>${o.titulo}</td><td>${o.numero}</td><td>${o.anio}</td><td>${o.tipo}</td><td>${o.subtipo}</td><td>${o.leido ? 'Si' : 'No'}</td><td>${o.autor}</td><td>${o.editorial}</td><td>${o.estado}</td><td>${o.valor}</td></tr>`;
-        });
-        tabla += `</table>`;
-        const blob = new Blob([tabla], { type: 'application/vnd.ms-excel' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'colex_coleccion.xls';
-        a.click();
-    },
-
-    exportarPDF: function() {
-        if (this.obrasFiltradas.length === 0) { alert('No hay datos para exportar.'); return; }
-        let win = window.open('', '', 'height=600,width=800');
-        win.document.write('<html><head><title>ColeX</title></head><body><h2>Reporte ColeX</h2><table>');
-        this.obrasFiltradas.forEach(o => {
-            win.document.write(`<tr><td>${o.titulo}</td><td>${o.tipo}</td><td>$${Number(o.valor || 0).toFixed(2)}</td></tr>`);
-        });
-        win.document.write('</table></body></html>');
-        win.document.close();
-        win.print();
-    }
+// Subtipos según Categoría
+const SUBTIPOS_MAP = {
+    "Cómic / Manga / Libro / Fanzine / Revista": ["Cómic", "Manga", "Libro", "Fanzine", "Revista"],
+    "Cartas TCG": ["Cartas Sueltas / Singles", "Sobres / Packs", "Cajas / Booster Box", "Decks / Mazos", "Accesorios / Protecciones"],
+    "Vehículos a Escala (Hot Wheels)": ["Hot Wheels Mainline", "Hot Wheels Premium", "Matchbox", "Majorette", "Greenlight", "1:64", "1:43", "1:18", "Otro Vehículo"],
+    "Figuras / Funkos / Estatuas": ["Funko Pop!", "Figura de Acción", "Estatua / Resin", "Nendoroid", "Scale Figure", "Model Kit / Gunpla"],
+    "Videojuegos / Retro": ["Juego Físico", "Consola", "Mando / Mandos", "Edición Coleccionista", "Accesorio"],
+    "Música (LPs/Vinilos, CDs)": ["LP / Vinilo", "CD", "Cassette", "Boxset / Edición Especial"],
+    "Otro / Fanzine": ["Fanzine / Artbook", "Poster / Arte", "Pin / Insignia", "Merchandising Variado"]
 };
 
-// Inicialización automática
-ColeXApp.init();
+// ================= NAVEGACIÓN Y VISTAS =================
+function cambiarPantalla(idPantalla) {
+    document.querySelectorAll('.app-screen').forEach(screen => screen.classList.add('hidden'));
+    const target = document.getElementById(idPantalla);
+    if (target) target.classList.remove('hidden');
+}
+
+function irAColeccion() {
+    cambiarPantalla('viewColeccion');
+}
+
+function irAFormulario(obra = null) {
+    const formTitle = document.getElementById('formTitle');
+    const form = document.getElementById('formObra');
+    form.reset();
+    base64Comprimido = '';
+    document.getElementById('editObraId').value = '';
+    document.getElementById('fileName').innerText = 'Sin archivo seleccionado';
+    document.getElementById('compressBadge').classList.add('hidden');
+
+    if (obra) {
+        formTitle.innerText = 'Editar Coleccionable';
+        document.getElementById('editObraId').value = obra.id;
+        document.getElementById('titulo').value = obra.titulo || '';
+        document.getElementById('numero').value = obra.numero || '';
+        document.getElementById('anio').value = obra.anio || '';
+        document.getElementById('tipoMaterial').value = obra.tipo_material || '';
+        
+        cambiarTipo(obra.tipo_material || '');
+        document.getElementById('subtipoMaterial').value = obra.subtipo_material || '';
+        document.getElementById('chkLeido').checked = !!obra.leido;
+        document.getElementById('estrellas').value = obra.estrellas || 0;
+        
+        // Cargar Etiquetas Checkboxes
+        const tagsGuardados = (obra.etiquetas || '').split(',').map(t => t.trim());
+        document.querySelectorAll('input[name="tagCheck"]').forEach(chk => {
+            chk.checked = tagsGuardados.includes(chk.value);
+        });
+
+        document.getElementById('autor').value = obra.autor || '';
+        document.getElementById('editorial').value = obra.editorial || '';
+        document.getElementById('estadoFisico').value = obra.estado_fisico || 'Nuevo / Mint';
+        document.getElementById('valorManual').value = obra.valor_manual || 0.00;
+        document.getElementById('portadaUrl').value = obra.portada_url || '';
+        document.getElementById('notas').value = obra.notas || '';
+    } else {
+        formTitle.innerText = 'Agregar Coleccionable';
+        cambiarTipo('');
+    }
+
+    cambiarPantalla('viewForm');
+}
+
+function irAEstadisticas() {
+    calcularEstadisticas();
+    cambiarPantalla('viewStats');
+}
+
+// Alternar Modo Vitrina (Público de Solo Lectura)
+function toggleModoVitrina() {
+    modoVitrinaActivo = !modoVitrinaActivo;
+    const btn = document.getElementById('btnVitrinaToggle');
+    
+    if (modoVitrinaActivo) {
+        document.body.classList.add('public-mode');
+        if (btn) btn.innerText = '🔒';
+    } else {
+        document.body.classList.remove('public-mode');
+        if (btn) btn.innerText = '👁️';
+    }
+
+    localStorage.setItem('colex_modo_vitrina', modoVitrinaActivo ? 'true' : 'false');
+    renderizarColeccion(coleccionFiltrada);
+}
+
+// Cargar preferencia de Modo Vitrina
+function inicializarModoVitrina() {
+    const guardado = localStorage.getItem('colex_modo_vitrina');
+    if (guardado === 'true') {
+        modoVitrinaActivo = true;
+        document.body.classList.add('public-mode');
+        const btn = document.getElementById('btnVitrinaToggle');
+        if (btn) btn.innerText = '🔒';
+    }
+}
+
+// ================= SELECTORES Y COMPRESIÓN =================
+function cambiarTipo(categoria) {
+    const subtipoSelect = document.getElementById('subtipoMaterial');
+    const leidoContainer = document.getElementById('leidoContainer');
+    subtipoSelect.innerHTML = '<option value="" class="bg-gray-900">Selecciona variante...</option>';
+
+    if (categoria && SUBTIPOS_MAP[categoria]) {
+        SUBTIPOS_MAP[categoria].forEach(sub => {
+            const opt = document.createElement('option');
+            opt.value = sub;
+            opt.textContent = sub;
+            opt.className = 'bg-gray-900';
+            subtipoSelect.appendChild(opt);
+        });
+    }
+
+    if (categoria === 'Cómic / Manga / Libro / Fanzine / Revista') {
+        leidoContainer.classList.remove('hidden');
+    } else {
+        leidoContainer.classList.add('hidden');
+    }
+}
+
+function procesarArchivo(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    document.getElementById('fileName').innerText = file.name;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const MAX_WIDTH = 600;
+            const scaleSize = MAX_WIDTH / img.width;
+            canvas.width = MAX_WIDTH;
+            canvas.height = img.height * scaleSize;
+
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+            base64Comprimido = canvas.toDataURL('image/jpeg', 0.7);
+            document.getElementById('compressBadge').classList.remove('hidden');
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+// ================= OPERACIONES DE BASE DE DATOS (CRUD) =================
+async function cargarColeccion() {
+    try {
+        const { data, error } = await supabase
+            .from('obras')
+            .select('*')
+            .order('id', { ascending: false });
+
+        if (error) throw error;
+
+        coleccionData = data || [];
+        coleccionFiltrada = [...coleccionData];
+        renderizarColeccion(coleccionFiltrada);
+    } catch (err) {
+        console.error('Error al cargar la colección:', err.message);
+    }
+}
+
+async function guardarObra(event) {
+    event.preventDefault();
+
+    const id = document.getElementById('editObraId').value;
+    const urlDirecta = document.getElementById('portadaUrl').value;
+    const portadaFinal = base64Comprimido || urlDirecta || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80';
+
+    const tipoCat = document.getElementById('tipoMaterial').value;
+    const esLibro = (tipoCat === 'Cómic / Manga / Libro / Fanzine / Revista');
+
+    // Obtener etiquetas seleccionadas
+    const selectedTags = Array.from(document.querySelectorAll('input[name="tagCheck"]:checked')).map(c => c.value).join(', ');
+
+    const payload = {
+        titulo: document.getElementById('titulo').value,
+        numero: document.getElementById('numero').value,
+        anio: parseInt(document.getElementById('anio').value) || null,
+        tipo_material: tipoCat,
+        subtipo_material: document.getElementById('subtipoMaterial').value,
+        leido: esLibro ? document.getElementById('chkLeido').checked : false,
+        estrellas: parseInt(document.getElementById('estrellas').value) || 0,
+        etiquetas: selectedTags,
+        autor: document.getElementById('autor').value,
+        editorial: document.getElementById('editorial').value,
+        estado_fisico: document.getElementById('estadoFisico').value,
+        valor_manual: parseFloat(document.getElementById('valorManual').value) || 0.00,
+        portada_url: portadaFinal,
+        notas: document.getElementById('notas').value
+    };
+
+    try {
+        if (id) {
+            const { error } = await supabase.from('obras').update(payload).eq('id', id);
+            if (error) throw error;
+        } else {
+            const { error } = await supabase.from('obras').insert([payload]);
+            if (error) throw error;
+        }
+
+        await cargarColeccion();
+        irAColeccion();
+    } catch (err) {
+        alert('Error al guardar el ítem: ' + err.message);
+    }
+}
+
+async function eliminarObra(id) {
+    if (modoVitrinaActivo) return;
+    if (!confirm('¿Estás seguro de que deseas eliminar este coleccionable?')) return;
+
+    try {
+        const { error } = await supabase.from('obras').delete().eq('id', id);
+        if (error) throw error;
+
+        await cargarColeccion();
+        irAColeccion();
+    } catch (err) {
+        alert('Error al eliminar: ' + err.message);
+    }
+}
+
+// ================= RENDERIZADO Y BÚSQUEDA =================
+function renderizarColeccion(lista) {
+    const contenedor = document.getElementById('listColeccion');
+    contenedor.innerHTML = '';
+
+    if (lista.length === 0) {
+        contenedor.innerHTML = `<div class="text-center text-gray-400 py-12 text-sm">No se encontraron coleccionables.</div>`;
+        return;
+    }
+
+    lista.forEach(item => {
+        const esLectura = (item.tipo_material === 'Cómic / Manga / Libro / Fanzine / Revista');
+        
+        // Formato Estrellas
+        const numEstrellas = item.estrellas || 0;
+        const estrellasHtml = numEstrellas > 0 
+            ? `<span class="text-amber-400 text-xs font-bold">` + '★'.repeat(numEstrellas) + `</span>` 
+            : '';
+
+        // Formato Etiquetas
+        const tagsArray = item.etiquetas ? item.etiquetas.split(',').map(t => t.trim()).filter(Boolean) : [];
+        const tagsHtml = tagsArray.map(t => `<span class="bg-amber-950/80 text-amber-300 border border-amber-700/50 px-2 py-0.5 rounded-md text-[10px] font-medium">${t}</span>`).join(' ');
+
+        const card = document.createElement('div');
+        card.className = 'colex-card p-3 rounded-2xl flex items-center justify-between gap-3 shadow-md hover:border-amber-600 transition cursor-pointer relative';
+        card.onclick = () => verDetalle(item);
+
+        card.innerHTML = `
+            <div class="flex items-center space-x-3 overflow-hidden">
+                <img src="${item.portada_url}" class="w-16 h-20 object-cover rounded-xl border border-gray-700 flex-shrink-0" alt="Portada">
+                <div class="overflow-hidden space-y-1">
+                    <h3 class="font-bold text-sm text-gray-100 truncate">${item.titulo}</h3>
+                    <p class="text-xs text-amber-custom truncate">${item.autor || 'Sin Autor'} ${item.numero ? `(${item.numero})` : ''}</p>
+                    <div class="flex items-center space-x-2">
+                        <span class="bg-gray-800 text-gray-300 px-2 py-0.5 rounded-md text-[10px] font-semibold">${item.subtipo_material || item.tipo_material}</span>
+                        ${esLectura ? (item.leido ? `<span
