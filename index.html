@@ -21,10 +21,8 @@
         .text-amber-custom { color: #fde68a !important; }
         .bg-amber-btn { background-color: #b45309 !important; }
         .bg-amber-btn:hover { background-color: #d97706 !important; }
-
         .cx-block-c { background-color: #ea580c !important; color: #ffffff !important; }
         .cx-block-x { background-color: #f97316 !important; color: #ffffff !important; }
-
         body.public-mode .admin-only { display: none !important; }
     </style>
 </head>
@@ -249,48 +247,4 @@
 
                     <div>
                         <label class="text-[11px] text-gray-400 font-semibold">Editorial / Fabricante</label>
-                        <input type="text" id="filtroEditorial" placeholder="Ej. Marvel..." class="w-full p-2.5 colex-input rounded-xl text-xs placeholder-gray-500 mt-1">
-                    </div>
-
-                    <div>
-                        <label class="text-[11px] text-gray-400 font-semibold">Precio Máximo ($)</label>
-                        <input type="number" id="filtroPrecio" placeholder="Ej. 100" class="w-full p-2.5 colex-input rounded-xl text-xs placeholder-gray-500 mt-1">
-                    </div>
-
-                    <button onclick="aplicarFiltros()" class="w-full py-2 bg-amber-btn text-white font-semibold rounded-xl text-xs transition cursor-pointer">Aplicar Filtros</button>
-                    <button onclick="limpiarFiltros()" class="w-full py-1.5 bg-transparent text-gray-400 font-medium rounded-xl text-xs hover:text-white transition cursor-pointer">Limpiar Filtros</button>
-                </div>
-
-                <div class="space-y-3 colex-card p-4 rounded-2xl mb-4">
-                    <h3 class="font-bold text-xs text-amber-custom uppercase tracking-wider">Métricas Generales</h3>
-                    <div class="flex justify-between text-sm">
-                        <span class="text-gray-400">Ítems filtrados/totales:</span>
-                        <span id="statTotal" class="font-bold text-gray-200">0</span>
-                    </div>
-                    <div class="flex justify-between text-sm">
-                        <span class="text-gray-400">Valor total estimado:</span>
-                        <span id="statValor" class="font-bold text-amber-custom">$0.00</span>
-                    </div>
-                    <div id="statDesgloseCategorias" class="pt-2 border-t border-gray-700 space-y-1 text-xs"></div>
-                </div>
-
-                <div class="space-y-2.5 pt-2">
-                    <h3 class="font-bold text-xs text-amber-custom uppercase tracking-wider">Exportar Datos</h3>
-                    <div class="grid grid-cols-3 gap-2">
-                        <button onclick="exportarCSV()" class="py-2.5 bg-green-700 text-white font-semibold rounded-xl text-xs hover:bg-green-600 transition cursor-pointer shadow-sm">CSV</button>
-                        <button onclick="exportarExcel()" class="py-2.5 bg-blue-700 text-white font-semibold rounded-xl text-xs hover:bg-blue-600 transition cursor-pointer shadow-sm">Excel</button>
-                        <button onclick="exportarPDF()" class="py-2.5 bg-red-700 text-white font-semibold rounded-xl text-xs hover:bg-red-600 transition cursor-pointer shadow-sm">PDF</button>
-                    </div>
-                </div>
-            </section>
-
-        </div>
-    </div>
-
-    <!-- Supabase UMD Global -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <!-- Script Principal -->
-    <script src="app.js?v=2026.10.4"></script>
-</body>
-</html>
+                        <input type="text" id="filtroEditorial" placeholder="Ej. Marvel..." class="w-full p-2.5 colex-input rounded-xl text-xs placeholder-gray
