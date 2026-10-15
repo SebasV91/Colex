@@ -1,4 +1,4 @@
-// ================= CONFIGURACIÓN SUPABASE SIN CONFLICTOS DE DECLARACIÓN =================
+// ================= CONFIGURACIÓN SUPABASE =================
 const SUPABASE_URL = 'https://ljxhehuierhexvkveszr.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_o_m6elxMjBmViae-LChBfQ_G4BB8LAy';
 
@@ -8,7 +8,7 @@ try {
         dbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 } catch (e) {
-    console.error('Error al inicializar cliente de base de datos:', e);
+    console.error('Error al inicializar cliente de datos:', e);
 }
 
 // Estado Global
@@ -17,6 +17,15 @@ let coleccionFiltrada = [];
 let mapaObras = {}; 
 let base64Comprimido = '';
 let modoVitrinaActivo = false;
+let monedaSeleccionada = localStorage.getItem('colex_moneda') || 'USD';
+
+const SIMBOLOS_MONEDA = {
+    "USD": "$",
+    "COP": "$",
+    "EUR": "€",
+    "MXN": "$",
+    "ARS": "$"
+};
 
 const SUBTIPOS_MAP = {
     "Cómic / Manga / Libro / Fanzine / Revista": ["Cómic", "Novela Gráfica", "Manga", "Libro", "Fanzine", "Revista"],
@@ -26,6 +35,31 @@ const SUBTIPOS_MAP = {
     "Videojuegos / Retro": ["Juego Físico", "Consola", "Mando / Mandos", "Edición Coleccionista", "Accesorio"],
     "Música (LPs/Vinilos, CDs)": ["LP / Vinilo", "CD", "Cassette", "Boxset / Edición Especial"]
 };
+
+const CATEGORIA_COLORES = {
+    "Cómic / Manga / Libro / Fanzine / Revista": "bg-amber-500",
+    "Cartas TCG": "bg-blue-500",
+    "Vehículos a Escala (Hot Wheels)": "bg-red-500",
+    "Figuras / Funkos / Estatuas": "bg-purple-500",
+    "Videojuegos / Retro": "bg-green-500",
+    "Música (LPs/Vinilos, CDs)": "bg-pink-500",
+    "Otro": "bg-gray-400"
+};
+
+// Formateador de dinero (sin decimales y con separación de miles)
+function formatearDinero(valor) {
+    const num = Math.round(valor || 0);
+    const formateado = num.toLocaleString('en-US'); // Separa por comas cada 3 dígitos
+    const simbolo = SIMBOLOS_MONEDA[monedaSeleccionada] || '$';
+    return `${simbolo}${formateado} ${monedaSeleccionada !== 'USD' && monedaSeleccionada !== 'EUR' ? monedaSeleccionada : ''}`.trim();
+}
+
+function cambiarMoneda(nuevaMoneda) {
+    monedaSeleccionada = nuevaMoneda;
+    localStorage.setItem('colex_moneda', nuevaMoneda);
+    renderizarColeccion(coleccionFiltrada);
+    calcularEstadisticas();
+}
 
 // ================= NAVEGACIÓN Y VISTAS =================
 function cambiarPantalla(idPantalla) {
@@ -74,7 +108,7 @@ function irAFormulario(idObra = null) {
         document.getElementById('autor').value = obra.autor || '';
         document.getElementById('editorial').value = obra.editorial || '';
         document.getElementById('estadoFisico').value = obra.estado_fisico || 'Nuevo / Mint';
-        document.getElementById('valorManual').value = obra.valor_manual || 0.00;
+        document.getElementById('valorManual').value = Math.round(obra.valor_manual || 0);
         document.getElementById('portadaUrl').value = obra.portada_url || '';
         document.getElementById('notas').value = obra.notas || '';
     } else {
@@ -86,6 +120,8 @@ function irAFormulario(idObra = null) {
 }
 
 function irAEstadisticas() {
+    const selectMoneda = document.getElementById('selectMoneda');
+    if (selectMoneda) selectMoneda.value = monedaSeleccionada;
     calcularEstadisticas();
     cambiarPantalla('viewStats');
 }
@@ -118,20 +154,31 @@ function inicializarModoVitrina() {
 
 // ================= SELECTORES Y COMPRESIÓN =================
 function cambiarTipo(categoria) {
-    const subtipoSelect = document.getElementById('subtipoMaterial');
+    const subtipoContainer = document.getElementById('subtipoContainer');
     const leidoContainer = document.getElementById('leidoContainer');
-    if (!subtipoSelect) return;
+    if (!subtipoContainer) return;
 
-    subtipoSelect.innerHTML = '<option value="" class="bg-gray-900">Selecciona variante...</option>';
+    if (categoria === 'Otro') {
+        subtipoContainer.innerHTML = `
+            <input type="text" id="subtipoMaterial" required placeholder="Escribe el formato o variante..." class="w-full p-3 colex-input rounded-xl text-sm">
+        `;
+    } else {
+        subtipoContainer.innerHTML = `
+            <select id="subtipoMaterial" required class="w-full p-3 colex-input rounded-xl text-sm">
+                <option value="" class="bg-gray-900">Selecciona variante...</option>
+            </select>
+        `;
 
-    if (categoria && SUBTIPOS_MAP[categoria]) {
-        SUBTIPOS_MAP[categoria].forEach(sub => {
-            const opt = document.createElement('option');
-            opt.value = sub;
-            opt.textContent = sub;
-            opt.className = 'bg-gray-900';
-            subtipoSelect.appendChild(opt);
-        });
+        const subtipoSelect = document.getElementById('subtipoMaterial');
+        if (categoria && SUBTIPOS_MAP[categoria]) {
+            SUBTIPOS_MAP[categoria].forEach(sub => {
+                const opt = document.createElement('option');
+                opt.value = sub;
+                opt.textContent = sub;
+                opt.className = 'bg-gray-900';
+                subtipoSelect.appendChild(opt);
+            });
+        }
     }
 
     if (leidoContainer) {
@@ -204,19 +251,20 @@ async function guardarObra(event) {
 
     const tipoCat = document.getElementById('tipoMaterial').value;
     const esLibro = (tipoCat === 'Cómic / Manga / Libro / Fanzine / Revista');
+    const subtipoElem = document.getElementById('subtipoMaterial');
 
     const payload = {
         titulo: document.getElementById('titulo').value,
         numero: document.getElementById('numero').value,
         anio: parseInt(document.getElementById('anio').value) || null,
         tipo_material: tipoCat,
-        subtipo_material: document.getElementById('subtipoMaterial').value,
+        subtipo_material: subtipoElem ? subtipoElem.value : '',
         leido: esLibro ? document.getElementById('chkLeido').checked : false,
         estrellas: parseInt(document.getElementById('estrellas').value) || 0,
         autor: document.getElementById('autor').value,
         editorial: document.getElementById('editorial').value,
         estado_fisico: document.getElementById('estadoFisico').value,
-        valor_manual: parseFloat(document.getElementById('valorManual').value) || 0.00,
+        valor_manual: Math.round(parseFloat(document.getElementById('valorManual').value) || 0),
         portada_url: portadaFinal,
         notas: document.getElementById('notas').value
     };
@@ -300,7 +348,7 @@ function renderizarColeccion(lista) {
                 </div>
             </div>
             <div class="text-right flex-shrink-0">
-                <span class="block font-bold text-amber-custom text-sm">$${(item.valor_manual || 0).toFixed(2)}</span>
+                <span class="block font-bold text-amber-custom text-sm">${formatearDinero(item.valor_manual)}</span>
                 <span class="text-[10px] text-gray-400 block">${item.anio || ''}</span>
             </div>
         `;
@@ -367,7 +415,7 @@ function verDetalle(id) {
             </div>
             <div class="flex justify-between border-b border-gray-700 pb-1.5">
                 <span class="text-gray-400 font-semibold">Precio Estimado:</span>
-                <span class="text-amber-custom font-bold text-sm">$${(item.valor_manual || 0).toFixed(2)}</span>
+                <span class="text-amber-custom font-bold text-sm">${formatearDinero(item.valor_manual)}</span>
             </div>
             ${item.notas ? `
             <div class="pt-1">
@@ -441,6 +489,7 @@ function limpiarFiltros() {
     irAColeccion();
 }
 
+// CÁLCULO Y GRÁFICOS
 function calcularEstadisticas() {
     const totalItems = coleccionFiltrada.length;
     const valorTotal = coleccionFiltrada.reduce((acc, curr) => acc + (curr.valor_manual || 0), 0);
@@ -448,23 +497,44 @@ function calcularEstadisticas() {
     const statTotal = document.getElementById('statTotal');
     const statValor = document.getElementById('statValor');
     if (statTotal) statTotal.innerText = `${totalItems} / ${coleccionData.length}`;
-    if (statValor) statValor.innerText = `$${valorTotal.toFixed(2)}`;
+    if (statValor) statValor.innerText = formatearDinero(valorTotal);
 
     const desgloses = {};
+    const valoresPorCat = {};
+
     coleccionFiltrada.forEach(item => {
-        const cat = item.tipo_material || 'Sin Categoría';
+        const cat = item.tipo_material || 'Otro';
         desgloses[cat] = (desgloses[cat] || 0) + 1;
+        valoresPorCat[cat] = (valoresPorCat[cat] || 0) + (item.valor_manual || 0);
     });
 
-    const contenedor = document.getElementById('statDesgloseCategorias');
-    if (!contenedor) return;
-    contenedor.innerHTML = '<span class="text-amber-custom font-semibold block mb-1">Desglose por categoría:</span>';
+    const contenedorGrafico = document.getElementById('statGraficoCategorias');
+    if (!contenedorGrafico) return;
+    contenedorGrafico.innerHTML = '';
+
+    if (totalItems === 0) {
+        contenedorGrafico.innerHTML = '<span class="text-xs text-gray-500 italic block">Sin datos disponibles para graficar.</span>';
+        return;
+    }
 
     Object.keys(desgloses).forEach(cat => {
-        const row = document.createElement('div');
-        row.className = 'flex justify-between text-gray-300';
-        row.innerHTML = `<span>${cat}:</span><span class="font-bold">${desgloses[cat]}</span>`;
-        contenedor.appendChild(row);
+        const cantidad = desgloses[cat];
+        const valorCat = valoresPorCat[cat] || 0;
+        const porcentaje = ((cantidad / totalItems) * 100).toFixed(1);
+        const colorBarra = CATEGORIA_COLORES[cat] || 'bg-amber-600';
+
+        const barBlock = document.createElement('div');
+        barBlock.className = 'space-y-1';
+        barBlock.innerHTML = `
+            <div class="flex justify-between items-center text-[11px]">
+                <span class="text-gray-300 font-semibold truncate max-w-[180px]" title="${cat}">${cat}</span>
+                <span class="text-gray-400 font-medium">${cantidad} u. (${porcentaje}%) — ${formatearDinero(valorCat)}</span>
+            </div>
+            <div class="w-full bg-gray-800 rounded-full h-2.5 overflow-hidden border border-gray-700 flex">
+                <div class="${colorBarra} h-2.5 rounded-full transition-all duration-500" style="width: ${porcentaje}%;"></div>
+            </div>
+        `;
+        contenedorGrafico.appendChild(barBlock);
     });
 }
 
@@ -481,9 +551,98 @@ function exportarExcel() {
     exportarCSV();
 }
 
+// Generación de Reporte PDF Filtrado e Imprimible Robusto
 function exportarPDF() {
-    if (coleccionFiltrada.length === 0) return alert('No hay datos para exportar.');
-    window.print();
+    if (coleccionFiltrada.length === 0) return alert('No hay datos filtrados para exportar a PDF.');
+
+    const valorTotal = coleccionFiltrada.reduce((acc, curr) => acc + (curr.valor_manual || 0), 0);
+    const fechaReporte = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    let filasTabla = '';
+    coleccionFiltrada.forEach((item, index) => {
+        filasTabla += `
+            <tr style="border-bottom: 1px solid #e2e8f0; ${index % 2 === 0 ? 'background-color: #f8fafc;' : ''}">
+                <td style="padding: 8px; text-align: center;">${item.id}</td>
+                <td style="padding: 8px; font-weight: bold; color: #0f172a;">${item.titulo}</td>
+                <td style="padding: 8px;">${item.tipo_material}</td>
+                <td style="padding: 8px;">${item.subtipo_material || '-'}</td>
+                <td style="padding: 8px;">${item.autor || '-'}</td>
+                <td style="padding: 8px;">${item.editorial || '-'}</td>
+                <td style="padding: 8px; text-align: center;">${item.anio || '-'}</td>
+                <td style="padding: 8px; text-align: right; font-weight: bold; color: #b45309;">${formatearDinero(item.valor_manual)}</td>
+            </tr>
+        `;
+    });
+
+    const ventanaImp = window.open('', '_blank');
+    if (!ventanaImp) {
+        alert('Por favor permite las ventanas emergentes (pop-ups) para generar el PDF.');
+        return;
+    }
+
+    ventanaImp.document.write(`
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+            <meta charset="UTF-8">
+            <title>ColeX - Reporte de Colección</title>
+            <style>
+                body { font-family: system-ui, -apple-system, sans-serif; padding: 25px; color: #1e293b; background: #fff; }
+                .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #b45309; padding-bottom: 12px; margin-bottom: 20px; }
+                .title { font-size: 24px; font-weight: 900; color: #b45309; }
+                .meta { font-size: 12px; color: #64748b; }
+                .summary { display: flex; gap: 20px; margin-bottom: 20px; background: #f1f5f9; padding: 12px 18px; border-radius: 8px; }
+                .summary-item { font-size: 13px; font-weight: 600; }
+                table { width: 100%; border-collapse: collapse; font-size: 12px; }
+                th { background-color: #0f172a; color: #fff; padding: 10px; text-align: left; }
+                @media print {
+                    @page { margin: 1.5cm; }
+                    body { padding: 0; }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <div>
+                    <div class="title">ColeX — Reporte de Colección</div>
+                    <div class="meta">Generado el ${fechaReporte} (${monedaSeleccionada})</div>
+                </div>
+            </div>
+
+            <div class="summary">
+                <div class="summary-item">Ítems Filtrados: <span style="color:#b45309">${coleccionFiltrada.length} / ${coleccionData.length}</span></div>
+                <div class="summary-item">Valor Total Estimado: <span style="color:#b45309">${formatearDinero(valorTotal)}</span></div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th style="text-align: center;">ID</th>
+                        <th>Título</th>
+                        <th>Categoría</th>
+                        <th>Variante</th>
+                        <th>Autor / Artista</th>
+                        <th>Editorial / Fabricante</th>
+                        <th style="text-align: center;">Año</th>
+                        <th style="text-align: right;">Valor</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${filasTabla}
+                </tbody>
+            </table>
+
+            <script>
+                window.onload = function() {
+                    setTimeout(() => {
+                        window.print();
+                    }, 250);
+                };
+            </script>
+        </body>
+        </html>
+    `);
+    ventanaImp.document.close();
 }
 
 function descargarArchivo(contenido, nombre, tipo) {
