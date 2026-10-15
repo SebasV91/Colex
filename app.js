@@ -268,6 +268,21 @@ async function eliminarObra(id) {
 }
 
 // ================= RENDERIZADO Y BÚSQUEDA =================
+function generarEstrellasHtml(numEstrellas, tamano = 'text-xs') {
+    if (!numEstrellas || numEstrellas <= 0) return '';
+
+    let html = `<span class="${tamano} font-bold inline-flex items-center space-x-0.5">`;
+    for (let i = 1; i <= 5; i++) {
+        if (i <= numEstrellas) {
+            html += `<span style="color: #fbbf24 !important; text-shadow: 0 0 3px rgba(251, 191, 36, 0.4);">★</span>`;
+        } else {
+            html += `<span class="opacity-30" style="color: #64748b !important;">★</span>`;
+        }
+    }
+    html += `</span>`;
+    return html;
+}
+
 function renderizarColeccion(lista) {
     const contenedor = document.getElementById('listColeccion');
     if (!contenedor) return;
@@ -281,10 +296,8 @@ function renderizarColeccion(lista) {
     lista.forEach(item => {
         const esLectura = (item.tipo_material === 'Cómic / Manga / Libro / Fanzine / Revista');
         
-        const numEstrellas = item.estrellas || 0;
-        const estrellasHtml = numEstrellas > 0 
-            ? `<span class="text-xs font-bold" style="color: #fbbf24 !important; text-shadow: 0 0 3px rgba(251, 191, 36, 0.4);">` + '★'.repeat(numEstrellas) + `</span>` 
-            : '';
+        // Estrellas doradas + fantasma
+        const estrellasHtml = generarEstrellasHtml(item.estrellas, 'text-xs');
 
         const tagsArray = item.etiquetas ? item.etiquetas.split(',').map(t => t.trim()).filter(Boolean) : [];
         const tagsHtml = tagsArray.map(t => `<span class="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-md text-[10px] font-semibold">${t}</span>`).join(' ');
@@ -325,7 +338,10 @@ function verDetalle(id) {
     const numEstrellas = item.estrellas || 0;
     
     const estrellasHtml = numEstrellas > 0 
-        ? `<div class="text-lg font-bold" style="color: #fbbf24 !important; text-shadow: 0 0 4px rgba(251, 191, 36, 0.5);">` + '★'.repeat(numEstrellas) + ` <span class="text-xs text-gray-400 font-normal">(${numEstrellas}/5)</span></div>` 
+        ? `<div class="flex items-center justify-center gap-1 mt-1">
+            ${generarEstrellasHtml(numEstrellas, 'text-lg')}
+            <span class="text-xs text-gray-400 font-normal ml-1">(${numEstrellas}/5)</span>
+           </div>`
         : '<span class="text-xs text-gray-500">Sin calificar</span>';
 
     const tagsArray = item.etiquetas ? item.etiquetas.split(',').map(t => t.trim()).filter(Boolean) : [];
