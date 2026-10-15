@@ -1,18 +1,18 @@
-// ================= CONFIGURACIÓN SUPABASE SEGURA =================
+// ================= CONFIGURACIÓN SUPABASE SIN CONFLICTOS DE NOMBRE =================
 const SUPABASE_URL = 'https://ljxhehuierhexvkveszr.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_o_m6elxMjBmViae-LChBfQ_G4BB8LAy';
 
-// Inicialización blindada contra re-declaraciones múltiples
-let supabase = null;
+// Usamos dbClient para NO volver a declarar 'supabase' y evitar el SyntaxError
+let dbClient = null;
 try {
     if (window.supabase && typeof window.supabase.createClient === 'function') {
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        dbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 } catch (e) {
-    console.error('Error al inicializar Supabase:', e);
+    console.error('Error al inicializar cliente de datos:', e);
 }
 
-// Estado Global de la Aplicación
+// Estado Global
 let coleccionData = [];
 let coleccionFiltrada = [];
 let mapaObras = {}; 
@@ -172,9 +172,9 @@ function procesarArchivo(input) {
 
 // ================= OPERACIONES DE BASE DE DATOS (CRUD) =================
 async function cargarColeccion() {
-    if (!supabase) return;
+    if (!dbClient) return;
     try {
-        const { data, error } = await supabase
+        const { data, error } = await dbClient
             .from('obras')
             .select('*')
             .order('id', { ascending: false });
@@ -194,7 +194,7 @@ async function cargarColeccion() {
 
 async function guardarObra(event) {
     if (event) event.preventDefault();
-    if (!supabase) return;
+    if (!dbClient) return;
 
     const id = document.getElementById('editObraId').value;
     const urlDirecta = document.getElementById('portadaUrl').value;
@@ -221,10 +221,10 @@ async function guardarObra(event) {
 
     try {
         if (id) {
-            const { error } = await supabase.from('obras').update(payload).eq('id', id);
+            const { error } = await dbClient.from('obras').update(payload).eq('id', id);
             if (error) throw error;
         } else {
-            const { error } = await supabase.from('obras').insert([payload]);
+            const { error } = await dbClient.from('obras').insert([payload]);
             if (error) throw error;
         }
 
@@ -236,11 +236,11 @@ async function guardarObra(event) {
 }
 
 async function eliminarObra(id) {
-    if (modoVitrinaActivo || !supabase) return;
+    if (modoVitrinaActivo || !dbClient) return;
     if (!confirm('¿Estás seguro de que deseas eliminar este coleccionable?')) return;
 
     try {
-        const { error } = await supabase.from('obras').delete().eq('id', id);
+        const { error } = await dbClient.from('obras').delete().eq('id', id);
         if (error) throw error;
 
         await cargarColeccion();
@@ -493,7 +493,7 @@ function descargarArchivo(contenido, nombre, tipo) {
     URL.revokeObjectURL(url);
 }
 
-// Carga Inicial al Arrancar el DOM
+// Inicialización de la App
 document.addEventListener('DOMContentLoaded', () => {
     inicializarModoVitrina();
     cargarColeccion();
