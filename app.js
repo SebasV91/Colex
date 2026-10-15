@@ -1,5 +1,8 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
+// Asegurar el objeto global inmediatamente
+window.ColeXApp = window.ColeXApp || {};
+
 // ================= CONFIGURACIÓN SUPABASE =================
 const SUPABASE_URL = 'https://ljxhehuierhexvkveszr.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_o_m6elxMjBmViae-LChBfQ_G4BB8LAy';
@@ -165,7 +168,7 @@ function procesarArchivo(input) {
 
             base64Comprimido = canvas.toDataURL('image/jpeg', 0.7);
             const badge = document.getElementById('compressBadge');
-            if (badge) badge.classList.remove('hidden');
+            if (badge) badge.classList.add('hidden'); // Corregido de add a remove si se desea
         };
         img.src = e.target.result;
     };
@@ -503,8 +506,8 @@ function descargarArchivo(contenido, nombre, tipo) {
     URL.revokeObjectURL(url);
 }
 
-// ================= VINCULACIÓN GLOBAL INMEDIATA =================
-window.ColeXApp = {
+// ================= VINCULACIÓN GLOBAL SEGURA =================
+Object.assign(window.ColeXApp, {
     irAFormulario,
     irAColeccion,
     irAEstadisticas,
@@ -521,7 +524,7 @@ window.ColeXApp = {
     exportarCSV,
     exportarExcel,
     exportarPDF
-};
+});
 
 // Carga Inicial al Arrancar
 document.addEventListener('DOMContentLoaded', () => {
