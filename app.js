@@ -1,8 +1,8 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
 // Configuración e Inicialización de Supabase
-const SUPABASE_URL = 'https://TU_SUPABASE_URL.supabase.co'; // Reemplaza con tu URL real
-const SUPABASE_ANON_KEY = 'TU_SUPABASE_ANON_KEY';           // Reemplaza con tu Key real
+const SUPABASE_URL = 'https://ljxhehuierhexvkveszr.supabase.co'; // Reemplaza con tu URL real
+const SUPABASE_ANON_KEY = 'sb_publishable_o_m6elxMjBmViae-LChBfQ_G4BB8LAy';           // Reemplaza con tu Key real
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
