@@ -8,6 +8,9 @@
     <!-- Tailwind CSS v2 Estático -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     
+    <!-- Supabase UMD -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <style>
         .library-bg {
             background-image: linear-gradient(rgba(15, 23, 42, 0.92), rgba(30, 20, 10, 0.96)), url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=1200&q=80');
@@ -27,28 +30,6 @@
 
         body.public-mode .admin-only { display: none !important; }
     </style>
-
-    <!-- Stub de Seguridad Inmediato -->
-    <script>
-        window.ColeXApp = {
-            irAFormulario: () => {},
-            irAColeccion: () => {},
-            irAEstadisticas: () => {},
-            guardarObra: (e) => { if(e) e.preventDefault(); },
-            verDetalle: () => {},
-            eliminarObra: () => {},
-            toggleModoVitrina: () => {},
-            buscar: () => {},
-            ordenarColeccion: () => {},
-            cambiarTipo: () => {},
-            procesarArchivo: () => {},
-            aplicarFiltros: () => {},
-            limpiarFiltros: () => {},
-            exportarCSV: () => {},
-            exportarExcel: () => {},
-            exportarPDF: () => {}
-        };
-    </script>
 </head>
 <body class="library-bg text-slate-100 min-h-screen flex justify-center items-center p-0 sm:p-4">
 
@@ -311,10 +292,27 @@
         </div>
     </div>
 
-    <!-- Supabase UMD Script Global -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <!-- Script Principal renombrado a main.js para evitar caché -->
-    <script src="main.js?v=1.0"></script>
-</body>
-</html>
+    <!-- ================= SCRIPT INTEGRADO (GLOBAL DEFINITIVO) ================= -->
+    <script>
+        const SUPABASE_URL = 'https://ljxhehuierhexvkveszr.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_o_m6elxMjBmViae-LChBfQ_G4BB8LAy';
+
+        let supabase = null;
+        try {
+            if (window.supabase && SUPABASE_URL && SUPABASE_ANON_KEY) {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            }
+        } catch (e) {
+            console.error('Error al inicializar Supabase:', e);
+        }
+
+        let coleccionData = [];
+        let coleccionFiltrada = [];
+        let mapaObras = {}; 
+        let base64Comprimido = '';
+        let modoVitrinaActivo = false;
+
+        const SUBTIPOS_MAP = {
+            "Cómic / Manga / Libro / Fanzine / Revista": ["Cómic", "Novela Gráfica", "Manga", "Libro", "Fanzine", "Revista"],
+            "Cartas TCG": ["Cartas Sueltas / Singles", "Sobres / Packs", "Cajas / Booster Box", "Decks / Mazos", "Accesorios / Protecciones"],
+            "Vehículos a Esc
