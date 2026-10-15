@@ -34,10 +34,12 @@
     <!-- Stub de Seguridad contra Race Conditions -->
     <script>
         window.ColeXApp = window.ColeXApp || {
-            irAFormulario: () => console.log('Cargando sistema...'),
-            irAColeccion: () => console.log('Cargando sistema...'),
-            irAEstadisticas: () => console.log('Cargando sistema...'),
-            guardarObra: (e) => { e.preventDefault(); console.log('Cargando sistema...'); },
+            irAFormulario: () => {},
+            irAColeccion: () => {},
+            irAEstadisticas: () => {},
+            guardarObra: (e) => { if(e) e.preventDefault(); },
+            verDetalle: () => {},
+            eliminarObra: () => {},
             toggleModoVitrina: () => {},
             buscar: () => {},
             ordenarColeccion: () => {},
@@ -74,8 +76,8 @@
                 <div class="flex justify-between items-center mb-4 pt-2">
                     <div class="flex items-center space-x-3">
                         <div class="flex items-center shadow-lg rounded-xl overflow-hidden border-2 border-amber-600">
-                            <span class="cx-block-c font-black text-base px-4 py-2.5 flex items-center justify-center tracking-tighter" style="background-color: #ea580c !important; color: #ffffff !important;">C</span>
-                            <span class="cx-block-x font-black text-base px-4 py-2.5 flex items-center justify-center tracking-tighter" style="background-color: #f97316 !important; color: #ffffff !important;">X</span>
+                            <span class="cx-block-c font-black text-base px-4 py-2.5 flex items-center justify-center tracking-tighter">C</span>
+                            <span class="cx-block-x font-black text-base px-4 py-2.5 flex items-center justify-center tracking-tighter">X</span>
                         </div>
                         <h1 class="text-3xl font-extrabold text-amber-custom tracking-tight">ColeX</h1>
                     </div>
@@ -89,7 +91,7 @@
 
                 <!-- Buscador y Selector de Ordenamiento -->
                 <div class="mb-4 space-y-2">
-                    <input type="text" id="searchInput" oninput="ColeXApp.buscar(this.value)" placeholder="🔍 Buscar por título, autor, marca..." class="w-full p-3 colex-input rounded-xl text-sm placeholder-gray-400 transition">
+                    <input type="text" id="searchInput" oninput="ColeXApp.buscar(this.value)" placeholder="🔍 Buscar por título, autor, notas..." class="w-full p-3 colex-input rounded-xl text-sm placeholder-gray-400 transition">
                     <div class="flex items-center justify-between">
                         <span class="text-[11px] text-amber-custom font-semibold">Ordenar por:</span>
                         <select id="selectOrden" onchange="ColeXApp.ordenarColeccion(this.value)" class="p-2 colex-input rounded-xl text-xs">
@@ -110,35 +112,4 @@
 
                 <!-- Navegación Inferior -->
                 <div class="pt-3 pb-2 mt-2 border-t border-gray-800 flex justify-around items-center text-gray-400 colex-container">
-                    <button onclick="ColeXApp.irAFormulario()" class="text-3xl font-bold hover:text-amber-custom transition cursor-pointer p-2 admin-only">+</button>
-                    <button onclick="ColeXApp.irAEstadisticas()" class="text-2xl hover:text-amber-custom transition cursor-pointer p-2" title="Filtros y Estadísticas">🔍</button>
-                </div>
-            </section>
-
-            <!-- ================= PANTALLA 2: DETALLE DE LA OBRA ================= -->
-            <section id="viewDetalle" class="app-screen hidden flex-1 flex flex-col p-5 overflow-y-auto colex-container">
-                <button onclick="ColeXApp.irAColeccion()" class="text-amber-custom hover:text-white text-2xl mb-4 self-start cursor-pointer font-bold">←</button>
-                <div id="detalleContent" class="space-y-4">
-                    <!-- Se inyecta dinámicamente con JS -->
-                </div>
-            </section>
-
-            <!-- ================= PANTALLA 3: AGREGAR / EDITAR ÍTEM ================= -->
-            <section id="viewForm" class="app-screen hidden flex-1 flex flex-col p-5 overflow-y-auto colex-container">
-                <div class="flex items-center mb-6 pt-2">
-                    <button onclick="ColeXApp.irAColeccion()" class="text-amber-custom hover:text-white text-2xl mr-4 cursor-pointer font-bold">←</button>
-                    <h2 id="formTitle" class="text-xl font-bold text-amber-custom">Agregar Coleccionable</h2>
-                </div>
-
-                <form id="formObra" onsubmit="ColeXApp.guardarObra(event)" class="space-y-4 flex-1 flex flex-col justify-between pb-4">
-                    <input type="hidden" id="editObraId" value="">
-
-                    <div class="space-y-3.5">
-                        <!-- Cuadro de Portada / Foto Dual con Compresión -->
-                        <div class="flex flex-col p-4 colex-card rounded-2xl border-2 border-dashed border-gray-600 space-y-2.5">
-                            <span class="text-xs font-bold text-amber-custom flex items-center justify-between">
-                                <span>📷 Foto / Portada</span>
-                                <span id="compressBadge" class="hidden text-[10px] text-green-400 font-normal">⚡ Imagen Comprimida</span>
-                            </span>
-                            <div>
-                                <label for="portadaFile"
+                    <button onclick="ColeXApp.irAFormulario()" class="text-3xl font-
