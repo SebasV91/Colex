@@ -27,6 +27,17 @@ const SUBTIPOS_MAP = {
     "Música (LPs/Vinilos, CDs)": ["LP / Vinilo", "CD", "Cassette", "Boxset / Edición Especial"]
 };
 
+// Paleta de colores temáticos para las barras gráficas
+const CATEGORIA_COLORES = {
+    "Cómic / Manga / Libro / Fanzine / Revista": "bg-amber-500",
+    "Cartas TCG": "bg-blue-500",
+    "Vehículos a Escala (Hot Wheels)": "bg-red-500",
+    "Figuras / Funkos / Estatuas": "bg-purple-500",
+    "Videojuegos / Retro": "bg-green-500",
+    "Música (LPs/Vinilos, CDs)": "bg-pink-500",
+    "Otro": "bg-gray-400"
+};
+
 // ================= NAVEGACIÓN Y VISTAS =================
 function cambiarPantalla(idPantalla) {
     document.querySelectorAll('.app-screen').forEach(screen => screen.classList.add('hidden'));
@@ -453,6 +464,7 @@ function limpiarFiltros() {
     irAColeccion();
 }
 
+// CÁLCULO Y RENDERIZADO DE GRÁFICOS VISUALES
 function calcularEstadisticas() {
     const totalItems = coleccionFiltrada.length;
     const valorTotal = coleccionFiltrada.reduce((acc, curr) => acc + (curr.valor_manual || 0), 0);
@@ -462,21 +474,43 @@ function calcularEstadisticas() {
     if (statTotal) statTotal.innerText = `${totalItems} / ${coleccionData.length}`;
     if (statValor) statValor.innerText = `$${valorTotal.toFixed(2)}`;
 
+    // Acumuladores por categoría
     const desgloses = {};
+    const valoresPorCat = {};
+
     coleccionFiltrada.forEach(item => {
-        const cat = item.tipo_material || 'Sin Categoría';
+        const cat = item.tipo_material || 'Otro';
         desgloses[cat] = (desgloses[cat] || 0) + 1;
+        valoresPorCat[cat] = (valoresPorCat[cat] || 0) + (item.valor_manual || 0);
     });
 
-    const contenedor = document.getElementById('statDesgloseCategorias');
-    if (!contenedor) return;
-    contenedor.innerHTML = '<span class="text-amber-custom font-semibold block mb-1">Desglose por categoría:</span>';
+    const contenedorGrafico = document.getElementById('statGraficoCategorias');
+    if (!contenedorGrafico) return;
+    contenedorGrafico.innerHTML = '';
+
+    if (totalItems === 0) {
+        contenedorGrafico.innerHTML = '<span class="text-xs text-gray-500 italic block">Sin datos disponibles para graficar.</span>';
+        return;
+    }
 
     Object.keys(desgloses).forEach(cat => {
-        const row = document.createElement('div');
-        row.className = 'flex justify-between text-gray-300';
-        row.innerHTML = `<span>${cat}:</span><span class="font-bold">${desgloses[cat]}</span>`;
-        contenedor.appendChild(row);
+        const cantidad = desgloses[cat];
+        const valorCat = valoresPorCat[cat] || 0;
+        const porcentaje = ((cantidad / totalItems) * 100).toFixed(1);
+        const colorBarra = CATEGORIA_COLORES[cat] || 'bg-amber-600';
+
+        const barBlock = document.createElement('div');
+        barBlock.className = 'space-y-1';
+        barBlock.innerHTML = `
+            <div class="flex justify-between items-center text-[11px]">
+                <span class="text-gray-300 font-semibold truncate max-w-[200px]" title="${cat}">${cat}</span>
+                <span class="text-gray-400 font-medium">${cantidad} u. <span class="text-amber-custom font-bold">(${porcentaje}%)</span> — $${valorCat.toFixed(2)}</span>
+            </div>
+            <div class="w-full bg-gray-800 rounded-full h-2.5 overflow-hidden border border-gray-700 flex">
+                <div class="${colorBarra} h-2.5 rounded-full transition-all duration-500" style="width: ${porcentaje}%;"></div>
+            </div>
+        `;
+        contenedorGrafico.appendChild(barBlock);
     });
 }
 
@@ -493,7 +527,7 @@ function exportarExcel() {
     exportarCSV();
 }
 
-// Generación de Reporte PDF Filtrado e Imprimible
+// Generación de Reporte PDF
 function exportarPDF() {
     if (coleccionFiltrada.length === 0) return alert('No hay datos filtrados para exportar a PDF.');
 
