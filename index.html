@@ -29,15 +29,15 @@
     <!-- Contenedor Principal con Escudo Sutil de Fondo -->
     <div class="w-full max-w-md colex-container min-h-screen sm:min-h-[880px] sm:max-h-[920px] sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden relative">
         
-        <!-- Marca de Agua de Fondo: Escudo Superhéroe Ultra-Sutil e Imperceptible -->
+        <!-- Marca de Agua de Fondo: Escudo Superhéroe Centrado y Ajustado -->
         <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-0 select-none overflow-hidden opacity-8">
             <svg class="w-80 h-80 sm:w-96 sm:h-96 text-amber-500" viewBox="0 0 200 220" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <!-- Contorno del Escudo de Superhéroe con baja opacidad -->
-                <path d="M100 10 L185 35 C185 125 145 180 100 210 C55 180 15 125 15 35 Z" fill="none" stroke="currentColor" stroke-width="6" stroke-linejoin="round" stroke-opacity="0.35"/>
-                <!-- Letra C sutil -->
-                <text x="42" y="138" font-family="system-ui, sans-serif" font-weight="900" font-size="95" fill="currentColor" fill-opacity="0.3">C</text>
-                <!-- Letra X en tono naranja muy tenue -->
-                <text x="110" y="138" font-family="system-ui, sans-serif" font-weight="900" font-size="95" fill="#fb923c" fill-opacity="0.3">X</text>
+                <!-- Contorno del Escudo de Superhéroe -->
+                <path d="M100 15 L180 38 C180 120 145 175 100 205 C55 175 20 120 20 38 Z" fill="none" stroke="currentColor" stroke-width="6" stroke-linejoin="round" stroke-opacity="0.35"/>
+                <!-- Letra C perfectamente contenida -->
+                <text x="50" y="122" font-family="system-ui, sans-serif" font-weight="900" font-size="72" fill="currentColor" fill-opacity="0.3">C</text>
+                <!-- Letra X perfectamente contenida -->
+                <text x="112" y="122" font-family="system-ui, sans-serif" font-weight="900" font-size="72" fill="#fb923c" fill-opacity="0.3">X</text>
             </svg>
         </div>
 
@@ -46,12 +46,12 @@
 
             <!-- ================= PANTALLA 1: MI COLECCIÓN ================= -->
             <section id="viewColeccion" class="app-screen flex-1 flex flex-col p-5 overflow-y-auto">
-                <!-- Header con Logo CX Ampliado, Naranja y Letras Blancas -->
+                <!-- Header con Logo CX Sólido y Ampliado -->
                 <div class="flex justify-between items-center mb-4 pt-2">
                     <div class="flex items-center space-x-3">
                         <div class="flex items-center shadow-lg rounded-xl overflow-hidden border-2 border-amber-600">
-                            <div class="bg-orange-600 text-white font-black text-base px-4 py-2.5 flex items-center justify-center tracking-tighter">C</div>
-                            <div class="bg-orange-500 text-white font-black text-base px-4 py-2.5 flex items-center justify-center tracking-tighter">X</div>
+                            <span class="bg-orange-600 text-white font-black text-base px-4 py-2.5 flex items-center justify-center tracking-tighter">C</span>
+                            <span class="bg-orange-500 text-white font-black text-base px-4 py-2.5 flex items-center justify-center tracking-tighter">X</span>
                         </div>
                         <h1 class="text-3xl font-extrabold text-amber-custom tracking-tight">ColeX</h1>
                     </div>
@@ -275,6 +275,10 @@
         </div>
     </div>
 
+    <!-- Script Principal como Módulo -->
+    <script type="module" src="app.js?v=15.0"></script>
+</body>
+</html>
     <!-- Script Principal como Módulo -->
     <script type="module" src="app.js?v=14.0"></script>
 </body>
