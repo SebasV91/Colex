@@ -1,19 +1,19 @@
-// ================= CONFIGURACIÓN SUPABASE (UMD) =================
+// ================= CONFIGURACIÓN SUPABASE (UMD BLINDADA) =================
 const SUPABASE_URL = 'https://ljxhehuierhexvkveszr.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_o_m6elxMjBmViae-LChBfQ_G4BB8LAy';
 
-// Declaración protegida para evitar conflictos de redefinición
-if (typeof window.supabaseClient === 'undefined') {
-    window.supabaseClient = null;
-    try {
-        if (window.supabase && SUPABASE_URL && SUPABASE_ANON_KEY) {
-            window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        }
-    } catch (e) {
-        console.error('Error al inicializar Supabase:', e);
+// Inicialización segura sin re-declarar variables globales conflictivas
+let dbClient = null;
+try {
+    if (window.supabase && typeof window.supabase.createClient === 'function') {
+        dbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
+} catch (e) {
+    console.error('Error al inicializar Supabase:', e);
 }
-const supabase = window.supabaseClient;
+
+// Alias universal para evitar cualquier error de sintaxis por re-declaración
+const supabase = dbClient;
 
 // Estado Global de la Aplicación
 let coleccionData = [];
@@ -534,10 +534,6 @@ window.ColeXApp = {
 };
 
 // Carga Inicial al Arrancar el DOM
-document.addEventListener('DOMContentLoaded', () => {
-    inicializarModoVitrina();
-    cargarColeccion();
-});
 document.addEventListener('DOMContentLoaded', () => {
     inicializarModoVitrina();
     cargarColeccion();
