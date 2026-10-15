@@ -2,16 +2,9 @@
 const SUPABASE_URL = 'https://ljxhehuierhexvkveszr.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_o_m6elxMjBmViae-LChBfQ_G4BB8LAy';
 
-let supabase = null;
-try {
-    if (window.supabase && typeof window.supabase.createClient === 'function') {
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    }
-} catch (e) {
-    console.error('Error al inicializar Supabase:', e);
-}
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Estado Global
+// Estado Global de la Aplicación
 let coleccionData = [];
 let coleccionFiltrada = [];
 let mapaObras = {}; 
@@ -115,31 +108,20 @@ function inicializarModoVitrina() {
 
 // ================= SELECTORES Y COMPRESIÓN =================
 function cambiarTipo(categoria) {
-    const subtipoContainer = document.getElementById('subtipoContainer');
+    const subtipoSelect = document.getElementById('subtipoMaterial');
     const leidoContainer = document.getElementById('leidoContainer');
-    if (!subtipoContainer) return;
+    if (!subtipoSelect) return;
 
-    if (categoria === 'Otro') {
-        subtipoContainer.innerHTML = `
-            <input type="text" id="subtipoMaterial" required placeholder="Escribe el formato o variante..." class="w-full p-3 colex-input rounded-xl text-sm">
-        `;
-    } else {
-        subtipoContainer.innerHTML = `
-            <select id="subtipoMaterial" required class="w-full p-3 colex-input rounded-xl text-sm">
-                <option value="" class="bg-gray-900">Selecciona variante...</option>
-            </select>
-        `;
+    subtipoSelect.innerHTML = '<option value="" class="bg-gray-900">Selecciona variante...</option>';
 
-        const subtipoSelect = document.getElementById('subtipoMaterial');
-        if (categoria && SUBTIPOS_MAP[categoria]) {
-            SUBTIPOS_MAP[categoria].forEach(sub => {
-                const opt = document.createElement('option');
-                opt.value = sub;
-                opt.textContent = sub;
-                opt.className = 'bg-gray-900';
-                subtipoSelect.appendChild(opt);
-            });
-        }
+    if (categoria && SUBTIPOS_MAP[categoria]) {
+        SUBTIPOS_MAP[categoria].forEach(sub => {
+            const opt = document.createElement('option');
+            opt.value = sub;
+            opt.textContent = sub;
+            opt.className = 'bg-gray-900';
+            subtipoSelect.appendChild(opt);
+        });
     }
 
     if (leidoContainer) {
@@ -180,12 +162,9 @@ function procesarArchivo(input) {
     reader.readAsDataURL(file);
 }
 
-// ================= CRUD SUPABASE =================
+// ================= OPERACIONES DE BASE DE DATOS (CRUD) =================
 async function cargarColeccion() {
-    if (!supabase) {
-        console.warn('Supabase no está configurado.');
-        return;
-    }
+    if (!supabase) return;
     try {
         const { data, error } = await supabase
             .from('obras')
@@ -207,10 +186,7 @@ async function cargarColeccion() {
 
 async function guardarObra(event) {
     if (event) event.preventDefault();
-    if (!supabase) {
-        alert('Supabase no está configurado.');
-        return;
-    }
+    if (!supabase) return;
 
     const id = document.getElementById('editObraId').value;
     const urlDirecta = document.getElementById('portadaUrl').value;
@@ -266,7 +242,7 @@ async function eliminarObra(id) {
     }
 }
 
-// ================= RENDERIZADO Y VISTAS =================
+// ================= RENDERIZADO Y BÚSQUEDA =================
 function generarEstrellasHtml(numEstrellas, tamano = 'text-xs') {
     if (!numEstrellas || numEstrellas <= 0) return '';
 
@@ -392,16 +368,10 @@ function verDetalle(id) {
         </div>
 
         <div class="flex space-x-3 pt-2 admin-only">
-            <button id="btnEditarDetalle" class="flex-1 py-3 bg-blue-700 hover:bg-blue-600 text-white font-bold rounded-xl transition cursor-pointer">Editar</button>
-            <button id="btnEliminarDetalle" class="flex-1 py-3 bg-red-700 hover:bg-red-600 text-white font-bold rounded-xl transition cursor-pointer">Eliminar</button>
+            <button onclick="irAFormulario(${item.id})" class="flex-1 py-3 bg-blue-700 hover:bg-blue-600 text-white font-bold rounded-xl transition cursor-pointer">Editar</button>
+            <button onclick="eliminarObra(${item.id})" class="flex-1 py-3 bg-red-700 hover:bg-red-600 text-white font-bold rounded-xl transition cursor-pointer">Eliminar</button>
         </div>
     `;
-
-    // Vincular botones dinámicos de detalle
-    const btnEdit = document.getElementById('btnEditarDetalle');
-    const btnDel = document.getElementById('btnEliminarDetalle');
-    if (btnEdit) btnEdit.onclick = () => irAFormulario(item.id);
-    if (btnDel) btnDel.onclick = () => eliminarObra(item.id);
 
     cambiarPantalla('viewDetalle');
 }
@@ -515,36 +485,8 @@ function descargarArchivo(contenido, nombre, tipo) {
     URL.revokeObjectURL(url);
 }
 
-// ================= INICIALIZACIÓN POR EVENT LISTENERS (SIN FALLOS DE CLIC) =================
+// Carga Inicial al Arrancar el DOM
 document.addEventListener('DOMContentLoaded', () => {
     inicializarModoVitrina();
     cargarColeccion();
-
-    // Enlace seguro de botones principales
-    const safeAddListener = (id, evento, callback) => {
-        const el = document.getElementById(id);
-        if (el) el.addEventListener(evento, callback);
-    };
-
-    safeAddListener('btnVitrinaToggle', 'click', toggleModoVitrina);
-    safeAddListener('btnIrFormularioHeader', 'click', () => irAFormulario(null));
-    safeAddListener('navColeccion', 'click', irAColeccion);
-    safeAddListener('navAgregar', 'click', () => irAFormulario(null));
-    safeAddListener('navStats', 'click', irAEstadisticas);
-    
-    safeAddListener('btnVolverDetalle', 'click', irAColeccion);
-    safeAddListener('btnVolverForm', 'click', irAColeccion);
-    safeAddListener('btnVolverStats', 'click', irAColeccion);
-
-    safeAddListener('formObra', 'submit', guardarObra);
-    safeAddListener('tipoMaterial', 'change', (e) => cambiarTipo(e.target.value));
-    safeAddListener('portadaFile', 'change', (e) => procesarArchivo(e.target));
-    safeAddListener('searchInput', 'input', (e) => buscar(e.target.value));
-    safeAddListener('selectOrden', 'change', (e) => ordenarColeccion(e.target.value));
-
-    safeAddListener('btnAplicarFiltros', 'click', aplicarFiltros);
-    safeAddListener('btnLimpiarFiltros', 'click', limpiarFiltros);
-    safeAddListener('btnExportCSV', 'click', exportarCSV);
-    safeAddListener('btnExportExcel', 'click', exportarExcel);
-    safeAddListener('btnExportPDF', 'click', exportarPDF);
 });
