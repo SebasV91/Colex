@@ -1,21 +1,17 @@
-// ================= CONFIGURACIÓN SUPABASE (UMD BLINDADA) =================
+// ================= CONFIGURACIÓN SUPABASE =================
 const SUPABASE_URL = 'https://ljxhehuierhexvkveszr.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_o_m6elxMjBmViae-LChBfQ_G4BB8LAy';
 
-// Inicialización segura sin re-declarar variables globales conflictivas
-let dbClient = null;
+let supabase = null;
 try {
     if (window.supabase && typeof window.supabase.createClient === 'function') {
-        dbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 } catch (e) {
     console.error('Error al inicializar Supabase:', e);
 }
 
-// Alias universal para evitar cualquier error de sintaxis por re-declaración
-const supabase = dbClient;
-
-// Estado Global de la Aplicación
+// Estado Global
 let coleccionData = [];
 let coleccionFiltrada = [];
 let mapaObras = {}; 
@@ -184,7 +180,7 @@ function procesarArchivo(input) {
     reader.readAsDataURL(file);
 }
 
-// ================= OPERACIONES DE BASE DE DATOS (CRUD) =================
+// ================= CRUD SUPABASE =================
 async function cargarColeccion() {
     if (!supabase) {
         console.warn('Supabase no está configurado.');
@@ -270,7 +266,7 @@ async function eliminarObra(id) {
     }
 }
 
-// ================= RENDERIZADO Y BÚSQUEDA =================
+// ================= RENDERIZADO Y VISTAS =================
 function generarEstrellasHtml(numEstrellas, tamano = 'text-xs') {
     if (!numEstrellas || numEstrellas <= 0) return '';
 
@@ -302,7 +298,7 @@ function renderizarColeccion(lista) {
 
         const card = document.createElement('div');
         card.className = 'colex-card p-3 rounded-2xl flex items-center justify-between gap-3 shadow-md hover:border-amber-600 transition cursor-pointer relative';
-        card.onclick = () => window.ColeXApp.verDetalle(item.id);
+        card.onclick = () => verDetalle(item.id);
 
         card.innerHTML = `
             <div class="flex items-center space-x-3 overflow-hidden">
@@ -396,10 +392,16 @@ function verDetalle(id) {
         </div>
 
         <div class="flex space-x-3 pt-2 admin-only">
-            <button onclick="window.ColeXApp.irAFormulario(${item.id})" class="flex-1 py-3 bg-blue-700 hover:bg-blue-600 text-white font-bold rounded-xl transition cursor-pointer">Editar</button>
-            <button onclick="window.ColeXApp.eliminarObra(${item.id})" class="flex-1 py-3 bg-red-700 hover:bg-red-600 text-white font-bold rounded-xl transition cursor-pointer">Eliminar</button>
+            <button id="btnEditarDetalle" class="flex-1 py-3 bg-blue-700 hover:bg-blue-600 text-white font-bold rounded-xl transition cursor-pointer">Editar</button>
+            <button id="btnEliminarDetalle" class="flex-1 py-3 bg-red-700 hover:bg-red-600 text-white font-bold rounded-xl transition cursor-pointer">Eliminar</button>
         </div>
     `;
+
+    // Vincular botones dinámicos de detalle
+    const btnEdit = document.getElementById('btnEditarDetalle');
+    const btnDel = document.getElementById('btnEliminarDetalle');
+    if (btnEdit) btnEdit.onclick = () => irAFormulario(item.id);
+    if (btnDel) btnDel.onclick = () => eliminarObra(item.id);
 
     cambiarPantalla('viewDetalle');
 }
@@ -513,28 +515,36 @@ function descargarArchivo(contenido, nombre, tipo) {
     URL.revokeObjectURL(url);
 }
 
-// ================= EXPOSICIÓN GLOBAL DEFINITIVA =================
-window.ColeXApp = {
-    irAFormulario,
-    irAColeccion,
-    irAEstadisticas,
-    guardarObra,
-    eliminarObra,
-    verDetalle,
-    toggleModoVitrina,
-    buscar,
-    ordenarColeccion,
-    cambiarTipo,
-    procesarArchivo,
-    aplicarFiltros,
-    limpiarFiltros,
-    exportarCSV,
-    exportarExcel,
-    exportarPDF
-};
-
-// Carga Inicial al Arrancar el DOM
+// ================= INICIALIZACIÓN POR EVENT LISTENERS (SIN FALLOS DE CLIC) =================
 document.addEventListener('DOMContentLoaded', () => {
     inicializarModoVitrina();
     cargarColeccion();
+
+    // Enlace seguro de botones principales
+    const safeAddListener = (id, evento, callback) => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener(evento, callback);
+    };
+
+    safeAddListener('btnVitrinaToggle', 'click', toggleModoVitrina);
+    safeAddListener('btnIrFormularioHeader', 'click', () => irAFormulario(null));
+    safeAddListener('navColeccion', 'click', irAColeccion);
+    safeAddListener('navAgregar', 'click', () => irAFormulario(null));
+    safeAddListener('navStats', 'click', irAEstadisticas);
+    
+    safeAddListener('btnVolverDetalle', 'click', irAColeccion);
+    safeAddListener('btnVolverForm', 'click', irAColeccion);
+    safeAddListener('btnVolverStats', 'click', irAColeccion);
+
+    safeAddListener('formObra', 'submit', guardarObra);
+    safeAddListener('tipoMaterial', 'change', (e) => cambiarTipo(e.target.value));
+    safeAddListener('portadaFile', 'change', (e) => procesarArchivo(e.target));
+    safeAddListener('searchInput', 'input', (e) => buscar(e.target.value));
+    safeAddListener('selectOrden', 'change', (e) => ordenarColeccion(e.target.value));
+
+    safeAddListener('btnAplicarFiltros', 'click', aplicarFiltros);
+    safeAddListener('btnLimpiarFiltros', 'click', limpiarFiltros);
+    safeAddListener('btnExportCSV', 'click', exportarCSV);
+    safeAddListener('btnExportExcel', 'click', exportarExcel);
+    safeAddListener('btnExportPDF', 'click', exportarPDF);
 });
