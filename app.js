@@ -298,7 +298,7 @@ function renderizarColeccion(lista) {
 
         const card = document.createElement('div');
         card.className = 'colex-card p-3 rounded-2xl flex items-center justify-between gap-3 shadow-md hover:border-amber-600 transition cursor-pointer relative';
-        card.onclick = () => window.ColeXApp.verDetalle(item.id);
+        card.addEventListener('click', () => verDetalle(item.id));
 
         card.innerHTML = `
             <div class="flex items-center space-x-3 overflow-hidden">
@@ -392,10 +392,14 @@ function verDetalle(id) {
         </div>
 
         <div class="flex space-x-3 pt-2 admin-only">
-            <button onclick="window.ColeXApp.irAFormulario(${item.id})" class="flex-1 py-3 bg-blue-700 hover:bg-blue-600 text-white font-bold rounded-xl transition cursor-pointer">Editar</button>
-            <button onclick="window.ColeXApp.eliminarObra(${item.id})" class="flex-1 py-3 bg-red-700 hover:bg-red-600 text-white font-bold rounded-xl transition cursor-pointer">Eliminar</button>
+            <button id="btnEditarObra" class="flex-1 py-3 bg-blue-700 hover:bg-blue-600 text-white font-bold rounded-xl transition cursor-pointer">Editar</button>
+            <button id="btnEliminarObra" class="flex-1 py-3 bg-red-700 hover:bg-red-600 text-white font-bold rounded-xl transition cursor-pointer">Eliminar</button>
         </div>
     `;
+
+    // Vincular botones dinámicos de detalle de forma segura
+    document.getElementById('btnEditarObra').addEventListener('click', () => irAFormulario(item.id));
+    document.getElementById('btnEliminarObra').addEventListener('click', () => eliminarObra(item.id));
 
     cambiarPantalla('viewDetalle');
 }
@@ -511,28 +515,41 @@ function descargarArchivo(contenido, nombre, tipo) {
     URL.revokeObjectURL(url);
 }
 
-// ================= VINCULACIÓN GLOBAL DEFINITIVA =================
-window.ColeXApp = {
-    irAFormulario,
-    irAColeccion,
-    irAEstadisticas,
-    guardarObra,
-    eliminarObra,
-    verDetalle,
-    toggleModoVitrina,
-    buscar,
-    ordenarColeccion,
-    cambiarTipo,
-    procesarArchivo,
-    aplicarFiltros,
-    limpiarFiltros,
-    exportarCSV,
-    exportarExcel,
-    exportarPDF
-};
-
-// Carga Inicial al Arrancar
+// ================= VINCULACIÓN AUTOMÁTICA DE EVENTOS (ADIÓS ONCLICK) =================
 document.addEventListener('DOMContentLoaded', () => {
     inicializarModoVitrina();
     cargarColeccion();
+
+    // Enlaces de Botones Principales y Navegación
+    document.getElementById('btnVitrinaToggle').addEventListener('click', toggleModoVitrina);
+    document.getElementById('btnIrFormTop').addEventListener('click', () => irAFormulario());
+    document.getElementById('navColeccion').addEventListener('click', irAColeccion);
+    document.getElementById('navAgregar').addEventListener('click', () => irAFormulario());
+    document.getElementById('navStats').addEventListener('click', irAEstadisticas);
+    
+    // Botones de Retorno
+    document.getElementById('btnVolverDetalle').addEventListener('click', irAColeccion);
+    document.getElementById('btnVolverForm').addEventListener('click', irAColeccion);
+    document.getElementById('btnVolverStats').addEventListener('click', irAColeccion);
+
+    // Formulario y Filtros
+    document.getElementById('formObra').addEventListener('submit', guardarObra);
+    document.getElementById('btnAplicarFiltros').addEventListener('click', aplicarFiltros);
+    document.getElementById('btnLimpiarFiltros').addEventListener('click', limpiarFiltros);
+
+    // Exportadores
+    document.getElementById('btnExportCSV').addEventListener('click', exportarCSV);
+    document.getElementById('btnExportExcel').addEventListener('click', exportarExcel);
+    document.getElementById('btnExportPDF').addEventListener('click', exportarPDF);
+
+    // Búsqueda y Ordenamiento
+    document.getElementById('searchInput').addEventListener('input', (e) => buscar(e.target.value));
+    document.getElementById('selectOrden').addEventListener('change', (e) => ordenarColeccion(e.target.value));
+    document.getElementById('tipoMaterial').addEventListener('change', (e) => cambiarTipo(e.target.value));
+
+    // Archivo local
+    const fileInput = document.getElementById('portadaFile');
+    if (fileInput) {
+        fileInput.addEventListener('change', function() { procesarArchivo(this); });
+    }
 });
