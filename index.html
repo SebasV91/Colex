@@ -8,7 +8,6 @@
     <!-- Tailwind CSS v2 Estático -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     
-    <!-- Estilos de la biblioteca antigua, opacidad, colores forzados y modo vitrina -->
     <style>
         .library-bg {
             background-image: linear-gradient(rgba(15, 23, 42, 0.92), rgba(30, 20, 10, 0.96)), url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=1200&q=80');
@@ -23,42 +22,17 @@
         .bg-amber-btn { background-color: #b45309 !important; }
         .bg-amber-btn:hover { background-color: #d97706 !important; }
 
-        /* Clases personalizadas forzadas para el Logo CX */
         .cx-block-c { background-color: #ea580c !important; color: #ffffff !important; }
         .cx-block-x { background-color: #f97316 !important; color: #ffffff !important; }
 
-        /* Ocultar elementos de administración en Modo Vitrina Público */
         body.public-mode .admin-only { display: none !important; }
     </style>
-
-    <!-- Stub de Seguridad contra Race Conditions -->
-    <script>
-        window.ColeXApp = window.ColeXApp || {
-            irAFormulario: () => {},
-            irAColeccion: () => {},
-            irAEstadisticas: () => {},
-            guardarObra: (e) => { if(e) e.preventDefault(); },
-            verDetalle: () => {},
-            eliminarObra: () => {},
-            toggleModoVitrina: () => {},
-            buscar: () => {},
-            ordenarColeccion: () => {},
-            cambiarTipo: () => {},
-            procesarArchivo: () => {},
-            aplicarFiltros: () => {},
-            limpiarFiltros: () => {},
-            exportarCSV: () => {},
-            exportarExcel: () => {},
-            exportarPDF: () => {}
-        };
-    </script>
 </head>
 <body class="library-bg text-slate-100 min-h-screen flex justify-center items-center p-0 sm:p-4">
 
-    <!-- Contenedor Principal con Escudo Sutil de Fondo -->
     <div class="w-full max-w-md colex-container min-h-screen sm:min-h-[880px] sm:max-h-[920px] sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden relative">
         
-        <!-- Marca de Agua de Fondo: Escudo Superhéroe Centrado y Ajustado -->
+        <!-- Marca de Agua de Fondo -->
         <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-0 select-none overflow-hidden opacity-8">
             <svg class="w-80 h-80 sm:w-96 sm:h-96 text-amber-500" viewBox="0 0 200 220" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M100 15 L180 38 C180 120 145 175 100 205 C55 175 20 120 20 38 Z" fill="none" stroke="currentColor" stroke-width="6" stroke-linejoin="round" stroke-opacity="0.35"/>
@@ -67,12 +41,10 @@
             </svg>
         </div>
 
-        <!-- Contenido Real con z-index superior -->
         <div class="relative z-10 flex-1 flex flex-col overflow-hidden">
 
             <!-- ================= PANTALLA 1: MI COLECCIÓN ================= -->
             <section id="viewColeccion" class="app-screen flex-1 flex flex-col p-5 overflow-y-auto">
-                <!-- Header con Logo CX, Botón Modo Vitrina y Botón Agregar -->
                 <div class="flex justify-between items-center mb-4 pt-2">
                     <div class="flex items-center space-x-3">
                         <div class="flex items-center shadow-lg rounded-xl overflow-hidden border-2 border-amber-600">
@@ -82,14 +54,11 @@
                         <h1 class="text-3xl font-extrabold text-amber-custom tracking-tight">ColeX</h1>
                     </div>
                     <div class="flex items-center space-x-2">
-                        <!-- Botón de Modo Vitrina / Exhibición -->
                         <button onclick="ColeXApp.toggleModoVitrina()" id="btnVitrinaToggle" class="w-10 h-10 colex-card text-amber-custom hover:bg-amber-700 hover:text-white rounded-full flex items-center justify-center text-base transition cursor-pointer shadow-md" title="Alternar Modo Vitrina / Público">👁️</button>
-                        <!-- Botón Agregar Ítem -->
                         <button onclick="ColeXApp.irAFormulario()" class="w-10 h-10 colex-card text-amber-custom hover:bg-amber-700 hover:text-white rounded-full flex items-center justify-center text-3xl font-light transition cursor-pointer shadow-md admin-only">+</button>
                     </div>
                 </div>
 
-                <!-- Buscador y Selector de Ordenamiento -->
                 <div class="mb-4 space-y-2">
                     <input type="text" id="searchInput" oninput="ColeXApp.buscar(this.value)" placeholder="🔍 Buscar por título, autor, notas..." class="w-full p-3 colex-input rounded-xl text-sm placeholder-gray-400 transition">
                     <div class="flex items-center justify-between">
@@ -105,11 +74,109 @@
                     </div>
                 </div>
 
-                <!-- Lista de la Colección -->
                 <div id="listColeccion" class="space-y-4 flex-1 overflow-y-auto pr-1">
-                    <!-- Se inyecta dinámicamente con JS -->
+                    <!-- Dinámico -->
                 </div>
 
-                <!-- Navegación Inferior -->
-                <div class="pt-3 pb-2 mt-2 border-t border-gray-800 flex justify-around items-center text-gray-400 colex-container">
-                    <button onclick="ColeXApp.irAFormulario()" class="text-3xl font-
+                <!-- Barra de Navegación Inferior Restaurada -->
+                <div class="pt-3 pb-2 mt-2 border-t border-gray-800 flex justify-around items-center text-amber-custom colex-container rounded-2xl">
+                    <button onclick="ColeXApp.irAColeccion()" class="flex flex-col items-center text-xs hover:text-white transition cursor-pointer p-1">
+                        <span class="text-xl">📚</span>
+                        <span>Colección</span>
+                    </button>
+                    <button onclick="ColeXApp.irAFormulario()" class="flex flex-col items-center text-xs hover:text-white transition cursor-pointer p-1 admin-only">
+                        <span class="text-xl">➕</span>
+                        <span>Agregar</span>
+                    </button>
+                    <button onclick="ColeXApp.irAEstadisticas()" class="flex flex-col items-center text-xs hover:text-white transition cursor-pointer p-1">
+                        <span class="text-xl">📊</span>
+                        <span>Filtros & Stats</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- ================= PANTALLA 2: DETALLE ================= -->
+            <section id="viewDetalle" class="app-screen hidden flex-1 flex flex-col p-5 overflow-y-auto colex-container">
+                <button onclick="ColeXApp.irAColeccion()" class="text-amber-custom hover:text-white text-2xl mb-4 self-start cursor-pointer font-bold">← Volver</button>
+                <div id="detalleContent" class="space-y-4"></div>
+            </section>
+
+            <!-- ================= PANTALLA 3: FORMULARIO ================= -->
+            <section id="viewForm" class="app-screen hidden flex-1 flex flex-col p-5 overflow-y-auto colex-container">
+                <div class="flex items-center mb-6 pt-2">
+                    <button onclick="ColeXApp.irAColeccion()" class="text-amber-custom hover:text-white text-2xl mr-4 cursor-pointer font-bold">←</button>
+                    <h2 id="formTitle" class="text-xl font-bold text-amber-custom">Agregar Coleccionable</h2>
+                </div>
+
+                <form id="formObra" onsubmit="ColeXApp.guardarObra(event)" class="space-y-4 flex-1 flex flex-col justify-between pb-4">
+                    <input type="hidden" id="editObraId" value="">
+
+                    <div class="space-y-3.5">
+                        <div class="flex flex-col p-4 colex-card rounded-2xl border-2 border-dashed border-gray-600 space-y-2.5">
+                            <span class="text-xs font-bold text-amber-custom flex items-center justify-between">
+                                <span>📷 Foto / Portada</span>
+                                <span id="compressBadge" class="hidden text-[10px] text-green-400 font-normal">⚡ Imagen Comprimida</span>
+                            </span>
+                            <div>
+                                <label for="portadaFile" class="flex items-center justify-center gap-2 w-full py-2.5 px-3 colex-card hover:bg-gray-700 rounded-xl text-xs font-semibold text-amber-custom cursor-pointer transition shadow-sm">
+                                    📁 Elegir archivo local (jpg, png, webp)
+                                </label>
+                                <input type="file" id="portadaFile" onchange="ColeXApp.procesarArchivo(this)" accept=".jpg, .jpeg, .png, .webp" class="hidden">
+                                <span id="fileName" class="block text-[11px] text-gray-400 mt-1 text-center truncate">Sin archivo seleccionado</span>
+                            </div>
+                            <div class="text-center text-[10px] text-gray-400 font-medium uppercase tracking-wider">- o pega la url de la imagen -</div>
+                            <div>
+                                <input type="url" id="portadaUrl" placeholder="https://..." class="w-full text-center text-xs p-2.5 colex-input rounded-lg placeholder-gray-500">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Nombre / Título *</label>
+                            <input type="text" id="titulo" required class="w-full p-3 colex-input rounded-xl text-sm" placeholder="Ej. The Dark Knight">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Número / Set</label>
+                                <input type="text" id="numero" class="w-full p-3 colex-input rounded-xl text-sm" placeholder="Ej. #1">
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Año</label>
+                                <input type="number" id="anio" class="w-full p-3 colex-input rounded-xl text-sm" placeholder="Ej. 2023">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Categoría *</label>
+                                <select id="tipoMaterial" required onchange="ColeXApp.cambiarTipo(this.value)" class="w-full p-3 colex-input rounded-xl text-sm">
+                                    <option value="" class="bg-gray-900">Seleccionar...</option>
+                                    <option value="Cómic / Manga / Libro / Fanzine / Revista" class="bg-gray-900">Cómic / Manga / Libro / Fanzine / Revista</option>
+                                    <option value="Cartas TCG" class="bg-gray-900">Cartas TCG</option>
+                                    <option value="Vehículos a Escala (Hot Wheels)" class="bg-gray-900">Hot Wheels / Vehículos</option>
+                                    <option value="Figuras / Funkos / Estatuas" class="bg-gray-900">Figuras / Funkos / Estatuas</option>
+                                    <option value="Videojuegos / Retro" class="bg-gray-900">Videojuegos / Retro</option>
+                                    <option value="Música (LPs/Vinilos, CDs)" class="bg-gray-900">Música (LPs/Vinilos, CDs)</option>
+                                    <option value="Otro / Fanzine" class="bg-gray-900">Otro / Fanzine</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Variante / Formato *</label>
+                                <select id="subtipoMaterial" required class="w-full p-3 colex-input rounded-xl text-sm">
+                                    <option value="" class="bg-gray-900">Selecciona categoría...</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="leidoContainer" class="hidden flex items-center space-x-3 p-3 colex-card rounded-xl border border-amber-600/40">
+                            <input type="checkbox" id="chkLeido" class="w-5 h-5 text-amber-600 bg-gray-900 border-gray-600 rounded cursor-pointer">
+                            <label for="chkLeido" class="text-xs font-semibold text-amber-custom cursor-pointer select-none flex-1">
+                                📖 ¿Leído / Completado?
+                            </label>
+                        </div>
+
+                        <div>
+                            <label class="text-xs text-amber-custom font-semibold uppercase tracking-wider">Calificación Personal (★)</label>
+                            <select id="estrellas" class="w-full p-3 colex-input rounded-xl text-sm">
+                                <option value="0" class="bg-gray-900">Sin calificación</option>
+                                <option value="1" class="bg-gray-90
